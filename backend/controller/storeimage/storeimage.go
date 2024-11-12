@@ -19,29 +19,32 @@ func GetStoreImages(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": images})
 }
 
-// CreateStoreImage: เพิ่มรูปภาพให้ร้าน
 func CreateStoreImage(c *gin.Context) {
-	var storeImage entity.StoreImage
-	if err := c.ShouldBindJSON(&storeImage); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
-		return
-	}
+    var storeImage entity.StoreImage
+    if err := c.ShouldBindJSON(&storeImage); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+        return
+    }
 
-	if storeImage.StoreID == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Store ID is required"})
-		return
-	}
+    // ตรวจสอบว่า StoreID และ ImageURL ถูกต้อง
+    // if storeImage.StoreID == 0 || storeImage.ImageURL == "" {
+    //     c.JSON(http.StatusBadRequest, gin.H{"error": "Store ID and Image URL are required"})
+    //     return
+    // }
+	//ติด ตรง url ไม่ถูก
 
-	var store entity.Store
-	if err := config.DB().First(&store, storeImage.StoreID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
-		return
-	}
+    // ค้นหา store จาก StoreID
+    var store entity.Store
+    if err := config.DB().First(&store, storeImage.StoreID).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
+        return
+    }
 
-	if err := config.DB().Create(&storeImage).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add store image"})
-		return
-	}
+    // บันทึก StoreImage ลงในฐานข้อมูล
+    if err := config.DB().Create(&storeImage).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add store image"})
+        return
+    }
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Store image added successfully", "storeImage": storeImage})
+    c.JSON(http.StatusCreated, gin.H{"message": "Store image added successfully", "storeImage": storeImage})
 }

@@ -12,10 +12,12 @@ function CreateStore() {
     const [storeImages, setStoreImages] = useState<StoreImageInterface[]>([]);
     const [services, setServices] = useState<ServiceInterface[]>([]);
 
+    // ฟังก์ชันเพิ่มบริการใหม่
     const addService = () => {
         setServices([...services, { name: '', price: 0, duration: 0 }]);
     };
 
+    // ฟังก์ชันสำหรับเมื่อฟอร์มถูกส่ง
     const onFinish = async (values: any) => {
         const storeData = {
             name: values.name,
@@ -24,29 +26,31 @@ function CreateStore() {
             description: values.description,
             time_open: values.time_open.format("HH:mm"),
             status: values.status,
-            userown_id: 1, // Assuming the user ID is 1 for now, replace with dynamic session ID.
+            userown_id: 1, // ระบุ ID ของเจ้าของร้าน (หากไม่มีก็สามารถข้ามได้)
         };
 
         try {
             const response = await CreateNewStore(storeData);
             if (response.status === 201) {
+                const storeId = response.data.store_id; // ดึง store_id จากผลลัพธ์
+
                 message.success("Store created successfully!");
 
-                // Save store images
+                // อัปโหลดภาพร้าน
                 const uploadImagePromises = storeImages.map((file) => {
                     const imageData = {
-                        store_id: 1, // Replace with the actual store ID after creation
+                        store_id: storeId, // ใช้ store_id ที่สร้างขึ้น
                         image_url: file.url
                     };
-                    return CreateStoreImage(imageData); // Send API request to upload image
+                    return CreateStoreImage(imageData);
                 });
 
-                await Promise.all(uploadImagePromises); // Wait for all image uploads to complete
+                await Promise.all(uploadImagePromises);
 
-                // Save services
-                const servicePromises = servicaes.map((service) => {
+                // บันทึกบริการสำหรับร้าน
+                const servicePromises = services.map((service) => {
                     const serviceData = {
-                        store_id: 1,
+                        store_id: storeId, // ใช้ store_id ที่สร้างขึ้น
                         name_service: service.name,
                         duration: service.duration,
                         price: service.price,
@@ -57,7 +61,7 @@ function CreateStore() {
                     });
                 });
 
-                await Promise.all(servicePromises); // Wait for all services to be saved
+                await Promise.all(servicePromises);
 
                 message.success("Store, images, and services saved successfully!");
             }
@@ -106,7 +110,7 @@ function CreateStore() {
                     listType="picture-card"
                     fileList={storeImages}
                     onChange={({ fileList }) => setStoreImages(fileList)}
-                    beforeUpload={() => false}
+                    beforeUpload={() => false} // กำหนดไม่ให้การอัปโหลดทำงานโดยอัตโนมัติ
                 >
                     {storeImages.length >= 5 ? null : (
                         <div>

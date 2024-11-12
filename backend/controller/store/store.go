@@ -11,36 +11,43 @@ import (
 func CreateStore(c *gin.Context) {
 	var store entity.Store
 
-	// Bind the JSON payload to the Store struct
+	// Bind JSON payload to the Store struct
 	if err := c.ShouldBindJSON(&store); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
 	db := config.DB()
 
-	// Retrieve the email from the context
+	// Retrieve the email from the context for authentication
 	email, exists := c.Get("userEmail")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
 	}
 
-	// Find the user ID by email
+	// Find the user by email
 	var user entity.Users
 	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user"})
 		return
 	}
 
+	// Set the UserID of the store to the authenticated user
 	store.UserID = user.ID
 
 	// Save the new Store to the database
 	if err := db.Create(&store).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create store"})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "Store created successfully", "store": store})
+
+	// Respond with the created store data including its ID
+	c.JSON(http.StatusCreated, gin.H{
+		"message":  "Store created successfully",
+		"store_id": store.ID, // Explicitly return the store ID
+		"store":    store,    // Return the entire store object if needed
+	})
 }
 
 // GetStoreByID: ดึงข้อมูลร้านตาม ID
