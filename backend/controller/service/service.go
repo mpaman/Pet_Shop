@@ -6,32 +6,58 @@ import (
 	"github.com/mpaman/petshop/entity"
 	"github.com/gin-gonic/gin"
 )
+type (
+    addService struct {
+        StoreID     uint   `json:"store_id"`
+        NameService string `json:"name_service"`
+        Duration    int    `json:"duration"`
+        Price       int    `json:"price"`
+    }
+)
 
-// CreateService: สร้างบริการใหม่
+// CreateService handles the addition of a new service
 func CreateService(c *gin.Context) {
-	var service entity.Service
-	if err := c.ShouldBindJSON(&service); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
-		return
-	}
+    var payload addService
 
-	if service.StoreID == 0{
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Store ID is required"})
-		return
-	}
+    // Bind JSON payload to the struct
+    if err := c.ShouldBindJSON(&payload); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
-	var store entity.Store
-	if err := config.DB().First(&store, service.StoreID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
-		return
-	}
+    // Check if StoreID is provided
+    if payload.StoreID == 0 {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Store ID is required"})
+        return
+    }
 
-	if err := config.DB().Create(&service).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add service"})
-		return
-	}
+    // Check if store exists in the database
+    var store entity.Store
+    if err := config.DB().First(&store, payload.StoreID).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
+        return
+    }
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Service added successfully", "service": service})
+    // Create the new service
+    service := entity.Service{
+        StoreID:     payload.StoreID,
+        NameService: payload.NameService,
+        Duration:    payload.Duration,
+        Price:       payload.Price,
+    }
+
+    // Save the service to the database
+    if err := config.DB().Create(&service).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    // Return a success message
+    c.JSON(http.StatusCreated, gin.H{
+        "status":  201,
+        "message": "Service added successfully",
+        "service": service,
+    })
 }
 
 // GetStoreServices: ดึงบริการทั้งหมดของร้านตาม Store ID

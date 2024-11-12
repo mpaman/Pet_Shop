@@ -1,60 +1,60 @@
+/* กำหนดรูปแบบของหน้า Login */
+.login-page {
+  background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ตกแต่ง Card */
+.card-login {
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+  background-color: #fff;
+}
+
+/* Logo */
+.login-logo {
+  width: 60%;
+  margin-bottom: 20px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ช่องกรอกข้อมูล */
+.input-field {
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+}
+
+/* ปุ่ม login */
+.login-form-button {
+  background-color: #3a7bd5;
+  border-color: #3a7bd5;
+  color: #fff;
+  font-size: 16px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+/* การจัดการลิงก์สำหรับ signup */
+.signup-link {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.signup-link a {
+  color: #3a7bd5;
+  font-weight: bold;
+  text-decoration: none;
+}
 body {
 
   margin: 0;
 
 }
 
-
-.login {
-
-  margin: 0;
-
-  height: 100vh;
-
-  width: 100%;
-
-  /* overflow: scroll; */
-
-  background-color: #F5F5F5;
-
-}
-
-
-.header {
-
-  text-align: center;
-
-}
-
-
-.card-login {
-
-  overflow-y: scroll;
-
-  width: 70%;
-
-  height: auto;
-
-  max-height: 550px;
-
-}
-
-
-.images-logo {
-
-  width: 100%;
-
-  height: auto;
-
-  max-height: 400px;
-
-  object-fit: contain;
-
-}
-
-
-.login-form-button {
-
-  width: 100%;
-
-}

@@ -11,6 +11,7 @@ const { Option } = Select;
 function CreateStore() {
     const [storeImages, setStoreImages] = useState<StoreImageInterface[]>([]);
     const [services, setServices] = useState<ServiceInterface[]>([]);
+    const [image, setImage] = useState<string | undefined>(undefined);
 
     // ฟังก์ชันเพิ่มบริการใหม่
     const addService = () => {
@@ -19,6 +20,11 @@ function CreateStore() {
 
     // ฟังก์ชันสำหรับเมื่อฟอร์มถูกส่ง
     const onFinish = async (values: any) => {
+        let payload = {
+            ...values,
+            picture: image, // use the base64 image
+        };
+
         const storeData = {
             name: values.name,
             location: values.location,
@@ -71,6 +77,30 @@ function CreateStore() {
         }
     };
 
+    // ฟังก์ชันสำหรับอัปโหลดภาพและแปลงเป็น base64
+    const handleBeforeUpload = (file: any) => {
+        const isImage = file.type.startsWith('image/');
+        if (!isImage) {
+            message.error('You can only upload image files!');
+        }
+        return isImage;
+    };
+
+    const handleChangeImage = async ({ fileList }: any) => {
+        const imageList = fileList.map((file: any) => {
+            if (file.originFileObj) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file.originFileObj);
+                reader.onload = () => {
+                    setStoreImages(fileList.map((item: any) => ({
+                        url: reader.result as string
+                    })));
+                };
+            }
+            return file;
+        });
+    };
+
     return (
         <Form layout="vertical" onFinish={onFinish}>
             <h2>Create Store</h2>
@@ -104,13 +134,12 @@ function CreateStore() {
             </Form.Item>
 
             <Divider />
-
             <Form.Item label="Upload Images">
                 <Upload
                     listType="picture-card"
                     fileList={storeImages}
-                    onChange={({ fileList }) => setStoreImages(fileList)}
-                    beforeUpload={() => false} // กำหนดไม่ให้การอัปโหลดทำงานโดยอัตโนมัติ
+                    onChange={handleChangeImage}
+                    beforeUpload={handleBeforeUpload} // เช็คประเภทของไฟล์
                 >
                     {storeImages.length >= 5 ? null : (
                         <div>
