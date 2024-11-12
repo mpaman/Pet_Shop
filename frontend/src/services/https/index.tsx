@@ -57,7 +57,7 @@ async function CreateUser(data: UsersInterface) {
 
 // Store API calls
 async function GetAllStores() {
-    return await axios.get(`${apiUrl}/stores`, { headers: requestOptions.headers })
+    return await axios.get(`${apiUrl}/stores`, requestOptions)
         .then((res) => res)
         .catch((e) => e.response);
 }

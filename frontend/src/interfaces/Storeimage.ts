@@ -1,8 +1,10 @@
 import { StoreInterface } from './Store';
 
 export interface StoreImageInterface {
+    url: any;
+    response: any;
     ID?: number;
-    ImageUrl: string;
-    StoreID: number;
-    Store?: StoreInterface;
+    image_url: string;
+    store_id: number;
+    store?: StoreInterface;
 }

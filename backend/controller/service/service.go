@@ -10,26 +10,28 @@ import (
 // CreateService: สร้างบริการใหม่
 func CreateService(c *gin.Context) {
 	var service entity.Service
-
-	// Bind JSON payload to Service struct
 	if err := c.ShouldBindJSON(&service); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	// ตรวจสอบว่า Store มีอยู่จริงหรือไม่
+	if service.StoreID == 0{
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Store ID is required"})
+		return
+	}
+
 	var store entity.Store
 	if err := config.DB().First(&store, service.StoreID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
 		return
 	}
 
-	// สร้างบริการในฐานข้อมูล
 	if err := config.DB().Create(&service).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add service"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Service added successfully", "service": service})
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Service added successfully", "service": service})
 }
 
 // GetStoreServices: ดึงบริการทั้งหมดของร้านตาม Store ID

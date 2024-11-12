@@ -57,8 +57,10 @@ func GetStoreByID(c *gin.Context) {
 // GetAllStores: ดึงข้อมูลร้านทั้งหมด
 func GetAllStores(c *gin.Context) {
 	var stores []entity.Store
-	if err := config.DB().Preload("User").Find(&stores).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	db := config.DB()
+	results := db.Preload("User").Find(&stores)
+	if results.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": results.Error.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": stores})

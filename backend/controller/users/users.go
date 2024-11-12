@@ -134,8 +134,6 @@ func GetUserProfile(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": result.Error.Error()})
 		return
 	}
-	//ฟังก์ชันจะใช้คำสั่ง db.Preload("Gender").Where("email = ?", email).First(&user) 
-	//เพื่อค้นหาข้อมูลผู้ใช้ในตาราง Users โดยใช้เงื่อนไขค้นหาจาก อีเมล ที่ดึงได้จาก context และ preload ความสัมพันธ์กับตาราง Gender เพื่อดึงข้อมูลเพศของผู้ใช้มาด้วย
 
 	// Return user profile details
 	c.JSON(http.StatusOK, gin.H{
@@ -146,3 +144,8 @@ func GetUserProfile(c *gin.Context) {
 		"Role":  user.Role,
 	})
 }
+func extractUserIDFromToken(token string) (uint, error) {
+	// Implement your token parsing and validation logic here
+	// This is a placeholder function
+	return 1, nil // Replace with actual implementation
+}//เป็นฟังก์ชันใน Go ที่ใช้สำหรับการดึง UserID จาก JWT (JSON Web Token) ที่ได้รับจาก client

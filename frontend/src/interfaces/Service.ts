@@ -3,9 +3,11 @@ import { StoreInterface } from './Store';
 
 
 export interface ServiceInterface {
+    name: any;
     ID?: number;
-    StoreID: number;
-    Store?: StoreInterface;
-    Nameservice: string; // ชื่อของบริการที่ให้เลือก
-    Price: string;
+    store_id: number;
+    store?: StoreInterface;
+    name_service: string; // ชื่อของบริการ
+    price: number;
+    duration: number; 
 }

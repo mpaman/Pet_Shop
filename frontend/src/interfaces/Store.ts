@@ -1,14 +1,15 @@
-import { UsersInterface } from './IUser';
+
 export interface StoreInterface {
-    user: any;
     ID?: number;
-    UserownID: number;
-    Userown?: UsersInterface;
-    Name: string;
-    Location: string;
-    Phone: string;
-    ContactInfo: string;
-    Description: string;
-    TimeOpen: string;
-    Status: string; // เช่น "open", "close", "full"
+    user_id: number; // เปลี่ยนเป็น UserID ตามที่ backend กำหนด
+    User: {
+        FirstName: string;
+        LastName: string;
+    };
+    name: string;
+    location: string;
+    contact_info: string;
+    description: string;
+    time_open: string;
+    status: string; // เช่น "open", "close", "full"
 }

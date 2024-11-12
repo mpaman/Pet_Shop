@@ -1,21 +1,16 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Select, TimePicker, Upload, message, InputNumber, Divider, Row, Col } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { UploadFile } from 'antd/lib/upload/interface';
-import { CreateStoreImage, CreateService, CreateStore as CreateNewStore } from '../../../services/https'; // เปลี่ยนชื่อที่นี่
+import { StoreImageInterface } from "../../../interfaces/Storeimage";
+import { ServiceInterface } from "../../../interfaces/Service";
+import { CreateStoreImage, CreateService, CreateStore as CreateNewStore } from '../../../services/https';
 
 const { TextArea } = Input;
 const { Option } = Select;
 
-interface StoreService {
-    name: string;
-    price: number;
-    duration: number;
-}
-
-function CreateStore() {  // ชื่อฟังก์ชันที่ใช้ภายในไฟล์
-    const [storeImages, setStoreImages] = useState<UploadFile[]>([]);
-    const [services, setServices] = useState<StoreService[]>([]);
+function CreateStore() {
+    const [storeImages, setStoreImages] = useState<StoreImageInterface[]>([]);
+    const [services, setServices] = useState<ServiceInterface[]>([]);
 
     const addService = () => {
         setServices([...services, { name: '', price: 0, duration: 0 }]);
@@ -23,33 +18,46 @@ function CreateStore() {  // ชื่อฟังก์ชันที่ใช
 
     const onFinish = async (values: any) => {
         const storeData = {
-            Name: values.name,
-            Location: values.location,
-            ContactInfo: values.contact_info,
-            Description: values.description,
-            TimeOpen: values.time_open.format("HH:mm"),
-            Status: values.status,
-            UserownID: 1, // เปลี่ยนเป็น ID ของผู้ใช้ปัจจุบันที่รับจาก session
+            name: values.name,
+            location: values.location,
+            contact_info: values.contact_info,
+            description: values.description,
+            time_open: values.time_open.format("HH:mm"),
+            status: values.status,
+            userown_id: 1, // Assuming the user ID is 1 for now, replace with dynamic session ID.
         };
 
         try {
-            const response = await CreateNewStore(storeData); // ใช้ CreateNewStore แทน
-            if (response.status === 200) {
+            const response = await CreateNewStore(storeData);
+            if (response.status === 201) {
                 message.success("Store created successfully!");
 
-                const storeID = response.data.ID;
+                // Save store images
+                const uploadImagePromises = storeImages.map((file) => {
+                    const imageData = {
+                        store_id: 1, // Replace with the actual store ID after creation
+                        image_url: file.url
+                    };
+                    return CreateStoreImage(imageData); // Send API request to upload image
+                });
 
-                // บันทึกรูปภาพ
-                const uploadPromises = storeImages.map((file) =>
-                    CreateStoreImage({ StoreID: storeID, ImageUrl: file.url })
-                );
-                await Promise.all(uploadPromises);
+                await Promise.all(uploadImagePromises); // Wait for all image uploads to complete
 
-                // บันทึกข้อมูลบริการ
-                const servicePromises = services.map((service) =>
-                    CreateService({ StoreID: storeID, Nameservice: service.name, Price: service.price, Duration: service.duration })
-                );
-                await Promise.all(servicePromises);
+                // Save services
+                const servicePromises = servicaes.map((service) => {
+                    const serviceData = {
+                        store_id: 1,
+                        name_service: service.name,
+                        duration: service.duration,
+                        price: service.price,
+                    };
+                    return CreateService(serviceData).catch((error) => {
+                        console.error('Error creating service:', error);
+                        message.error('Failed to create service');
+                    });
+                });
+
+                await Promise.all(servicePromises); // Wait for all services to be saved
 
                 message.success("Store, images, and services saved successfully!");
             }
