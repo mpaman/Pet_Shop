@@ -62,17 +62,6 @@ async function GetAllStores() {
         .catch((e) => e.response);
 }
 
-async function GetStoreById(id: string) {
-    return await axios.get(`${apiUrl}/store/${id}`, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-
-async function UpdateStoreById(id: string, data: StoreInterface) {
-    return await axios.put(`${apiUrl}/store/${id}`, data, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
 
 async function DeleteStoreById(id: string) {
     return await axios.delete(`${apiUrl}/store/${id}`, { headers: requestOptions.headers })
@@ -103,6 +92,11 @@ export const GetUserProfile = async (): Promise<any> => {
         throw error;
     }
 };
+async function GetStoreByID(id: string) {
+    return await axios.get(`${apiUrl}/store/${id}`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
 
 async function CreateStore(data: StoreInterface) {
     return await axios.post(`${apiUrl}/store`, data, { headers: requestOptions.headers })
@@ -121,28 +115,53 @@ async function CreateStoreImage(data: StoreImageInterface) {
 }
 
 
+async function UpdateStore(id: string, data: StoreInterface) {
+    return await axios.put(`${apiUrl}/store/${id}`, data, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function UpdateService(id: string, data: ServiceInterface) {
+    return await axios.put(`${apiUrl}/service/${id}`, data, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function UpdateStoreImage(id: string, data: StoreImageInterface) {
+    return await axios.put(`${apiUrl}/storeimage/${id}`, data, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
 
-export const GetStoreImages = async (storeId: string) => {
-    return await axios.get(`${apiUrl}/storeimages?storeId=${storeId}`, requestOptions);
-};
+async function GetStoreImages(id: string) {
+    return await axios.get(`${apiUrl}/storeimages/${id}`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function GetStoreServices(id: string) {
+    return await axios.get(`${apiUrl}/service/${id}`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
 
 
-export const GetStoreServices = async (storeId: string) => {
-    return await axios.get(`${apiUrl}/service/${storeId}`, requestOptions);
-};
+
+
 
 
 // Export all functions
 export {
     SignIn,
+    GetStoreImages,
+    UpdateStoreImage,
+    UpdateStore,
+    UpdateService,
+    GetStoreServices,
     GetUsers,
     GetUsersById,
     UpdateUsersById,
     DeleteUsersById,
     CreateUser,
     GetAllStores,
-    GetStoreById,
-    UpdateStoreById,
+    GetStoreByID,
     DeleteStoreById,
     CreateStore,
     CreateService,

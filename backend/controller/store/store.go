@@ -52,46 +52,59 @@ func CreateStore(c *gin.Context) {
 
 // GetStoreByID: ดึงข้อมูลร้านตาม ID
 func GetStoreByID(c *gin.Context) {
-	id := c.Param("id")
-	var store entity.Store
-	if err := config.DB().Preload("User").First(&store, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"data": store})
+    id := c.Param("id")
+    var store entity.Store
+    if err := config.DB().Preload("User").First(&store, id).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"data": store})
 }
 
 // GetAllStores: ดึงข้อมูลร้านทั้งหมด
 func GetAllStores(c *gin.Context) {
-	var stores []entity.Store
-	db := config.DB()
-	results := db.Preload("User").Find(&stores)
-	if results.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": results.Error.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"data": stores})
+    var stores []entity.Store
+    db := config.DB()
+    results := db.Preload("User").Find(&stores)
+    if results.Error != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": results.Error.Error()})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"data": stores})
 }
 
-// UpdateStore: อัปเดตร้านตาม ID
 func UpdateStore(c *gin.Context) {
-	id := c.Param("id")
-	var store entity.Store
-	if err := config.DB().First(&store, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
-		return
-	}
+	storeID := c.Param("id")
+	var payload entity.Store
 
-	if err := c.ShouldBindJSON(&store); err != nil {
+	// Bind JSON payload to the struct
+	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := config.DB().Save(&store).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// ค้นหาร้านจาก ID
+	var store entity.Store
+	if err := config.DB().First(&store, storeID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Store updated successfully", "data": store})
+
+	// อัพเดตข้อมูลร้าน
+	store.Name = payload.Name
+	store.Location = payload.Location
+	store.ContactInfo = payload.ContactInfo
+	store.Description = payload.Description
+	store.TimeOpen = payload.TimeOpen
+	store.Status = payload.Status
+
+	// บันทึกข้อมูลที่อัพเดต
+	if err := config.DB().Save(&store).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update store"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Store updated successfully", "store": store})
 }
 
 // DeleteStore: ลบร้านตาม ID

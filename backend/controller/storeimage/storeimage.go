@@ -12,6 +12,7 @@ func GetStoreImages(c *gin.Context) {
 	storeID := c.Param("store_id")
 	var images []entity.StoreImage
 
+	// คิวรีเพื่อดึงรูปภาพทั้งหมดของ store ที่มี store_id ตรงกับ storeID
 	if err := config.DB().Where("store_id = ?", storeID).Find(&images).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve images"})
 		return
@@ -26,14 +27,6 @@ func CreateStoreImage(c *gin.Context) {
         return
     }
 
-    // ตรวจสอบว่า StoreID และ ImageURL ถูกต้อง
-    // if storeImage.StoreID == 0 || storeImage.ImageURL == "" {
-    //     c.JSON(http.StatusBadRequest, gin.H{"error": "Store ID and Image URL are required"})
-    //     return
-    // }
-	//ติด ตรง url ไม่ถูก
-
-    // ค้นหา store จาก StoreID
     var store entity.Store
     if err := config.DB().First(&store, storeImage.StoreID).Error; err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
@@ -47,4 +40,34 @@ func CreateStoreImage(c *gin.Context) {
     }
 
     c.JSON(http.StatusCreated, gin.H{"message": "Store image added successfully", "storeImage": storeImage})
+}
+
+func UpdateStoreImage(c *gin.Context) {
+	imageID := c.Param("id")
+	var payload entity.StoreImage
+
+	// Bind JSON payload to the struct
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// ค้นหารูปภาพจาก ID
+	var image entity.StoreImage
+	if err := config.DB().First(&image, imageID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Image not found"})
+		return
+	}
+
+	// อัพเดตรูปภาพ
+	image.ImageURL = payload.ImageURL
+	image.StoreID = payload.StoreID
+
+	// บันทึกข้อมูลที่อัพเดต
+	if err := config.DB().Save(&image).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update image"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Image updated successfully", "image": image})
 }

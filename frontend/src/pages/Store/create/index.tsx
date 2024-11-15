@@ -87,14 +87,16 @@ function CreateStore() {
     };
 
     const handleChangeImage = async ({ fileList }: any) => {
-        const imageList = fileList.map((file: any) => {
+        const newImageList = fileList.map((file: any) => {
             if (file.originFileObj) {
                 const reader = new FileReader();
                 reader.readAsDataURL(file.originFileObj);
                 reader.onload = () => {
-                    setStoreImages(fileList.map((item: any) => ({
-                        url: reader.result as string
-                    })));
+                    // ต้องใช้ฟังก์ชัน setStoreImages หลังจากที่ทำการอ่านไฟล์เสร็จแล้ว
+                    setStoreImages((prevImages) => [
+                        ...prevImages,
+                        { url: reader.result as string }, // เพิ่มรูปใหม่เข้าไปใน array
+                    ]);
                 };
             }
             return file;

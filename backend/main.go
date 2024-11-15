@@ -46,6 +46,7 @@ func main() {
 		// เส้นทางสำหรับ Service
 		router.POST("/service", service.CreateService)
 		router.GET("/service/:id", service.GetStoreServices)
+		router.PUT("/service/:id", service.UpdateService) 
 
 		// เส้นทางสำหรับ Store
 		router.POST("/store", store.CreateStore)
@@ -56,7 +57,8 @@ func main() {
 
 		// เส้นทางสำหรับ Storeimage
 		router.POST("/storeimage", storeimage.CreateStoreImage)
-		router.GET("/storeimages", storeimage.GetStoreImages)
+		router.GET("/storeimages/:id", storeimage.GetStoreImages)
+		router.PUT("/storeimage/:id", storeimage.UpdateStoreImage)
 	}
 
 	// เริ่มต้นเซิร์ฟเวอร์

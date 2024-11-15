@@ -23,11 +23,8 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject => {
             },
             {
                 path: "store",
+                element: <Store />,
                 children: [
-                    {
-                        path: "",
-                        element: <Store />,
-                    },
                     {
                         path: "create",
                         element: <CreateStore />,

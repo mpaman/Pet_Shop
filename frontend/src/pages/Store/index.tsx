@@ -1,10 +1,11 @@
+// components/Store.tsx
 import { useState, useEffect } from "react";
 import { Space, Table, Button, Col, Row, Divider, message } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { ColumnsType } from "antd/es/table";
 import { Link, useNavigate } from "react-router-dom";
 import { StoreInterface } from "../../interfaces/Store";
-import {  DeleteStoreById } from "../../services/https";
+import { DeleteStoreById, GetAllStores } from "../../services/https";
 
 function Store() {
     const navigate = useNavigate();
@@ -25,21 +26,21 @@ function Store() {
         },
         {
             title: "ชื่อร้าน",
-            dataIndex: "Name",
+            dataIndex: "name",
             key: "name",
         },
         {
             title: "ที่อยู่ร้าน",
-            dataIndex: "Location",
+            dataIndex: "location",
             key: "location",
         },
         {
             title: "ชื่อผู้ใช้",
-            render: (record) => <>{record?.User?.FirstName || "ไม่พบข้อมูล"}</>,
+            render: (record) => <>{record.user?.first_name || "ไม่พบข้อมูล"}</>,
         },
         {
             title: "นามสกุลผู้ใช้",
-            render: (record) => <>{record?.User?.LastName || "ไม่พบข้อมูล"}</>,
+            render: (record) => <>{record.user?.last_name || "ไม่พบข้อมูล"}</>,
         },
         {
             title: "",
@@ -55,7 +56,7 @@ function Store() {
         },
     ];
 
-    const deleteStoreById = async (id: number) => {
+    const deleteStoreById = async (id: string) => {
         try {
             let res = await DeleteStoreById(id);
             if (res.status === 200) {
@@ -72,11 +73,14 @@ function Store() {
     const getStores = async () => {
         try {
             let res = await GetAllStores();
-            setStore(res.data || []);
+            console.log("Data fetched from API:", res.data); // Debugging line
+            setStore(res.data.data || []); // ใช้ res.data.data ตามข้อมูลที่คุณส่งมา
         } catch (error) {
+            console.error("Error fetching stores:", error);
             messageApi.open({ type: "error", content: "Error fetching stores" });
         }
     };
+    
 
     useEffect(() => {
         getStores();

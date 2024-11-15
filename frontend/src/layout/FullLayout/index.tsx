@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Routes, Route, Link } from "react-router-dom";
-import { Avatar, Button, message, Breadcrumb, Layout } from "antd";
-import { UserOutlined, HomeOutlined, PlusOutlined, BookOutlined } from "@ant-design/icons";
+import { Layout, Button, message, Breadcrumb, Avatar } from "antd";
+import { UserOutlined, HomeOutlined, BookOutlined } from "@ant-design/icons";
+import { Link, Routes, Route, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import Store from "../../pages/Store/index";
 import EditStore from "../../pages/Store/edit";
@@ -13,12 +13,13 @@ const { Header, Content, Footer } = Layout;
 const FullLayout: React.FC = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const [profile, setProfile] = useState<any>(null);
+    const navigate = useNavigate();
 
     const Logout = () => {
         localStorage.clear();
         messageApi.success("Logout successful");
         setTimeout(() => {
-            window.location.href = "/";
+            navigate("/");
         }, 2000);
     };
 
@@ -57,7 +58,6 @@ const FullLayout: React.FC = () => {
                             </Link>
                         </Button>
 
-
                         <Link to="/customer">
                             <Avatar
                                 style={{
@@ -91,7 +91,7 @@ const FullLayout: React.FC = () => {
                             <Route path="/" element={<Home />} />
                             <Route path="/store" element={<Store />} />
                             <Route path="/store/create" element={<CreateStore />} />
-                            <Route path="/store/:id/edit" element={<EditStore />} />
+                            <Route path="/store/edit/:id" element={<EditStore />} />
                         </Routes>
                     </div>
                 </Content>

@@ -6,6 +6,7 @@ import (
 	"github.com/mpaman/petshop/entity"
 	"github.com/gin-gonic/gin"
 )
+
 type (
     addService struct {
         StoreID     uint   `json:"store_id"`
@@ -65,9 +66,41 @@ func GetStoreServices(c *gin.Context) {
 	storeID := c.Param("store_id")
 	var services []entity.Service
 
+	// คิวรีเพื่อดึงบริการทั้งหมดที่มี store_id ตรงกับ storeID
 	if err := config.DB().Where("store_id = ?", storeID).Find(&services).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve services"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": services})
+}
+
+func UpdateService(c *gin.Context) {
+	serviceID := c.Param("id")
+	var payload entity.Service
+
+	// Bind JSON payload to the struct
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// ค้นหาบริการจาก ID
+	var service entity.Service
+	if err := config.DB().First(&service, serviceID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
+		return
+	}
+
+	// อัพเดตข้อมูลบริการ
+	service.NameService = payload.NameService
+	service.Duration = payload.Duration
+	service.Price = payload.Price
+
+	// บันทึกข้อมูลที่อัพเดต
+	if err := config.DB().Save(&service).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update service"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Service updated successfully", "service": service})
 }
