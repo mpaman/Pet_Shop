@@ -2,9 +2,11 @@ package store
 
 import (
 	"net/http"
+	// "strconv"
+
+	"github.com/gin-gonic/gin"
 	"github.com/mpaman/petshop/config"
 	"github.com/mpaman/petshop/entity"
-	"github.com/gin-gonic/gin"
 )
 
 // CreateStore: สร้างร้านใหม่
@@ -29,7 +31,7 @@ func CreateStore(c *gin.Context) {
 	// Find the user by email
 	var user entity.Users
 	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to authenticate user"})
 		return
 	}
 
@@ -38,59 +40,82 @@ func CreateStore(c *gin.Context) {
 
 	// Save the new Store to the database
 	if err := db.Create(&store).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create store"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create store"})
 		return
 	}
 
 	// Respond with the created store data including its ID
 	c.JSON(http.StatusCreated, gin.H{
 		"message":  "Store created successfully",
-		"store_id": store.ID, // Explicitly return the store ID
-		"store":    store,    // Return the entire store object if needed
+		"store_id": store.ID,
+		"store":    store,
 	})
 }
 
 // GetStoreByID: ดึงข้อมูลร้านตาม ID
+// func GetStoreByID(c *gin.Context) {
+// 	// รับ store ID จาก URL
+// 	storeID := c.Param("id")
+// 	var store entity.Store
+
+// 	// ดึงข้อมูล store พร้อมกับ User, Service, และ StoreImage
+// 	if err := config.DB().
+// 		Preload("User").
+// 		Preload("Services").
+// 		Preload("StoreImages").
+// 		First(&store, "id = ?", storeID).Error; err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, store)
+// }
 func GetStoreByID(c *gin.Context) {
-    id := c.Param("id")
-    var store entity.Store
-    if err := config.DB().Preload("User").First(&store, id).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
-        return
-    }
-    c.JSON(http.StatusOK, gin.H{"data": store})
+	// รับ store ID จาก URL
+	storeID := c.Param("id")
+	var store entity.Store
+
+	// ดึงข้อมูล store พร้อมกับ User, Service, และ StoreImage
+	if err := config.DB().Preload("User").First(&store, "id = ?", storeID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, store)
 }
 
 // GetAllStores: ดึงข้อมูลร้านทั้งหมด
 func GetAllStores(c *gin.Context) {
-    var stores []entity.Store
-    db := config.DB()
-    results := db.Preload("User").Find(&stores)
-    if results.Error != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": results.Error.Error()})
-        return
-    }
-    c.JSON(http.StatusOK, gin.H{"data": stores})
+	var stores []entity.Store
+	db := config.DB()
+	if err := db.Preload("User").Find(&stores).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve stores"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": stores})
 }
 
+// UpdateStore: อัพเดตร้านตาม ID
 func UpdateStore(c *gin.Context) {
 	storeID := c.Param("id")
 	var payload entity.Store
 
 	// Bind JSON payload to the struct
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	// ค้นหาร้านจาก ID
+	// Find the store by ID
 	var store entity.Store
-	if err := config.DB().First(&store, storeID).Error; err != nil {
+	db := config.DB()
+	if err := db.First(&store, storeID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
 		return
 	}
 
-	// อัพเดตข้อมูลร้าน
+	// Update store fields
 	store.Name = payload.Name
 	store.Location = payload.Location
 	store.ContactInfo = payload.ContactInfo
@@ -98,8 +123,8 @@ func UpdateStore(c *gin.Context) {
 	store.TimeOpen = payload.TimeOpen
 	store.Status = payload.Status
 
-	// บันทึกข้อมูลที่อัพเดต
-	if err := config.DB().Save(&store).Error; err != nil {
+	// Save the updated store
+	if err := db.Save(&store).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update store"})
 		return
 	}
@@ -110,9 +135,12 @@ func UpdateStore(c *gin.Context) {
 // DeleteStore: ลบร้านตาม ID
 func DeleteStore(c *gin.Context) {
 	id := c.Param("id")
-	if err := config.DB().Delete(&entity.Store{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+	db := config.DB()
+	if err := db.Delete(&entity.Store{}, id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete store"})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Store deleted successfully"})
 }

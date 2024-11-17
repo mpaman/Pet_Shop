@@ -13,13 +13,13 @@ function StoreList() {
     const [filteredStores, setFilteredStores] = useState<StoreInterface[]>([]);
     const [services, setServices] = useState<ServiceInterface[]>([]);
     const [messageApi, contextHolder] = message.useMessage();
-    const [searchTerm, setSearchTerm] = useState<string>("");
-    const [selectedService, setSelectedService] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState<string>(""); // คำค้นหา
+    const [selectedService, setSelectedService] = useState<string | null>(null); // บริการที่เลือก
     const navigate = useNavigate();
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const pageSize = 5; // Number of items per page
+    const pageSize = 5; // จำนวนรายการต่อหน้า
 
     const getStores = async () => {
         try {
@@ -30,7 +30,7 @@ function StoreList() {
 
                 // ดึงข้อมูลบริการเฉพาะจาก API
                 const uniqueServices = Array.from(
-                    new Set(res.data.data.flatMap((store) => store.services || []))
+                    new Set(res.data.data.flatMap((store: { services: any; }) => store.services || []))
                 );
                 setServices(uniqueServices);
             } else {
@@ -50,35 +50,15 @@ function StoreList() {
     };
 
     const handleStoreClick = (storeId: number) => {
-        navigate(`/store/${storeId}`);
+        navigate(`/stores/${storeId}`);
     };
 
     const handleSearch = (value: string) => {
         setSearchTerm(value);
-        const filtered = stores.filter(
-            (store) =>
-                store.name.toLowerCase().includes(value.toLowerCase()) ||
-                store.location.toLowerCase().includes(value.toLowerCase())
-        );
-        setFilteredStores(
-            selectedService
-                ? filtered.filter((store) => store.services?.some((service) => service.name_service === selectedService))
-                : filtered
-        );
-        setCurrentPage(1);
     };
 
     const handleSelectChange = (value: string | null) => {
         setSelectedService(value);
-        const filtered = stores.filter(
-            (store) =>
-                (!value || store.services?.some((service) => service.name_service === value)) &&
-                (!searchTerm ||
-                    store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    store.location.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
-        setFilteredStores(filtered);
-        setCurrentPage(1);
     };
 
     const handlePageChange = (page: number) => {
@@ -89,9 +69,24 @@ function StoreList() {
         getStores();
     }, []);
 
+    useEffect(() => {
+        const filtered = stores.filter((store) => {
+            const matchesSearchTerm =
+                store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                store.location.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesService =
+                !selectedService || store.services?.some((service: { name_service: string; }) => service.name_service === selectedService);
+
+            return matchesSearchTerm && matchesService;
+        });
+        setFilteredStores(filtered);
+        setCurrentPage(1); // Reset to page 1 after filtering
+    }, [searchTerm, selectedService, stores]);
+
+    // Pagination logic
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    const currentStores = Array.isArray(filteredStores) ? filteredStores.slice(startIndex, endIndex) : [];
+    const currentStores = filteredStores.slice(startIndex, endIndex);
 
     return (
         <>
@@ -131,8 +126,8 @@ function StoreList() {
                     <Divider />
                     <div style={{ marginTop: 20 }}>
                         {currentStores.map((store) => (
-                            <Row key={store.id} style={{ marginBottom: 20 }}>
-                                <Col span={24} onClick={() => handleStoreClick(store.id)} style={{ cursor: 'pointer' }}>
+                            <Row key={store.ID} style={{ marginBottom: 20 }}>
+                                <Col span={24} onClick={() => handleStoreClick(store.ID)} style={{ cursor: 'pointer' }}>
                                     <Row align="middle">
                                         <Col>
                                             <Avatar
@@ -142,24 +137,13 @@ function StoreList() {
                                             />
                                         </Col>
                                         <Col>
-                                            <Typography.Text strong>
-                                                {store.name}
-                                            </Typography.Text>
+                                            <Typography.Text strong>{store.name}</Typography.Text>
                                         </Col>
                                     </Row>
                                     <Row align="middle">
-                                    <Typography.Text>
-                                                จังหวัด
-                                                {store.location}
-                                            </Typography.Text>
+                                        <Typography.Text>จังหวัด {store.location}</Typography.Text>
                                     </Row>
-                                    <Card
-                                        style={{
-                                            width: "100%",
-                                            marginTop: 5,
-                                            paddingTop: 5,
-                                        }}
-                                    >
+                                    <Card style={{ width: "100%", marginTop: 5, paddingTop: 5 }}>
                                         {store.description || ""}
                                     </Card>
                                 </Col>

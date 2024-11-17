@@ -14,58 +14,59 @@ import (
 const PORT = "8000"
 
 func main() {
-	// เปิดการเชื่อมต่อฐานข้อมูล
+	// Initialize database connection
 	config.ConnectionDB()
 	config.SetupDatabase()
 
 	r := gin.Default()
 	r.Use(CORSMiddleware())
 
-	// เส้นทางสำหรับการลงทะเบียนและเข้าสู่ระบบ
+	// Routes for authentication
 	r.POST("/signup", users.SignUp)
 	r.POST("/signin", users.SignIn)
 
+	// Authenticated routes
 	router := r.Group("/")
 	{
 		router.Use(middlewares.Authorizes())
 
-		// เส้นทางสำหรับผู้ใช้
+		// Routes for users
 		router.PUT("/user/:id", users.Update)
 		router.GET("/users", users.GetAll)
 		router.GET("/user/:id", users.Get)
 		router.DELETE("/user/:id", users.Delete)
 		router.GET("/user/profile", users.GetUserProfile)
 
-		// เส้นทางสำหรับ Bookingstore
+		// Routes for bookingstore
 		router.POST("/booking", bookingstore.CreateBooking)
-		router.GET("/bookingstore/:id", bookingstore.GetBookingByID)
-		router.GET("/bookingstores", bookingstore.GetAllBookings)
-		router.PUT("/bookingstore/:id", bookingstore.UpdateBookingStatus)
-		router.DELETE("/bookingstore/:id", bookingstore.DeleteBooking)
+		// router.GET("/bookingstore/:id", bookingstore.GetBookingByID)
+		// router.GET("/bookingstores", bookingstore.GetAllBookings)
+		// router.PUT("/bookingstore/:id", bookingstore.UpdateBookingStatus)
+		// router.DELETE("/bookingstore/:id", bookingstore.DeleteBooking)
 
-		// เส้นทางสำหรับ Service
+		// Routes for services
 		router.POST("/service", service.CreateService)
-		router.GET("/service/:id", service.GetStoreServices)
-		router.PUT("/service/:id", service.UpdateService) 
+		router.GET("/service/:id", service.GetServiceByStoreID)
+		router.PUT("/service/:id", service.UpdateService)
 
-		// เส้นทางสำหรับ Store
+		// Routes for stores
 		router.POST("/store", store.CreateStore)
 		router.GET("/store/:id", store.GetStoreByID)
 		router.GET("/stores", store.GetAllStores)
 		router.PUT("/store/:id", store.UpdateStore)
 		router.DELETE("/store/:id", store.DeleteStore)
 
-		// เส้นทางสำหรับ Storeimage
+		// Routes for store images
 		router.POST("/storeimage", storeimage.CreateStoreImage)
-		router.GET("/storeimages/:id", storeimage.GetStoreImages)
+		router.GET("/storeimages/:id", storeimage.GetStoreImagesByStoreID)
 		router.PUT("/storeimage/:id", storeimage.UpdateStoreImage)
 	}
 
-	// เริ่มต้นเซิร์ฟเวอร์
+	// Start the server
 	r.Run("localhost:" + PORT)
 }
 
-// Middleware สำหรับจัดการ CORS
+// CORS middleware
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")

@@ -7,78 +7,91 @@ import {
     Row,
     Col,
     InputNumber,
+    Upload,
 } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ImgCrop from "antd-img-crop";
+import { PlusOutlined } from "@ant-design/icons";
+import { CreateUser } from "../../../services/https";
 import { UsersInterface } from "../../../interfaces/IUser";
 import logo from "../../../assets/logo.jpg";
-import { CreateUser } from "../../../services/https";
 
 function SignUpPages() {
     const navigate = useNavigate();
     const [messageApi, contextHolder] = message.useMessage();
+    const [fileList, setFileList] = useState<any[]>([]);
 
     const onFinish = async (values: UsersInterface) => {
-        let res = await CreateUser(values);
-        if (res.status == 201) {
-            messageApi.open({
-                type: "success",
-                content: res.data.message,
-            });
-            setTimeout(function () {
-                navigate("/");
-            }, 2000);
+        // รวมรูปประจำตัวในข้อมูลส่งไปยัง backend
+        const payload = { ...values, profile: fileList[0]?.originFileObj };
+
+        const res = await CreateUser(payload);
+
+        if (res.status === 201) {
+            messageApi.success("สมัครสมาชิกสำเร็จ!");
+            setTimeout(() => navigate("/"), 2000);
         } else {
-            messageApi.open({
-                type: "error",
-                content: res.data.error,
-            });
+            messageApi.error(res.data.error || "เกิดข้อผิดพลาด!");
         }
+    };
+
+    const handleUploadChange = ({ fileList: newFileList }: any) => {
+        setFileList(newFileList);
     };
 
     return (
         <>
             {contextHolder}
-            <Row justify="center" align="middle" style={{ height: "100vh", background: "#f0f2f5" }}>
+            <Row
+                justify="center"
+                align="middle"
+                style={{ height: "100vh", background: "#f0f2f5" }}
+            >
                 <Col xs={24} sm={20} md={16} lg={12} xl={8}>
                     <Card
                         bordered={false}
-                        style={{ borderRadius: "15px", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)" }}
+                        style={{
+                            borderRadius: "15px",
+                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                        }}
                     >
                         <div style={{ textAlign: "center" }}>
-                            <img src={logo} alt="Logo" style={{ width: "20%", marginBottom: "0px" }} />
-                            <h2 style={{ marginBottom: "20px" }}>Sign Up</h2>
+                            <img
+                                src={logo}
+                                alt="Logo"
+                                style={{ width: "20%", marginBottom: "10px" }}
+                            />
+                            <h2 style={{ marginBottom: "20px" }}>สมัครสมาชิก</h2>
                         </div>
                         <Form
-                            name="basic"
                             layout="vertical"
                             onFinish={onFinish}
                             autoComplete="off"
                         >
                             <Row gutter={[16, 16]}>
-                                {/* First Name */}
-                                <Col span={24}>
+                                <Col span={12}>
                                     <Form.Item
                                         label="ชื่อจริง"
                                         name="first_name"
-                                        rules={[{ required: true, message: "กรุณากรอกชื่อ !" }]}
+                                        rules={[
+                                            { required: true, message: "กรุณากรอกชื่อ !" },
+                                        ]}
                                     >
                                         <Input placeholder="กรุณากรอกชื่อจริง" />
                                     </Form.Item>
                                 </Col>
-
-                                {/* Last Name */}
-                                <Col span={24}>
+                                <Col span={12}>
                                     <Form.Item
                                         label="นามสกุล"
                                         name="last_name"
-                                        rules={[{ required: true, message: "กรุณากรอกนามสกุล !" }]}
+                                        rules={[
+                                            { required: true, message: "กรุณากรอกนามสกุล !" },
+                                        ]}
                                     >
                                         <Input placeholder="กรุณากรอกนามสกุล" />
                                     </Form.Item>
                                 </Col>
-
-                                {/* Email */}
                                 <Col span={24}>
                                     <Form.Item
                                         label="อีเมล"
@@ -91,41 +104,69 @@ function SignUpPages() {
                                         <Input placeholder="กรุณากรอกอีเมล" />
                                     </Form.Item>
                                 </Col>
-
-                                {/* Password */}
                                 <Col span={12}>
                                     <Form.Item
                                         label="รหัสผ่าน"
                                         name="password"
-                                        rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน !" }]}
+                                        rules={[
+                                            { required: true, message: "กรุณากรอกรหัสผ่าน !" },
+                                        ]}
                                     >
                                         <Input.Password placeholder="กรุณากรอกรหัสผ่าน" />
                                     </Form.Item>
                                 </Col>
-
-                                {/* Age */}
                                 <Col span={12}>
                                     <Form.Item
                                         label="อายุ"
                                         name="age"
-                                        rules={[{ required: true, message: "กรุณากรอกอายุ !" }]}
+                                        rules={[
+                                            { required: true, message: "กรุณากรอกอายุ !" },
+                                        ]}
                                     >
-                                        <InputNumber min={0} max={99} style={{ width: "100%" }} />
+                                        <InputNumber
+                                            min={1}
+                                            max={120}
+                                            style={{ width: "100%" }}
+                                            placeholder="กรุณากรอกอายุ"
+                                        />
                                     </Form.Item>
                                 </Col>
-
-                                {/* Address */}
                                 <Col span={24}>
                                     <Form.Item
                                         label="ที่อยู่"
                                         name="address"
-                                        rules={[{ required: true, message: "กรุณากรอกที่อยู่ !" }]}
+                                        rules={[
+                                            { required: true, message: "กรุณากรอกที่อยู่ !" },
+                                        ]}
                                     >
                                         <Input placeholder="กรุณากรอกที่อยู่" />
                                     </Form.Item>
                                 </Col>
-
-                                {/* Submit Button */}
+                                {/* <Col span={24}>
+                                    <Form.Item
+                                        label="รูปประจำตัว"
+                                        name="profile"
+                                    >
+                                        <ImgCrop rotationSlider>
+                                            <Upload
+                                                listType="picture-card"
+                                                fileList={fileList}
+                                                onChange={handleUploadChange}
+                                                beforeUpload={() => false}
+                                                maxCount={1}
+                                            >
+                                                {fileList.length < 1 && (
+                                                    <div>
+                                                        <PlusOutlined />
+                                                        <div style={{ marginTop: 8 }}>
+                                                            อัพโหลด
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </Upload>
+                                        </ImgCrop>
+                                    </Form.Item>
+                                </Col> */}
                                 <Col span={24}>
                                     <Form.Item>
                                         <Button
@@ -138,7 +179,7 @@ function SignUpPages() {
                                                 fontSize: "16px",
                                             }}
                                         >
-                                            Sign Up
+                                            สมัครสมาชิก
                                         </Button>
                                         <p style={{ textAlign: "center", marginTop: "10px" }}>
                                             หรือ <a onClick={() => navigate("/")}>เข้าสู่ระบบ</a>

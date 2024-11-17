@@ -4,7 +4,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import { StoreImageInterface } from "../../../interfaces/Storeimage";
 import { ServiceInterface } from "../../../interfaces/Service";
 import { CreateStoreImage, CreateService, CreateStore as CreateNewStore } from '../../../services/https';
-
+import { useNavigate } from "react-router-dom";
 const { TextArea } = Input;
 const { Option } = Select;
 
@@ -12,10 +12,15 @@ function CreateStore() {
     const [storeImages, setStoreImages] = useState<StoreImageInterface[]>([]);
     const [services, setServices] = useState<ServiceInterface[]>([]);
     const [image, setImage] = useState<string | undefined>(undefined);
-
+    const navigate = useNavigate();
     // ฟังก์ชันเพิ่มบริการใหม่
     const addService = () => {
-        setServices([...services, { name: '', price: 0, duration: 0 }]);
+        setServices([...services, {
+            price: 0, duration: 0,
+            store_id: 0,
+            name_service: '',
+            category_pet: ''
+        }]);
     };
 
     // ฟังก์ชันสำหรับเมื่อฟอร์มถูกส่ง
@@ -56,8 +61,9 @@ function CreateStore() {
                 // บันทึกบริการสำหรับร้าน
                 const servicePromises = services.map((service) => {
                     const serviceData = {
-                        store_id: storeId, // ใช้ store_id ที่สร้างขึ้น
-                        name_service: service.name,
+                        store_id: storeId,
+                        name_service: service.name_service,
+                        category_pet: service.category_pet,
                         duration: service.duration,
                         price: service.price,
                     };
@@ -75,6 +81,7 @@ function CreateStore() {
             message.error("Failed to create store");
             console.error(error);
         }
+        navigate(`/store`);
     };
 
     // ฟังก์ชันสำหรับอัปโหลดภาพและแปลงเป็น base64
@@ -161,13 +168,31 @@ function CreateStore() {
                         <Form.Item label={`Service Name ${index + 1}`}>
                             <Input
                                 placeholder="Service Name"
-                                value={service.name}
+                                value={service.name_service}
                                 onChange={(e) => {
                                     const updatedServices = [...services];
-                                    updatedServices[index].name = e.target.value;
+                                    updatedServices[index].name_service = e.target.value;
                                     setServices(updatedServices);
                                 }}
                             />
+                        </Form.Item>
+                    </Col>
+                    <Col span={6}>
+                        <Form.Item label="Pet Category">
+                            <Select
+                                placeholder="Select Pet Category"
+                                value={service.category_pet}
+                                onChange={(value) => {
+                                    const updatedServices = [...services];
+                                    updatedServices[index].category_pet = value;
+                                    setServices(updatedServices);
+                                }}
+                            >
+                                <Option value="dog">Dog</Option>
+                                <Option value="cat">Cat</Option>
+                                <Option value="bird">Bird</Option>
+                                <Option value="other">Other</Option>
+                            </Select>
                         </Form.Item>
                     </Col>
                     <Col span={8}>

@@ -39,7 +39,7 @@ func SetupDatabase() {
 	db.AutoMigrate(
 
 		&entity.Users{},
-		&entity.Bookingstore{},
+		// &entity.Bookingstore{},
 		&entity.Service{},
 		&entity.Store{},
 		&entity.StoreImage{},

@@ -92,11 +92,7 @@ export const GetUserProfile = async (): Promise<any> => {
         throw error;
     }
 };
-async function GetStoreByID(id: string) {
-    return await axios.get(`${apiUrl}/store/${id}`, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
+
 
 async function CreateStore(data: StoreInterface) {
     return await axios.post(`${apiUrl}/store`, data, { headers: requestOptions.headers })
@@ -120,28 +116,36 @@ async function UpdateStore(id: string, data: StoreInterface) {
         .then((res) => res)
         .catch((e) => e.response);
 }
+
 async function UpdateService(id: string, data: ServiceInterface) {
     return await axios.put(`${apiUrl}/service/${id}`, data, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
+
 async function UpdateStoreImage(id: string, data: StoreImageInterface) {
     return await axios.put(`${apiUrl}/storeimage/${id}`, data, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
 
-async function GetStoreImages(id: string) {
+async function GetStoreImagesByStoreID(id: string) {
     return await axios.get(`${apiUrl}/storeimages/${id}`, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
-async function GetStoreServices(id: string) {
+
+async function GetServiceByStoreID(id: string) {
     return await axios.get(`${apiUrl}/service/${id}`, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
 
+async function GetStoreByID(id: string) {
+    return await axios.get(`${apiUrl}/store/${id}`, requestOptions)
+        .then((res) => res)
+        .catch((e) => e.response);
+}
 
 
 
@@ -150,18 +154,18 @@ async function GetStoreServices(id: string) {
 // Export all functions
 export {
     SignIn,
-    GetStoreImages,
+    GetServiceByStoreID,
     UpdateStoreImage,
     UpdateStore,
     UpdateService,
-    GetStoreServices,
+    GetStoreByID,
     GetUsers,
     GetUsersById,
     UpdateUsersById,
     DeleteUsersById,
     CreateUser,
     GetAllStores,
-    GetStoreByID,
+    GetStoreImagesByStoreID,
     DeleteStoreById,
     CreateStore,
     CreateService,

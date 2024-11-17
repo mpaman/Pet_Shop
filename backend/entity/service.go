@@ -10,6 +10,7 @@ type Service struct {
 	StoreID     uint   `json:"store_id"`
 	Store       Store  `gorm:"foreignKey:StoreID;references:ID" json:"store"`
 	NameService string `json:"name_service"` // ชื่อของบริการ
+    CategoryPet string `json:"category_pet"` // ชื่อของบริการ
 	Duration    int    `json:"duration"`
-	Price       int `json:"price"`
+	Price       int    `json:"price"`
 }
