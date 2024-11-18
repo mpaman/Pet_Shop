@@ -17,7 +17,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { StoreImageInterface } from "../../../interfaces/Storeimage";
 import { ServiceInterface } from "../../../interfaces/Service";
 import {
-    GetStoreByID,
+    // GetStoreByID,
     GetStoreImagesByStoreID,
     GetServiceByStoreID,
     UpdateStore,
@@ -40,11 +40,16 @@ function StoreEdit() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!id) return;
         const fetchStoreDetails = async () => {
             setLoading(true);
             try {
                 const storeResponse = await GetStoreByID(id);
+                if (storeResponse.status === 404) {
+                    messageApi.error("Store not found!");
+                    navigate("/store"); // Redirect เมื่อไม่พบข้อมูล
+                    return;
+                }
+                // ถ้าข้อมูลถูกต้อง
                 if (storeResponse.data) {
                     setStoreData(storeResponse.data);
                     form.setFieldsValue({
@@ -56,24 +61,6 @@ function StoreEdit() {
                         status: storeResponse.data.status,
                     });
                 }
-
-                const imagesResponse = await GetStoreImagesByStoreID(id);
-                setStoreImages(
-                    Array.isArray(imagesResponse.data)
-                        ? imagesResponse.data.map((img: any) => ({
-                            uid: img.id,
-                            url: img.image_url,
-                            name: img.image_url,
-                        }))
-                        : []
-                );
-
-                const servicesResponse = await GetServiceByStoreID(id);
-                setServices(
-                    Array.isArray(servicesResponse.data)
-                        ? servicesResponse.data
-                        : []
-                );
             } catch (error) {
                 console.error("Error fetching store data:", error);
                 messageApi.error("Failed to fetch store details");
@@ -81,9 +68,10 @@ function StoreEdit() {
                 setLoading(false);
             }
         };
-
+    
         fetchStoreDetails();
-    }, [id, form, messageApi]);
+    }, [id, form, messageApi, navigate]);
+    
 
     const handleBeforeUpload = (file: any) => {
         const isImage = file.type.startsWith("image/");
@@ -109,7 +97,7 @@ function StoreEdit() {
             const updatedData = {
                 ...values,
                 services: services.map((service) => ({
-                    id: service.id || null,
+                    id: service.ID || null,
                     name: service.name,
                     price: service.price,
                     duration: service.duration,

@@ -5,13 +5,11 @@ import (
 
 	"net/http"
 
-
 	"github.com/gin-gonic/gin"
 
 	"golang.org/x/crypto/bcrypt"
 
 	"gorm.io/gorm"
-
 
 	"github.com/mpaman/petshop/config"
 	"github.com/mpaman/petshop/entity"
@@ -31,9 +29,9 @@ type (
 		Email     string `json:"email"`
 		Password  string `json:"password"`
 		Age       uint8  `json:"age"`
-		Role    string `json:"role"`
-		Address string `json:"address"`
-		Profile string `json:"profile"`
+		Role      string `json:"role"`
+		Address   string `json:"address"`
+		Profile   string `json:"profile"`
 	}
 )
 
@@ -58,9 +56,9 @@ func SignUp(c *gin.Context) {
 	// Check if the user with the provided email already exists
 
 	result := db.Where("email = ?", payload.Email).First(&userCheck)
-//คำสั่ง result := db.Where("email = ?", payload.Email).First(&userCheck) ใช้เพื่อค้นหาข้อมูลผู้ใช้ในตาราง Users โดยใช้ อีเมล ที่ได้รับจาก payload.Email
+	//คำสั่ง result := db.Where("email = ?", payload.Email).First(&userCheck) ใช้เพื่อค้นหาข้อมูลผู้ใช้ในตาราง Users โดยใช้ อีเมล ที่ได้รับจาก payload.Email
 	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-//โค้ดส่วนนี้ตรวจสอบว่ามีข้อผิดพลาดเกิดขึ้นระหว่างการค้นหาหรือไม่
+		//โค้ดส่วนนี้ตรวจสอบว่ามีข้อผิดพลาดเกิดขึ้นระหว่างการค้นหาหรือไม่
 		// If there's a database error other than "record not found"
 
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
@@ -111,14 +109,14 @@ func SignUp(c *gin.Context) {
 }
 
 func SignIn(c *gin.Context) {
-//การเข้าสู่ระบบ (Sign In) ของผู้ใช้ โดยการตรวจสอบอีเมลและรหัสผ่านที่ผู้ใช้กรอกเข้ามา หากถูกต้อง 
-//จะสร้าง JWT Token เพื่อใช้ในกระบวนการยืนยันตัวตนในอนาคต และส่งข้อมูล JWT Token กลับไปยังผู้ใช้
+	//การเข้าสู่ระบบ (Sign In) ของผู้ใช้ โดยการตรวจสอบอีเมลและรหัสผ่านที่ผู้ใช้กรอกเข้ามา หากถูกต้อง
+	//จะสร้าง JWT Token เพื่อใช้ในกระบวนการยืนยันตัวตนในอนาคต และส่งข้อมูล JWT Token กลับไปยังผู้ใช้
 	var payload Authen
 
 	var user entity.Users
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
-//ใช้คำสั่ง c.ShouldBindJSON(&payload) เพื่อดึงข้อมูลที่ส่งเข้ามาทาง JSON และเก็บไว้ในโครงสร้าง Authen
+		//ใช้คำสั่ง c.ShouldBindJSON(&payload) เพื่อดึงข้อมูลที่ส่งเข้ามาทาง JSON และเก็บไว้ในโครงสร้าง Authen
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 
 		return
@@ -155,7 +153,7 @@ func SignIn(c *gin.Context) {
 
 		ExpirationHours: 24,
 	}
-//กำหนดค่าในโครงสร้าง jwtWrapper ซึ่งใช้สำหรับสร้าง JWT Token โดยมี SecretKey ที่ใช้เข้ารหัส, Issuer (ผู้ที่ออก Token), และระยะเวลาหมดอายุของ Token (24 ชั่วโมง)
+	//กำหนดค่าในโครงสร้าง jwtWrapper ซึ่งใช้สำหรับสร้าง JWT Token โดยมี SecretKey ที่ใช้เข้ารหัส, Issuer (ผู้ที่ออก Token), และระยะเวลาหมดอายุของ Token (24 ชั่วโมง)
 	signedToken, err := jwtWrapper.GenerateToken(user.Email)
 
 	if err != nil {

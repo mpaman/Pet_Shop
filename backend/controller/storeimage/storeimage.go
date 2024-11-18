@@ -7,20 +7,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetStoreImages: ดึงรูปภาพทั้งหมดของร้านตาม Store ID
-// GetStoreImagesByStoreID: ดึงรูปภาพทั้งหมดของร้านตาม Store ID
 func GetStoreImagesByStoreID(c *gin.Context) {
-	storeID := c.Param("store_id")
-	var images []entity.StoreImage
+    storeID := c.Param("store_id")
+    var images []entity.StoreImage
 
-	// คิวรีเพื่อดึงรูปภาพทั้งหมดของร้านที่มี store_id ตรงกับ storeID
-	if err := config.DB().Where("store_id = ?", storeID).Find(&images).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve store images"})
-		return
-	}
+    if err := config.DB().Where("store_id = ?", storeID).Find(&images).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve store images"})
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{"data": images})
+    c.JSON(http.StatusOK, gin.H{"data": images})
 }
+
 
 
 func CreateStoreImage(c *gin.Context) {

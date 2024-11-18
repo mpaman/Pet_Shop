@@ -23,16 +23,24 @@ function SignUpPages() {
     const [fileList, setFileList] = useState<any[]>([]);
 
     const onFinish = async (values: UsersInterface) => {
-        // รวมรูปประจำตัวในข้อมูลส่งไปยัง backend
-        const payload = { ...values, profile: fileList[0]?.originFileObj };
-
-        const res = await CreateUser(payload);
-
-        if (res.status === 201) {
-            messageApi.success("สมัครสมาชิกสำเร็จ!");
-            setTimeout(() => navigate("/"), 2000);
-        } else {
-            messageApi.error(res.data.error || "เกิดข้อผิดพลาด!");
+        // Convert image to base64
+        const file = fileList[0]?.originFileObj;
+        let base64Image = '';
+        if (file) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = async () => {
+                base64Image = reader.result;
+                const payload = { ...values, profile: base64Image };
+                const res = await CreateUser(payload);
+    
+                if (res.status === 201) {
+                    messageApi.success("สมัครสมาชิกสำเร็จ!");
+                    setTimeout(() => navigate("/"), 2000);
+                } else {
+                    messageApi.error(res.data.error || "เกิดข้อผิดพลาด!");
+                }
+            };
         }
     };
 
@@ -142,7 +150,7 @@ function SignUpPages() {
                                         <Input placeholder="กรุณากรอกที่อยู่" />
                                     </Form.Item>
                                 </Col>
-                                {/* <Col span={24}>
+                                <Col span={24}>
                                     <Form.Item
                                         label="รูปประจำตัว"
                                         name="profile"
@@ -166,7 +174,7 @@ function SignUpPages() {
                                             </Upload>
                                         </ImgCrop>
                                     </Form.Item>
-                                </Col> */}
+                                </Col>
                                 <Col span={24}>
                                     <Form.Item>
                                         <Button

@@ -9,6 +9,15 @@ import (
 	"github.com/mpaman/petshop/entity"
 )
 
+type StorePayload struct {
+    Name        string `json:"name"`
+    Location    string `json:"location"`
+    ContactInfo string `json:"contact_info"`
+    Description string `json:"description"`
+    TimeOpen    string `json:"time_open"`
+    Status      string `json:"status"`
+}
+
 // CreateStore: สร้างร้านใหม่
 func CreateStore(c *gin.Context) {
 	var store entity.Store
@@ -52,37 +61,33 @@ func CreateStore(c *gin.Context) {
 	})
 }
 
-// GetStoreByID: ดึงข้อมูลร้านตาม ID
+func GetStoreByID(c *gin.Context) {
+    storeID := c.Param("id")
+    var store entity.Store
+
+    // preload services และ store images
+    if err := config.DB().Preload("User").First(&store, storeID).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, store)
+}
+
 // func GetStoreByID(c *gin.Context) {
 // 	// รับ store ID จาก URL
 // 	storeID := c.Param("id")
 // 	var store entity.Store
 
 // 	// ดึงข้อมูล store พร้อมกับ User, Service, และ StoreImage
-// 	if err := config.DB().
-// 		Preload("User").
-// 		Preload("Services").
-// 		Preload("StoreImages").
-// 		First(&store, "id = ?", storeID).Error; err != nil {
+// 	if err := config.DB().Preload("User").First(&store,storeID).Error; err != nil {
 // 		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
 // 		return
 // 	}
 
+
 // 	c.JSON(http.StatusOK, store)
 // }
-func GetStoreByID(c *gin.Context) {
-	// รับ store ID จาก URL
-	storeID := c.Param("id")
-	var store entity.Store
-
-	// ดึงข้อมูล store พร้อมกับ User, Service, และ StoreImage
-	if err := config.DB().Preload("User").First(&store, "id = ?", storeID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, store)
-}
 
 // GetAllStores: ดึงข้อมูลร้านทั้งหมด
 func GetAllStores(c *gin.Context) {

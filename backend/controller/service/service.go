@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +14,7 @@ type (
 		NameService string `json:"name_service"`
 		Duration    int    `json:"duration"`
 		Price       int    `json:"price"`
-		CategoryPet string `json:"category_pet"` // แก้ตรงนี้
+		CategoryPet string `json:"category_pet"` // เพิ่ม CategoryPet
 	}
 )
 
@@ -65,26 +64,32 @@ func CreateService(c *gin.Context) {
 	})
 }
 
-// GetStoreServices: ดึงบริการทั้งหมดของร้านตาม Store ID
+// GetServiceByStoreID: ดึงบริการทั้งหมดของร้านตาม Store ID
+// ปรับชื่อจาก store_id เป็น id ในการรับพารามิเตอร์
 func GetServiceByStoreID(c *gin.Context) {
-    storeID := c.Param("store_id")
+    storeID := c.Param("id") // ใช้ id แทน store_id ใน URL
+
     var services []entity.Service
 
-    // ตรวจสอบค่า storeID
-    fmt.Println("storeID:", storeID)
-
-    // คิวรีเพื่อดึงบริการทั้งหมดของร้านที่มี store_id ตรงกับ storeID
-    if err := config.DB().Where("store_id = ?", storeID).Find(&services).Error; err != nil {
+    if err := config.DB().
+        Preload("Store"). // โหลดข้อมูลของ Store ที่สัมพันธ์กัน
+        Where("store_id = ?", storeID).
+        Find(&services).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve services"})
         return
     }
 
-    fmt.Println("services:", services)
+    // หากข้อมูลว่าง ให้แจ้งกลับไป
+    if len(services) == 0 {
+        c.JSON(http.StatusNotFound, gin.H{"message": "No services found for this store"})
+        return
+    }
 
     c.JSON(http.StatusOK, gin.H{"data": services})
 }
 
 
+// UpdateService: อัพเดตข้อมูลของบริการ
 func UpdateService(c *gin.Context) {
 	serviceID := c.Param("id")
 	var payload entity.Service
@@ -106,6 +111,7 @@ func UpdateService(c *gin.Context) {
 	service.NameService = payload.NameService
 	service.Duration = payload.Duration
 	service.Price = payload.Price
+	service.CategoryPet = payload.CategoryPet // เพิ่ม CategoryPet
 
 	// บันทึกข้อมูลที่อัพเดต
 	if err := config.DB().Save(&service).Error; err != nil {
