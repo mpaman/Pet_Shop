@@ -11,38 +11,13 @@ func GetStoreImagesByStoreID(c *gin.Context) {
     storeID := c.Param("store_id")
     var images []entity.StoreImage
 
-    if err := config.DB().Where("store_id = ?", storeID).Find(&images).Error; err != nil {
+    if err := config.DB().Preload("Store").Where("store_id = ?", storeID).Find(&images).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve store images"})
         return
     }
 
     c.JSON(http.StatusOK, gin.H{"data": images})
 }
-
-
-
-func CreateStoreImage(c *gin.Context) {
-    var storeImage entity.StoreImage
-    if err := c.ShouldBindJSON(&storeImage); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
-        return
-    }
-
-    var store entity.Store
-    if err := config.DB().First(&store, storeImage.StoreID).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
-        return
-    }
-
-    // บันทึก StoreImage ลงในฐานข้อมูล
-    if err := config.DB().Create(&storeImage).Error; err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add store image"})
-        return
-    }
-
-    c.JSON(http.StatusCreated, gin.H{"message": "Store image added successfully", "storeImage": storeImage})
-}
-
 func UpdateStoreImage(c *gin.Context) {
 	imageID := c.Param("id")
 	var payload entity.StoreImage

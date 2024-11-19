@@ -1,10 +1,15 @@
-import { StoreInterface } from './Store';
 
 export interface StoreImageInterface {
-    url: any;
     response: any;
     ID?: number;
     image_url: string;
     store_id: number;
-    store?: StoreInterface;
+    store?: {
+        name: string;
+        location: string;
+        contact_info: string;
+        description: string;
+        time_open: string;
+        status: string;
+    };
 }

@@ -1,11 +1,14 @@
-
-import { StoreInterface } from './Store';
-
-
 export interface ServiceInterface {
     ID?: number;
     store_id: number;
-    store?: StoreInterface;
+    store?: {
+        name: string;
+        location: string;
+        contact_info: string;
+        description: string;
+        time_open: string;
+        status: string;
+    };
     name_service: string; // ชื่อของบริการ
     price: number;
     duration: number; 

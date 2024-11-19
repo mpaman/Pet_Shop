@@ -18,9 +18,10 @@ type Bookingstore struct {
 	Service   Service `gorm:"foreignKey:ServiceID;references:ID"`
 
 	BookingTime time.Time `json:"booking_time" binding:"required"`
-	EndTime     time.Time `json:"end_time"`
 
-	Status string `json:"status" gorm:"type:enum('pending', 'accepted', 'rejected');default:'pending';index" binding:"required"`
+	Date time.Time `json:"date" binding:"required"`
+
+	Status string `json:"status"`
 
 	Notes string `json:"notes" gorm:"type:text"`
 }

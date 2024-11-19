@@ -38,11 +38,11 @@ func main() {
 		router.GET("/user/profile", users.GetUserProfile)
 
 		// Routes for bookingstore
-		router.POST("/booking", bookingstore.CreateBooking)
-		// router.GET("/bookingstore/:id", bookingstore.GetBookingByID)
-		// router.GET("/bookingstores", bookingstore.GetAllBookings)
-		// router.PUT("/bookingstore/:id", bookingstore.UpdateBookingStatus)
-		// router.DELETE("/bookingstore/:id", bookingstore.DeleteBooking)
+		router.POST("/booking", bookingstore.CreateBookingstore)
+		router.GET("/bookingstore/:id", bookingstore.GetBookingstoreByID)
+		router.GET("/bookingstores", bookingstore.GetAllBookingstores)
+		router.PUT("/bookingstore/:id", bookingstore.UpdateBookingstore)
+		router.DELETE("/bookingstore/:id", bookingstore.DeleteBookingstore)
 
 		// Routes for services
 		router.POST("/service", service.CreateService)

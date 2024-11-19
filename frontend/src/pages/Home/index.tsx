@@ -130,6 +130,7 @@ function StoreList() {
                                 <Col span={24} onClick={() => handleStoreClick(store.ID)} style={{ cursor: 'pointer' }}>
                                     <Row align="middle">
                                         <Col>
+                                            {/* ตรวจสอบว่ามีรูปโปรไฟล์หรือไม่ ถ้าไม่มีใช้ placeholder */}
                                             <Avatar
                                                 src={store.User?.Profile || "https://via.placeholder.com/100"}
                                                 size={100}

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { UsersInterface } from "../../interfaces/IUser";
 import { SignInInterface } from "../../interfaces/SignIn";
-import { BookingstoreInterface } from '../../interfaces/Bookingstore';
+import { BookingInterface } from '../../interfaces/Bookingstore';
 import { ServiceInterface } from '../../interfaces/Service';
 import { StoreInterface } from '../../interfaces/Store';
 import { StoreImageInterface } from '../../interfaces/Storeimage';
@@ -148,9 +148,54 @@ async function GetStoreByID(id: string) {
 }
 
 
+async function CreateBooking(data: BookingInterface) {
+    return await axios.post(`${apiUrl}/booking`, data, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+async function GetAllBookings() {
+    return await axios.get(`${apiUrl}/bookings`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+async function GetBookingById(id: string) {
+    return await axios.get(`${apiUrl}/booking/${id}`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+async function UpdateBooking(id: string, data: BookingInterface) {
+    return await axios.put(`${apiUrl}/booking/${id}`, data, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+async function DeleteBooking(id: string) {
+    return await axios.delete(`${apiUrl}/booking/${id}`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
 
 
 
+export const UploadNewImage = async (formData: FormData) => {
+    try {
+        const response = await axios.post("/api/upload/image", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+        if (response.data && response.data.success) {
+            return response.data;  // Response should include image data, like image URL or ID
+        }
+        throw new Error("Image upload failed");
+    } catch (error) {
+        console.error("Error uploading image:", error);
+        throw error;  // Throw the error to be caught in the component
+    }
+};
 // Export all functions
 export {
     SignIn,
@@ -169,5 +214,6 @@ export {
     DeleteStoreById,
     CreateStore,
     CreateService,
-    CreateStoreImage
+    CreateStoreImage,
+    CreateBooking, GetAllBookings, GetBookingById, UpdateBooking, DeleteBooking 
 };
