@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Card, Typography, Divider, List, message, Row, Col, Image } from "antd";
-import { useParams } from "react-router-dom";
+import { Card, Avatar, Space, message, Typography, Divider, List, Row, Col, Image, Button } from "antd";
+import { UserOutlined, PhoneOutlined } from "@ant-design/icons";
+import { useParams, Link } from "react-router-dom";
 import { GetStoreByID, GetAllService, GetAllStoreImage } from "../../services/https/index";
 import { StoreInterface } from "../../interfaces/Store";
 import { ServiceInterface } from "../../interfaces/Service";
-import { StoreImageInterface } from "../../interfaces/Storeimage"; // Import interface ของ StoreImage
+import { StoreImageInterface } from "../../interfaces/Storeimage";
+import "../../App.css";
+
+const { Title, Paragraph } = Typography;
 
 const StorePage: React.FC = () => {
     const { storeId } = useParams<{ storeId: string }>();
@@ -17,24 +21,24 @@ const StorePage: React.FC = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-    
+
                 // ดึงข้อมูลร้านค้า
                 const storeResponse = await GetStoreByID(storeId);
                 setStore(storeResponse.data);
-    
+
                 // ดึงข้อมูลบริการทั้งหมด
                 const serviceResponse = await GetAllService();
                 console.log("Full Service Response:", serviceResponse);
-    
+
                 // เข้าถึงฟิลด์ data.data และตรวจสอบว่าเป็น array หรือไม่
                 const allServices = Array.isArray(serviceResponse.data?.data) ? serviceResponse.data.data : [];
                 console.log("All Services:", allServices);
-    
+
                 // กรองเฉพาะบริการที่ตรงกับ store_id
                 const filteredServices = allServices.filter(
                     (service) => service.store_id === Number(storeId)
                 );
-    
+
                 setServices(filteredServices);
 
                 // ดึงข้อมูล StoreImage สำหรับ storeId นี้
@@ -50,7 +54,7 @@ const StorePage: React.FC = () => {
 
                     // เพิ่มการแสดงผลข้อมูล store_id ที่กรองแล้ว
                     console.log("Filtered Store Images:", filteredStoreImages);
-                    
+
                     setStoreImages(filteredStoreImages);
                 } else {
                     console.error("Invalid response structure for store images");
@@ -64,38 +68,46 @@ const StorePage: React.FC = () => {
                 setLoading(false);
             }
         };
-    
+
         if (storeId) fetchData();
     }, [storeId]);
 
     return (
         <div style={{ padding: "20px" }}>
-            {loading ? (
-                <Typography.Text>Loading...</Typography.Text>
-            ) : (
-                <>
+            <Row gutter={[16, 16]}>
+                {/* Left Section: Store Details */}
+                <Col xs={24} md={16}>
                     {store ? (
                         <Card>
                             <Typography.Title level={2}>{store.name}</Typography.Title>
-                            <Typography.Paragraph>{store.description}</Typography.Paragraph>
-                            <Typography.Paragraph>
-                                <b>Location:</b> {store.location}
-                            </Typography.Paragraph>
-                            <Typography.Paragraph>
-                                <b>Contact:</b> {store.contact_info}
-                            </Typography.Paragraph>
-                            <Typography.Paragraph>
-                                <b>Opening Time:</b> {store.time_open}
-                            </Typography.Paragraph>
-                            <Typography.Paragraph>
-                                <b>Status:</b> {store.status}
-                            </Typography.Paragraph>
                         </Card>
                     ) : (
                         <Typography.Text type="warning">Store not found.</Typography.Text>
                     )}
 
+                    <Card>
+                        <Typography.Paragraph>{store?.description}</Typography.Paragraph>
+                    </Card>
+
                     <Divider />
+
+
+                    <Divider />
+
+                    <Typography.Title level={3}>Store Images</Typography.Title>
+                    {storeImages.length > 0 ? (
+                        <Row gutter={16}>
+                            {storeImages.map((image) => (
+                                <Col span={8} key={image.ID}>
+                                    <Card hoverable>
+                                        <Image src={image.image_url} alt="Store Image" />
+                                    </Card>
+                                </Col>
+                            ))}
+                        </Row>
+                    ) : (
+                        <Typography.Text>No images available for this store.</Typography.Text>
+                    )}
 
                     <Typography.Title level={3}>Services</Typography.Title>
                     {services.length > 0 ? (
@@ -123,23 +135,56 @@ const StorePage: React.FC = () => {
                     )}
 
                     <Divider />
+                </Col>
 
-                    <Typography.Title level={3}>Store Images</Typography.Title>
-                    {storeImages.length > 0 ? (
-                        <Row gutter={16}>
-                            {storeImages.map((image) => (
-                                <Col span={8} key={image.ID}>
-                                    <Card hoverable>
-                                        <Image src={image.image_url} alt="Store Image" />
-                                    </Card>
-                                </Col>
-                            ))}
-                        </Row>
-                    ) : (
-                        <Typography.Text>No images available for this store.</Typography.Text>
-                    )}
-                </>
-            )}
+                {/* Right Section: User Info and Contact */}
+                <Col xs={24} md={8}>
+                    <div style={{
+                        width: '30%',
+                        padding: '20px',
+                        position: 'fixed',
+                        top: '160px', // Adjust the top positioning as needed
+                        right: '40px' // Ensures it’s aligned to the right
+                    }}>
+                        <Card>
+                            <Space direction="vertical" align="center">
+                                <Avatar
+                                    src={store?.user?.Profile || undefined}
+                                    size={150}
+                                    icon={<UserOutlined />}
+                                />
+                                <Typography.Text strong>
+                                    {store?.user?.first_name && store?.user?.last_name
+                                        ? `${store?.user?.first_name} ${store?.user?.last_name}`
+                                        : "No user name available"}
+                                </Typography.Text>
+                            </Space>
+                        </Card>
+
+                        <Card style={{ marginTop: "20px" }}>
+                            <Title level={4}>
+                                <PhoneOutlined /> Contact
+                            </Title>
+                            <Paragraph>
+                                <strong>Location:</strong> {store?.location || "No location provided"}
+                            </Paragraph>
+                            <Paragraph>
+                                <strong>Time Open:</strong> {store?.time_open || "No time provided"}
+                            </Paragraph>
+                            <Paragraph>
+                                <strong>Status:</strong> {store?.status || "No status provided"}
+                            </Paragraph>
+                        </Card>
+                        {/* Button for Booking */}
+                        <Link to={`/stores/${storeId}/booking`}>
+                            <Button type="primary" size="large" block>
+                                Book Now
+                            </Button>
+                        </Link>
+
+                    </div>
+                </Col>
+            </Row>
         </div>
     );
 };
