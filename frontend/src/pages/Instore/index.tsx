@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { GetStoreByID, GetAllService, GetAllStoreImage } from "../../services/https/index";
 import { StoreInterface } from "../../interfaces/Store";
 import { ServiceInterface } from "../../interfaces/Service";
-import { StoreImageInterface } from "../../interfaces/StoreImage"; // Import interface ของ StoreImage
+import { StoreImageInterface } from "../../interfaces/Storeimage"; // Import interface ของ StoreImage
 
 const StorePage: React.FC = () => {
     const { storeId } = useParams<{ storeId: string }>();
@@ -24,11 +24,11 @@ const StorePage: React.FC = () => {
     
                 // ดึงข้อมูลบริการทั้งหมด
                 const serviceResponse = await GetAllService();
-
+                console.log("Full Service Response:", serviceResponse);
     
                 // เข้าถึงฟิลด์ data.data และตรวจสอบว่าเป็น array หรือไม่
                 const allServices = Array.isArray(serviceResponse.data?.data) ? serviceResponse.data.data : [];
-
+                console.log("All Services:", allServices);
     
                 // กรองเฉพาะบริการที่ตรงกับ store_id
                 const filteredServices = allServices.filter(
@@ -40,13 +40,17 @@ const StorePage: React.FC = () => {
                 // ดึงข้อมูล StoreImage สำหรับ storeId นี้
                 const imageResponse = await GetAllStoreImage();
                 console.log("Store Image Response:", imageResponse);
-                
+
                 // ตรวจสอบว่า imageResponse.data เป็น array หรือไม่
-                if (Array.isArray(imageResponse.data)) {
+                if (Array.isArray(imageResponse.data?.data)) { // แก้ไขให้ดึงข้อมูลจาก imageResponse.data.data
                     // กรองข้อมูล StoreImage ที่ตรงกับ storeId
-                    const filteredStoreImages = imageResponse.data.filter(
-                        (image: StoreImageInterface) => image.store_id === Number(storeId)
+                    const filteredStoreImages = imageResponse.data.data.filter(  // ใช้ imageResponse.data.data
+                        (image: { store_id: number }) => image.store_id === Number(storeId)
                     );
+
+                    // เพิ่มการแสดงผลข้อมูล store_id ที่กรองแล้ว
+                    console.log("Filtered Store Images:", filteredStoreImages);
+                    
                     setStoreImages(filteredStoreImages);
                 } else {
                     console.error("Invalid response structure for store images");

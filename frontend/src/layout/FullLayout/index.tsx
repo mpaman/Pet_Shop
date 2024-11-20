@@ -100,7 +100,7 @@ const FullLayout: React.FC = () => {
                     </div>
                 </Content>
 
-                <Footer style={{ textAlign: "center" }}>Petshop.com</Footer>
+                {/* <Footer style={{ textAlign: "center" }}>Petshop.com</Footer> */}
             </Layout>
         </Layout>
     );
