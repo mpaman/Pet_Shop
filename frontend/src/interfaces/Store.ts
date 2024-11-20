@@ -1,6 +1,6 @@
 export interface StoreInterface {
     ID?: number;
-    User?: {
+    user?: {
         ID: number;
         first_name: string;
         last_name: string;

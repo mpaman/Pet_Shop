@@ -132,7 +132,7 @@ function StoreList() {
                                         <Col>
                                             {/* ตรวจสอบว่ามีรูปโปรไฟล์หรือไม่ ถ้าไม่มีใช้ placeholder */}
                                             <Avatar
-                                                src={store.User?.Profile || "https://via.placeholder.com/100"}
+                                                src={store.user?.Profile || "https://via.placeholder.com/100"}
                                                 size={100}
                                                 style={{ marginRight: 10 }}
                                             />
@@ -142,7 +142,7 @@ function StoreList() {
                                         </Col>
                                     </Row>
                                     <Row align="middle">
-                                        <Typography.Text>จังหวัด {store.User?.email}</Typography.Text>
+                                        <Typography.Text>จังหวัด {store.location}</Typography.Text>
                                     </Row>
                                     <Card style={{ width: "100%", marginTop: 5, paddingTop: 5 }}>
                                         {store.description || ""}

@@ -7,12 +7,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetStoreImagesByStoreID(c *gin.Context) {
-    storeID := c.Param("store_id")
+func GetStoreImages(c *gin.Context) {
+    storeId := c.Param("storeId")
     var images []entity.StoreImage
 
-    if err := config.DB().Preload("Store").Where("store_id = ?", storeID).Find(&images).Error; err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve store images"})
+    // ดึงข้อมูล StoreImage ที่เกี่ยวข้องกับ storeId ที่เลือก
+    if err := config.DB().Preload("Store").Where("store_id = ?", storeId).Find(&images).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve images"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"data": images})
+}
+
+func GetAll(c *gin.Context) {
+    var images []entity.StoreImage
+
+    if err := config.DB().Preload("Store").Find(&images).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve images"})
         return
     }
 

@@ -129,7 +129,7 @@ async function UpdateStoreImage(id: string, data: StoreImageInterface) {
         .catch((e) => e.response);
 }
 
-async function GetStoreImagesByStoreID(id: string) {
+async function GetStoreImages(id: string) {
     return await axios.get(`${apiUrl}/storeimages/${id}`, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
@@ -156,6 +156,16 @@ async function CreateBooking(data: BookingInterface) {
 
 async function GetAllBookings() {
     return await axios.get(`${apiUrl}/bookings`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function GetAllService() {
+    return await axios.get(`${apiUrl}/services`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function GetAllStoreImage() {
+    return await axios.get(`${apiUrl}/storeimagess`, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
@@ -200,6 +210,7 @@ export const UploadNewImage = async (formData: FormData) => {
 export {
     SignIn,
     GetServiceByStoreID,
+    GetAllStoreImage,
     UpdateStoreImage,
     UpdateStore,
     UpdateService,
@@ -207,10 +218,11 @@ export {
     GetUsers,
     GetUsersById,
     UpdateUsersById,
+    GetAllService,
     DeleteUsersById,
     CreateUser,
     GetAllStores,
-    GetStoreImagesByStoreID,
+    GetStoreImages,
     DeleteStoreById,
     CreateStore,
     CreateService,

@@ -29,6 +29,17 @@ func GetServiceByStoreID(c *gin.Context) {
     c.JSON(http.StatusOK, gin.H{"data": services})
 }
 
+func GetAll(c *gin.Context) {
+    var services []entity.Service
+
+    if err := config.DB().Preload("Store").Find(&services).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve services"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"data": services})
+}
+
 
 
 // UpdateService: อัพเดตข้อมูลของบริการ

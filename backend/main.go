@@ -47,6 +47,7 @@ func main() {
 		// Routes for services
 		router.POST("/service", service.CreateService)
 		router.GET("/service/:id", service.GetServiceByStoreID)
+		router.GET("/services", service.GetAll)
 		router.PUT("/service/:id", service.UpdateService)
 
 		// Routes for stores
@@ -58,7 +59,8 @@ func main() {
 
 		// Routes for store images
 		router.POST("/storeimage", storeimage.CreateStoreImage)
-		router.GET("/storeimages/:id", storeimage.GetStoreImagesByStoreID)
+		router.GET("/storeimages/:id", storeimage.GetStoreImages)
+		router.GET("/storeimagess", storeimage.GetAll)
 		router.PUT("/storeimage/:id", storeimage.UpdateStoreImage)
 	}
 

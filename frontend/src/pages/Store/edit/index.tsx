@@ -19,7 +19,7 @@ import { StoreImageInterface } from "../../../interfaces/Storeimage";
 import { ServiceInterface } from "../../../interfaces/Service";
 import {
     // GetStoreByID,
-    GetStoreImagesByStoreID,
+    GetStoreImages,
     GetServiceByStoreID,
     UpdateStore,
     UpdateService,
@@ -49,7 +49,7 @@ function StoreEdit() {
             try {
                 // Fetch store details
                 const storeResponse = await GetStoreByID(id);
-                const storeImagesResponse = await GetStoreImagesByStoreID(id);
+                const storeImagesResponse = await GetStoreImages(id);
                 const servicesResponse = await GetServiceByStoreID(id);
 
                 if (storeResponse.data) {
