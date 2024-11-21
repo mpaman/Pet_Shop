@@ -49,6 +49,7 @@ func main() {
 		router.GET("/service/:id", service.GetServiceByStoreID)
 		router.GET("/services", service.GetAll)
 		router.PUT("/service/:id", service.UpdateService)
+		router.DELETE("/service/:id", store.DeleteStore)
 
 		// Routes for stores
 		router.POST("/store", store.CreateStore)
@@ -62,6 +63,7 @@ func main() {
 		router.GET("/storeimages/:id", storeimage.GetStoreImages)
 		router.GET("/storeimagess", storeimage.GetAll)
 		router.PUT("/storeimage/:id", storeimage.UpdateStoreImage)
+		router.DELETE("/storeimage/:id", store.DeleteStore)
 	}
 
 	// Start the server

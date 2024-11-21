@@ -70,6 +70,17 @@ async function DeleteStoreById(id: string) {
 }
 
 
+async function DeleteServiceById(id: string) {
+    return await axios.delete(`${apiUrl}/service/${id}`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function DeleteStoreimageById(id: string) {
+    return await axios.delete(`${apiUrl}/storeimage/${id}`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
 
 export const GetUserProfile = async (): Promise<any> => {
     if (!token) throw new Error("No token found");
@@ -209,23 +220,16 @@ export const UploadNewImage = async (formData: FormData) => {
 // Export all functions
 export {
     SignIn,
-    GetServiceByStoreID,
-    GetAllStoreImage,
-    UpdateStoreImage,
-    UpdateStore,
-    UpdateService,
-    GetStoreByID,
     GetUsers,
     GetUsersById,
     UpdateUsersById,
-    GetAllService,
     DeleteUsersById,
     CreateUser,
-    GetAllStores,
-    GetStoreImages,
-    DeleteStoreById,
-    CreateStore,
-    CreateService,
-    CreateStoreImage,
-    CreateBooking, GetAllBookings, GetBookingById, UpdateBooking, DeleteBooking 
+
+
+
+    CreateStore, UpdateStore, DeleteStoreById, GetAllStores, GetStoreByID,
+    CreateService, DeleteServiceById, UpdateService, GetAllService, GetServiceByStoreID,
+    CreateStoreImage, DeleteStoreimageById, UpdateStoreImage, GetStoreImages, GetAllStoreImage,
+    CreateBooking, GetAllBookings, GetBookingById, UpdateBooking, DeleteBooking
 };

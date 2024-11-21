@@ -59,3 +59,15 @@ func UpdateStoreImage(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Image updated successfully", "image": image})
 }
+
+func Delete(c *gin.Context) {
+	id := c.Param("id")
+
+	db := config.DB()
+	if err := db.Delete(&entity.StoreImage{}, id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete StoreImage"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "StoreImage deleted successfully"})
+}

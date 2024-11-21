@@ -18,14 +18,13 @@ import { StoreInterface } from "../../../interfaces/Store";
 import { StoreImageInterface } from "../../../interfaces/Storeimage";
 import { ServiceInterface } from "../../../interfaces/Service";
 import {
-    // GetStoreByID,
-    GetStoreImages,
-    GetServiceByStoreID,
+    GetStoreByID,
+    GetAllStoreImage,
+    GetAllService,
     UpdateStore,
     UpdateService,
-    UpdateStoreImage,
-    UploadNewImage,
-    CreateService,  // Make sure UploadNewImage is imported here
+    CreateService,
+    CreateStoreImage,
 } from "../../../services/https";
 import { useParams, useNavigate } from "react-router-dom";
 import moment from "moment";
@@ -49,26 +48,49 @@ function StoreEdit() {
             try {
                 // Fetch store details
                 const storeResponse = await GetStoreByID(id);
-                const storeImagesResponse = await GetStoreImages(id);
-                const servicesResponse = await GetServiceByStoreID(id);
-
-                if (storeResponse.data) {
+                console.log("storeResponse:", storeResponse);
+    
+                if (storeResponse?.data) {
                     setStoreData(storeResponse.data);
-                    setStoreImages(storeImagesResponse.data || []);
-                    setServices(servicesResponse.data || []);
-
-                    // Set form fields
-                    form.setFieldsValue({
-                        name: storeResponse.data.name,
-                        location: storeResponse.data.location,
-                        contact_info: storeResponse.data.contact_info,
-                        description: storeResponse.data.description,
-                        time_open: moment(storeResponse.data.time_open, "HH:mm"),
-                        status: storeResponse.data.status,
-                    });
+    
+                    setTimeout(() => {
+                        form.setFieldsValue({
+                            name: storeResponse.data.name,
+                            location: storeResponse.data.location,
+                            contact_info: storeResponse.data.contact_info,
+                            description: storeResponse.data.description,
+                            time_open: moment(storeResponse.data.time_open, "HH:mm"),
+                            status: storeResponse.data.status,
+                        });
+                    }, 0);
+                }
+    
+                // Fetch store images
+                const storeImagesResponse = await GetAllStoreImage();
+                console.log("storeImagesResponse:", storeImagesResponse);
+    
+                if (storeImagesResponse?.data?.data && Array.isArray(storeImagesResponse.data.data)) {
+                    const filteredImages = storeImagesResponse.data.data.filter(
+                        (img) => img.store_id === parseInt(id!)
+                    );
+                    setStoreImages(filteredImages);
                 } else {
-                    messageApi.error("Store not found!");
-                    navigate("/store");
+                    console.warn("storeImagesResponse.data.data is not an array.");
+                    setStoreImages([]);
+                }
+    
+                // Fetch services
+                const servicesResponse = await GetAllService();
+                console.log("servicesResponse:", servicesResponse);
+    
+                if (servicesResponse?.data?.data && Array.isArray(servicesResponse.data.data)) {
+                    const filteredServices = servicesResponse.data.data.filter(
+                        (svc) => svc.store_id === parseInt(id!)
+                    );
+                    setServices(filteredServices);
+                } else {
+                    console.warn("servicesResponse.data.data is not an array.");
+                    setServices([]);
                 }
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -77,16 +99,19 @@ function StoreEdit() {
                 setLoading(false);
             }
         };
-
+    
         fetchStoreDetails();
-    }, [id, form, messageApi, navigate]);
+    }, [id, form, messageApi]);
+    
+    
+    
 
-    const handleBeforeUpload = (file: any) => {
+    const handleBeforeUpload = (file: File) => {
         const isImage = file.type.startsWith("image/");
         if (!isImage) {
             message.error("You can only upload image files!");
         }
-        return isImage;
+        return isImage || Upload.LIST_IGNORE;
     };
 
     const handleChangeImage = ({ fileList }: any) => {
@@ -94,48 +119,58 @@ function StoreEdit() {
             fileList.map((file: any) => ({
                 id: file.uid,
                 image_url: file.url || URL.createObjectURL(file.originFileObj),
+                originFileObj: file.originFileObj, // เก็บไฟล์ไว้สำหรับอัปโหลด
             }))
         );
     };
 
     const addService = () => {
-        setServices([
-            ...services,
-            { id: 0, name: "", price: 0, duration: 0, store_id: parseInt(id!) },
-        ]);
+        setServices([...services, { id: 0, name_service: "", price: 0, duration: 0, store_id: parseInt(id!) }]);
     };
 
     const removeService = (index: number) => {
-        const newServices = services.filter((_, i) => i !== index);
-        setServices(newServices);
+        setServices(services.filter((_, i) => i !== index));
     };
 
     const onFinish = async (values: any) => {
         try {
-            // Update store
-            const updatedStoreData = { ...values, time_open: values.time_open.format("HH:mm") };
-            await UpdateStore(id, updatedStoreData);
-
-            // Update services
-            const servicePromises = services.map((service) =>
-                service.id ? UpdateService(service.id, service) : UpdateService(service.id, service)
-            );
-
-            // Upload new images
-            const imagePromises = storeImages.map((image) => {
-                if (image.id) {
-                    return UpdateStoreImage(image.KD, image);
+            const updatedStore = { ...values, time_open: values.time_open.format("HH:mm") };
+    
+            // อัปเดตร้านค้า
+            await UpdateStore(id, updatedStore);
+    
+            // อัปเดตหรือสร้างบริการ
+            for (const service of services) {
+                if (service.id) {
+                    // หากมี `id` ให้ทำการอัปเดต
+                    await UpdateService(service.id, service);
+                } else {
+                    // หากไม่มี `id` ให้ทำการสร้างใหม่
+                    await CreateService({ ...service, store_id: parseInt(id!) });
                 }
-
-                // Image is new, so upload it
-                const formData = new FormData();
-                formData.append("store_id", id);
-                formData.append("image", image.originFileObj);  // Use originFileObj for new images
-                return UploadNewImage(formData);
-            });
-
-            await Promise.all([...servicePromises, ...imagePromises]);
-
+            }
+    
+            // ลบรูปภาพเก่าที่ไม่มีในรายการ
+            const existingImageIDs = storeImages.filter((img) => img.ID).map((img) => img.ID);
+            const currentImages = await GetAllStoreImage(); // ดึงรูปภาพทั้งหมด
+            const toDelete = currentImages.data.data.filter(
+                (img: any) => img.store_id === parseInt(id!) && !existingImageIDs.includes(img.ID)
+            );
+            for (const img of toDelete) {
+                // ลบรูปภาพเก่าที่ไม่ถูกเก็บใน `storeImages`
+                await DeleteStoreImage(img.ID);
+            }
+    
+            // อัปโหลดหรือสร้างรูปภาพใหม่
+            for (const image of storeImages) {
+                if (!image.ID) {
+                    const formData = new FormData();
+                    formData.append("store_id", id!);
+                    formData.append("image", image.originFileObj);
+                    await CreateStoreImage(formData);
+                }
+            }
+    
             messageApi.success("Store updated successfully!");
             navigate(`/store`);
         } catch (error) {
@@ -143,6 +178,7 @@ function StoreEdit() {
             messageApi.error("Failed to update store");
         }
     };
+    
 
     if (loading) {
         return (
@@ -158,7 +194,7 @@ function StoreEdit() {
             <Form layout="vertical" onFinish={onFinish} form={form}>
                 <h2>Edit Store</h2>
 
-                {/* Form Fields */}
+                {/* ฟอร์มข้อมูลร้านค้า */}
                 <Form.Item label="Store Name" name="name" rules={[{ required: true, message: 'Please input the store name!' }]}>
                     <Input placeholder="Enter store name" />
                 </Form.Item>
@@ -280,16 +316,14 @@ function StoreEdit() {
                     </Row>
                 ))}
 
-                <Button type="dashed" onClick={addService} style={{ width: "100%", marginTop: "10px" }}>
-                    <PlusOutlined /> Add Service
+                <Button type="dashed" onClick={addService} block icon={<PlusOutlined />}>
+                    Add Service
                 </Button>
 
                 <Divider />
-                <Form.Item>
-                    <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
-                        Save Changes
-                    </Button>
-                </Form.Item>
+                <Button type="primary" htmlType="submit">
+                    Save Changes
+                </Button>
             </Form>
         </>
     );
