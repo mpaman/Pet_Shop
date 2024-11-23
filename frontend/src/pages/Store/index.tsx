@@ -50,7 +50,19 @@ function Store() {
                     icon={<EditOutlined />}
                     onClick={() => navigate(`/store/edit/${record.ID}`)}
                 >
-                    แก้ไขข้อมูล
+                    แก้ไขStore
+                </Button>
+            ),
+        },
+        {
+            title: "",
+            render: (record) => (
+                <Button
+                    type="primary"
+                    icon={<EditOutlined />}
+                    onClick={() => navigate(`/store/edit/service/${record.ID}`)}
+                >
+                    แก้ไข service
                 </Button>
             ),
         },

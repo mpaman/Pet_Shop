@@ -9,8 +9,6 @@ import {
     message,
     InputNumber,
     Divider,
-    Row,
-    Col,
     Spin,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
@@ -22,9 +20,8 @@ import {
     GetAllStoreImage,
     GetAllService,
     UpdateStore,
-    UpdateService,
-    CreateService,
     CreateStoreImage,
+    DeleteStoreImage,
 } from "../../../services/https";
 import { useParams, useNavigate } from "react-router-dom";
 import moment from "moment";
@@ -36,7 +33,7 @@ function StoreEdit() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [storeImages, setStoreImages] = useState<StoreImageInterface[]>([]);
-    const [services, setServices] = useState<ServiceInterface[]>([]);
+    const [deletedImageIDs, setDeletedImageIDs] = useState<number[]>([]);
     const [storeData, setStoreData] = useState<StoreInterface | null>(null);
     const [messageApi, contextHolder] = message.useMessage();
     const [form] = Form.useForm();
@@ -46,13 +43,9 @@ function StoreEdit() {
         const fetchStoreDetails = async () => {
             setLoading(true);
             try {
-                // Fetch store details
                 const storeResponse = await GetStoreByID(id);
-                console.log("storeResponse:", storeResponse);
-    
                 if (storeResponse?.data) {
                     setStoreData(storeResponse.data);
-    
                     setTimeout(() => {
                         form.setFieldsValue({
                             name: storeResponse.data.name,
@@ -64,47 +57,23 @@ function StoreEdit() {
                         });
                     }, 0);
                 }
-    
-                // Fetch store images
+
                 const storeImagesResponse = await GetAllStoreImage();
-                console.log("storeImagesResponse:", storeImagesResponse);
-    
-                if (storeImagesResponse?.data?.data && Array.isArray(storeImagesResponse.data.data)) {
+                if (storeImagesResponse?.data?.data) {
                     const filteredImages = storeImagesResponse.data.data.filter(
                         (img) => img.store_id === parseInt(id!)
                     );
                     setStoreImages(filteredImages);
-                } else {
-                    console.warn("storeImagesResponse.data.data is not an array.");
-                    setStoreImages([]);
-                }
-    
-                // Fetch services
-                const servicesResponse = await GetAllService();
-                console.log("servicesResponse:", servicesResponse);
-    
-                if (servicesResponse?.data?.data && Array.isArray(servicesResponse.data.data)) {
-                    const filteredServices = servicesResponse.data.data.filter(
-                        (svc) => svc.store_id === parseInt(id!)
-                    );
-                    setServices(filteredServices);
-                } else {
-                    console.warn("servicesResponse.data.data is not an array.");
-                    setServices([]);
                 }
             } catch (error) {
-                console.error("Error fetching data:", error);
                 messageApi.error("Failed to fetch store details");
             } finally {
                 setLoading(false);
             }
         };
-    
+
         fetchStoreDetails();
     }, [id, form, messageApi]);
-    
-    
-    
 
     const handleBeforeUpload = (file: File) => {
         const isImage = file.type.startsWith("image/");
@@ -117,64 +86,56 @@ function StoreEdit() {
     const handleChangeImage = ({ fileList }: any) => {
         setStoreImages(
             fileList.map((file: any) => ({
-                id: file.uid,
+                id: file.uid.startsWith("rc-upload-") ? undefined : file.uid,
                 image_url: file.url || URL.createObjectURL(file.originFileObj),
-                originFileObj: file.originFileObj, // เก็บไฟล์ไว้สำหรับอัปโหลด
+                originFileObj: file.originFileObj,
             }))
         );
     };
 
-    const addService = () => {
-        setServices([...services, { id: 0, name_service: "", price: 0, duration: 0, store_id: parseInt(id!) }]);
-    };
-
-    const removeService = (index: number) => {
-        setServices(services.filter((_, i) => i !== index));
+    const removeImage = (index: number) => {
+        const imageToRemove = storeImages[index];
+        if (imageToRemove.id) {
+            setDeletedImageIDs([...deletedImageIDs, imageToRemove.id]);
+        }
+        setStoreImages(storeImages.filter((_, i) => i !== index));
     };
 
     const onFinish = async (values: any) => {
         try {
             const updatedStore = { ...values, time_open: values.time_open.format("HH:mm") };
     
-            // อัปเดตร้านค้า
+            // เรียกใช้ฟังก์ชัน UpdateStore
             await UpdateStore(id, updatedStore);
     
-            // อัปเดตหรือสร้างบริการ
-            for (const service of services) {
-                if (service.id) {
-                    // หากมี `id` ให้ทำการอัปเดต
-                    await UpdateService(service.id, service);
-                } else {
-                    // หากไม่มี `id` ให้ทำการสร้างใหม่
-                    await CreateService({ ...service, store_id: parseInt(id!) });
-                }
+            // ลบภาพที่ถูกลบออกจากระบบ
+            for (const imgID of deletedImageIDs) {
+                await DeleteStoreImage(imgID);  // เรียกใช้ API DeleteStoreImage
             }
     
-            // ลบรูปภาพเก่าที่ไม่มีในรายการ
-            const existingImageIDs = storeImages.filter((img) => img.ID).map((img) => img.ID);
-            const currentImages = await GetAllStoreImage(); // ดึงรูปภาพทั้งหมด
-            const toDelete = currentImages.data.data.filter(
-                (img: any) => img.store_id === parseInt(id!) && !existingImageIDs.includes(img.ID)
-            );
-            for (const img of toDelete) {
-                // ลบรูปภาพเก่าที่ไม่ถูกเก็บใน `storeImages`
-                await DeleteStoreImage(img.ID);
-            }
-    
-            // อัปโหลดหรือสร้างรูปภาพใหม่
+            // อัพโหลดภาพใหม่
             for (const image of storeImages) {
-                if (!image.ID) {
+                if (!image.id) { // ตรวจสอบว่าเป็นภาพใหม่
+                    if (!image.originFileObj) {
+                        messageApi.error("Image file missing!");
+                        return; // ถ้าไม่มีไฟล์จะไม่ทำการอัพโหลด
+                    }
+    
                     const formData = new FormData();
-                    formData.append("store_id", id!);
-                    formData.append("image", image.originFileObj);
-                    await CreateStoreImage(formData);
+                    formData.append("store_id", id!); // ตรวจสอบว่ามี store_id
+                    formData.append("image", image.originFileObj); // ตรวจสอบว่ามีไฟล์
+                    const response = await CreateStoreImage(formData);  // เรียกใช้ API CreateStoreImage
+                    if (response?.status === 200) {
+                        messageApi.success("Image uploaded successfully");
+                    } else {
+                        messageApi.error("Failed to upload image");
+                    }
                 }
             }
     
             messageApi.success("Store updated successfully!");
             navigate(`/store`);
         } catch (error) {
-            console.error("Update Error:", error);
             messageApi.error("Failed to update store");
         }
     };
@@ -194,16 +155,15 @@ function StoreEdit() {
             <Form layout="vertical" onFinish={onFinish} form={form}>
                 <h2>Edit Store</h2>
 
-                {/* ฟอร์มข้อมูลร้านค้า */}
-                <Form.Item label="Store Name" name="name" rules={[{ required: true, message: 'Please input the store name!' }]}>
+                <Form.Item label="Store Name" name="name" rules={[{ required: true }]}>
                     <Input placeholder="Enter store name" />
                 </Form.Item>
 
-                <Form.Item label="Location" name="location" rules={[{ required: true, message: 'Please input the location!' }]}>
+                <Form.Item label="Location" name="location" rules={[{ required: true }]}>
                     <Input placeholder="Enter location" />
                 </Form.Item>
 
-                <Form.Item label="Contact Info" name="contact_info" rules={[{ required: true, message: 'Please input the contact info!' }]}>
+                <Form.Item label="Contact Info" name="contact_info" rules={[{ required: true }]}>
                     <Input placeholder="Enter contact information" />
                 </Form.Item>
 
@@ -211,11 +171,11 @@ function StoreEdit() {
                     <TextArea rows={4} placeholder="Describe the store" />
                 </Form.Item>
 
-                <Form.Item label="Opening Time" name="time_open" rules={[{ required: true, message: 'Please select opening time!' }]}>
+                <Form.Item label="Opening Time" name="time_open" rules={[{ required: true }]}>
                     <TimePicker format="HH:mm" />
                 </Form.Item>
 
-                <Form.Item label="Status" name="status" rules={[{ required: true, message: 'Please select store status!' }]}>
+                <Form.Item label="Status" name="status" rules={[{ required: true }]}>
                     <Select placeholder="Select status">
                         <Option value="open">Open</Option>
                         <Option value="close">Close</Option>
@@ -228,11 +188,12 @@ function StoreEdit() {
                     <Upload
                         listType="picture-card"
                         fileList={storeImages.map((image) => ({
-                            uid: image.ID,
+                            uid: image.id || String(Math.random()),
                             url: image.image_url,
                         }))}
                         onChange={handleChangeImage}
                         beforeUpload={handleBeforeUpload}
+                        onRemove={removeImage}  // เมื่อคลิกลบ
                     >
                         {storeImages.length >= 5 ? null : (
                             <div>
@@ -244,86 +205,11 @@ function StoreEdit() {
                 </Form.Item>
 
                 <Divider />
-                <h3>Store Services</h3>
-                {services.map((service, index) => (
-                    <Row key={index} gutter={16} style={{ marginBottom: 10 }}>
-                        <Col span={8}>
-                            <Form.Item label={`Service Name ${index + 1}`}>
-                                <Input
-                                    placeholder="Service Name"
-                                    value={service.name_service}
-                                    onChange={(e) => {
-                                        const updatedServices = [...services];
-                                        updatedServices[index].name_service = e.target.value;
-                                        setServices(updatedServices);
-                                    }}
-                                />
-                            </Form.Item>
-                        </Col>
-                        <Col span={6}>
-                            <Form.Item label="Pet Category">
-                                <Select
-                                    placeholder="Select Pet Category"
-                                    value={service.category_pet}
-                                    onChange={(value) => {
-                                        const updatedServices = [...services];
-                                        updatedServices[index].category_pet = value;
-                                        setServices(updatedServices);
-                                    }}
-                                >
-                                    <Option value="dog">Dog</Option>
-                                    <Option value="cat">Cat</Option>
-                                    <Option value="bird">Bird</Option>
-                                    <Option value="other">Other</Option>
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                            <Form.Item label="Price">
-                                <InputNumber
-                                    placeholder="Price"
-                                    min={0}
-                                    style={{ width: "100%" }}
-                                    value={service.price}
-                                    onChange={(value) => {
-                                        const updatedServices = [...services];
-                                        updatedServices[index].price = value || 0;
-                                        setServices(updatedServices);
-                                    }}
-                                />
-                            </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                            <Form.Item label="Duration (minutes)">
-                                <InputNumber
-                                    placeholder="Duration"
-                                    min={1}
-                                    style={{ width: "100%" }}
-                                    value={service.duration}
-                                    onChange={(value) => {
-                                        const updatedServices = [...services];
-                                        updatedServices[index].duration = value || 0;
-                                        setServices(updatedServices);
-                                    }}
-                                />
-                            </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                            <Button type="danger" onClick={() => removeService(index)}>
-                                Remove
-                            </Button>
-                        </Col>
-                    </Row>
-                ))}
-
-                <Button type="dashed" onClick={addService} block icon={<PlusOutlined />}>
-                    Add Service
-                </Button>
-
-                <Divider />
-                <Button type="primary" htmlType="submit">
-                    Save Changes
-                </Button>
+                <Form.Item>
+                    <Button type="primary" htmlType="submit" block>
+                        Save Changes
+                    </Button>
+                </Form.Item>
             </Form>
         </>
     );

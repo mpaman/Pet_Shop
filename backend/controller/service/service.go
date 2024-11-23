@@ -73,12 +73,17 @@ func UpdateService(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Service updated successfully", "service": service})
 }
-func Delete(c *gin.Context) {
-	id := c.Param("id")
+func DeleteService(c *gin.Context) {
+	serviceID := c.Param("id")
 
-	db := config.DB()
-	if err := db.Delete(&entity.Service{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete Service"})
+	var service entity.Service
+	if err := config.DB().Where("id = ?", serviceID).First(&service).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
+		return
+	}
+
+	if err := config.DB().Delete(&service).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete service"})
 		return
 	}
 

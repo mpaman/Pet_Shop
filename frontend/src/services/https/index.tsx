@@ -70,12 +70,12 @@ async function DeleteStoreById(id: string) {
 }
 
 
-async function DeleteServiceById(id: string) {
+async function DeleteService(id: string) {
     return await axios.delete(`${apiUrl}/service/${id}`, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
-async function DeleteStoreimageById(id: string) {
+async function DeleteStoreImage(id: string) {
     return await axios.delete(`${apiUrl}/storeimage/${id}`, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
@@ -134,11 +134,6 @@ async function UpdateService(id: string, data: ServiceInterface) {
         .catch((e) => e.response);
 }
 
-async function UpdateStoreImage(id: string, data: StoreImageInterface) {
-    return await axios.put(`${apiUrl}/storeimage/${id}`, data, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
 
 async function GetStoreImages(id: string) {
     return await axios.get(`${apiUrl}/storeimages/${id}`, { headers: requestOptions.headers })
@@ -229,7 +224,7 @@ export {
 
 
     CreateStore, UpdateStore, DeleteStoreById, GetAllStores, GetStoreByID,
-    CreateService, DeleteServiceById, UpdateService, GetAllService, GetServiceByStoreID,
-    CreateStoreImage, DeleteStoreimageById, UpdateStoreImage, GetStoreImages, GetAllStoreImage,
+    CreateService, DeleteService, UpdateService, GetAllService, GetServiceByStoreID,
+    CreateStoreImage, DeleteStoreImage, GetStoreImages, GetAllStoreImage,
     CreateBooking, GetAllBookings, GetBookingById, UpdateBooking, DeleteBooking
 };

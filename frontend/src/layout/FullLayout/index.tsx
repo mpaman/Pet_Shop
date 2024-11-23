@@ -5,10 +5,12 @@ import { Link, Routes, Route, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import Store from "../../pages/Store/index";
 import EditStore from "../../pages/Store/edit";
+import EditService from "../../pages/Store/edit/service";
 import CreateStore from "../../pages/Store/create";
 import Home from "../../pages/Home";
 import Instore from "../../pages/Instore";
 import BookingStore from "../../pages/BookingStore";
+
 const { Header, Content, Footer } = Layout;
 
 const FullLayout: React.FC = () => {
@@ -93,6 +95,7 @@ const FullLayout: React.FC = () => {
                             <Route path="/store" element={<Store />} />
                             <Route path="/store/create" element={<CreateStore />} />
                             <Route path="/store/edit/:id" element={<EditStore />} />
+                            <Route path="/store/edit/service/:id" element={<EditService />} />
                             
                             <Route path="/stores/:storeId" element={<Instore />} />
                             <Route path="/stores/:storeId/booking" element={<BookingStore />} />

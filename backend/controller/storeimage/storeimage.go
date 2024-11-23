@@ -30,44 +30,20 @@ func GetAll(c *gin.Context) {
 
     c.JSON(http.StatusOK, gin.H{"data": images})
 }
-func UpdateStoreImage(c *gin.Context) {
+
+func DeleteStoreImage(c *gin.Context) {
 	imageID := c.Param("id")
-	var payload entity.StoreImage
 
-	// Bind JSON payload to the struct
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// ค้นหารูปภาพจาก ID
 	var image entity.StoreImage
-	if err := config.DB().First(&image, imageID).Error; err != nil {
+	if err := config.DB().Where("id = ?", imageID).First(&image).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Image not found"})
 		return
 	}
 
-	// อัพเดตรูปภาพ
-	image.ImageURL = payload.ImageURL
-	image.StoreID = payload.StoreID
-
-	// บันทึกข้อมูลที่อัพเดต
-	if err := config.DB().Save(&image).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update image"})
+	if err := config.DB().Delete(&image).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete image"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Image updated successfully", "image": image})
-}
-
-func Delete(c *gin.Context) {
-	id := c.Param("id")
-
-	db := config.DB()
-	if err := db.Delete(&entity.StoreImage{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete StoreImage"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "StoreImage deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Image deleted successfully"})
 }

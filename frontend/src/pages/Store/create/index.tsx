@@ -1,246 +1,238 @@
-import React, { useState } from 'react';
-import { Form, Input, Button, Select, TimePicker, Upload, message, InputNumber, Divider, Row, Col } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { useEffect, useState } from "react";
+import {
+    Form,
+    Input,
+    Button,
+    Select,
+    TimePicker,
+    Upload,
+    message,
+    InputNumber,
+    Divider,
+    Row,
+    Col,
+    Spin,
+} from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { StoreInterface } from "../../../interfaces/Store";
 import { StoreImageInterface } from "../../../interfaces/Storeimage";
 import { ServiceInterface } from "../../../interfaces/Service";
-import { CreateStoreImage, CreateService, CreateStore as CreateNewStore } from '../../../services/https';
-import { useNavigate } from "react-router-dom";
-const { TextArea } = Input;
+import {
+    GetStoreByID,
+    GetAllStoreImage,
+    GetAllService,
+    UpdateStore,
+    CreateStoreImage,
+    DeleteStoreImage,
+} from "../../../services/https";
+import { useParams, useNavigate } from "react-router-dom";
+import moment from "moment";
+
 const { Option } = Select;
+const { TextArea } = Input;
 
-function CreateStore() {
-    const [storeImages, setStoreImages] = useState<StoreImageInterface[]>([]);
-    const [services, setServices] = useState<ServiceInterface[]>([]);
-    const [image, setImage] = useState<string | undefined>(undefined);
+function StoreEdit() {
+    const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    // ฟังก์ชันเพิ่มบริการใหม่
-    const addService = () => {
-        setServices([...services, {
-            price: 0, duration: 0,
-            store_id: 0,
-            name_service: '',
-            category_pet: ''
-        }]);
-    };
+    const [storeImages, setStoreImages] = useState<StoreImageInterface[]>([]);
+    const [deletedImageIDs, setDeletedImageIDs] = useState<number[]>([]);
+    const [storeData, setStoreData] = useState<StoreInterface | null>(null);
+    const [messageApi, contextHolder] = message.useMessage();
+    const [form] = Form.useForm();
+    const [loading, setLoading] = useState(true);
 
-    // ฟังก์ชันสำหรับเมื่อฟอร์มถูกส่ง
-    const onFinish = async (values: any) => {
-        let payload = {
-            ...values,
-            picture: image, // use the base64 image
-        };
+    useEffect(() => {
+        const fetchStoreDetails = async () => {
+            setLoading(true);
+            try {
+                const storeResponse = await GetStoreByID(id);
+                if (storeResponse?.data) {
+                    setStoreData(storeResponse.data);
+                    setTimeout(() => {
+                        form.setFieldsValue({
+                            name: storeResponse.data.name,
+                            location: storeResponse.data.location,
+                            contact_info: storeResponse.data.contact_info,
+                            description: storeResponse.data.description,
+                            time_open: moment(storeResponse.data.time_open, "HH:mm"),
+                            status: storeResponse.data.status,
+                        });
+                    }, 0);
+                }
 
-        const storeData = {
-            name: values.name,
-            location: values.location,
-            contact_info: values.contact_info,
-            description: values.description,
-            time_open: values.time_open.format("HH:mm"),
-            status: values.status,
-            userown_id: 1, // ระบุ ID ของเจ้าของร้าน (หากไม่มีก็สามารถข้ามได้)
-        };
+                const storeImagesResponse = await GetAllStoreImage();
+                if (storeImagesResponse?.data?.data) {
+                    const filteredImages = storeImagesResponse.data.data.filter(
+                        (img) => img.store_id === parseInt(id!)
+                    );
+                    setStoreImages(filteredImages);
+                }
 
-        try {
-            const response = await CreateNewStore(storeData);
-            if (response.status === 201) {
-                const storeId = response.data.store_id; // ดึง store_id จากผลลัพธ์
-
-                message.success("Store created successfully!");
-
-                // อัปโหลดภาพร้าน
-                const uploadImagePromises = storeImages.map((file) => {
-                    const imageData = {
-                        store_id: storeId, // ใช้ store_id ที่สร้างขึ้น
-                        image_url: file.url
-                    };
-                    return CreateStoreImage(imageData);
-                });
-
-                await Promise.all(uploadImagePromises);
-
-                // บันทึกบริการสำหรับร้าน
-                const servicePromises = services.map((service) => {
-                    const serviceData = {
-                        store_id: storeId,
-                        name_service: service.name_service,
-                        category_pet: service.category_pet,
-                        duration: service.duration,
-                        price: service.price,
-                    };
-                    return CreateService(serviceData).catch((error) => {
-                        console.error('Error creating service:', error);
-                        message.error('Failed to create service');
-                    });
-                });
-
-                await Promise.all(servicePromises);
-
-                message.success("Store, images, and services saved successfully!");
+                const servicesResponse = await GetAllService();
+                if (servicesResponse?.data?.data) {
+                    const filteredServices = servicesResponse.data.data.filter(
+                        (svc) => svc.store_id === parseInt(id!)
+                    );
+                }
+            } catch (error) {
+                messageApi.error("Failed to fetch store details");
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            message.error("Failed to create store");
-            console.error(error);
-        }
-        navigate(`/store`);
-    };
+        };
 
-    // ฟังก์ชันสำหรับอัปโหลดภาพและแปลงเป็น base64
-    const handleBeforeUpload = (file: any) => {
-        const isImage = file.type.startsWith('image/');
+        fetchStoreDetails();
+    }, [id, form, messageApi]);
+
+    const handleBeforeUpload = (file: File) => {
+        const isImage = file.type.startsWith("image/");
         if (!isImage) {
-            message.error('You can only upload image files!');
+            message.error("You can only upload image files!");
         }
-        return isImage;
+        return isImage || Upload.LIST_IGNORE;
     };
 
-    const handleChangeImage = async ({ fileList }: any) => {
-        const newImageList = fileList.map((file: any) => {
-            if (file.originFileObj) {
-                const reader = new FileReader();
-                reader.readAsDataURL(file.originFileObj);
-                reader.onload = () => {
-                    // ต้องใช้ฟังก์ชัน setStoreImages หลังจากที่ทำการอ่านไฟล์เสร็จแล้ว
-                    setStoreImages((prevImages) => [
-                        ...prevImages,
-                        { url: reader.result as string }, // เพิ่มรูปใหม่เข้าไปใน array
-                    ]);
-                };
-            }
-            return file;
-        });
+    const handleChangeImage = ({ fileList }: any) => {
+        setStoreImages(
+            fileList.map((file: any) => ({
+                id: file.uid.startsWith("rc-upload-") ? undefined : file.uid,
+                image_url: file.url || URL.createObjectURL(file.originFileObj),
+                originFileObj: file.originFileObj,
+            }))
+        );
     };
+
+    const removeImage = (index: number) => {
+        const imageToRemove = storeImages[index];
+        if (imageToRemove.id) {
+            setDeletedImageIDs([...deletedImageIDs, imageToRemove.id]);
+        }
+        setStoreImages(storeImages.filter((_, i) => i !== index));
+    };
+
+    const onFinish = async (values: any) => {
+        try {
+            const updatedStore = { ...values, time_open: values.time_open.format("HH:mm") };
+
+            // Update store details
+            await UpdateStore(id, updatedStore);
+
+            // Delete removed images
+            for (const imgID of deletedImageIDs) {
+                await DeleteStoreImage(imgID);
+            }
+
+            // Upload new images
+            for (const image of storeImages) {
+                if (!image.id) {
+                    const formData = new FormData();
+                    formData.append("store_id", id!);
+                    formData.append("image", image.originFileObj);
+                    await CreateStoreImage(formData);
+                }
+            }
+
+            messageApi.success("Store updated successfully!");
+            navigate(`/store`);
+        } catch (error) {
+            messageApi.error("Failed to update store");
+        }
+    };
+
+    if (loading) {
+        return (
+            <div style={{ textAlign: "center", marginTop: "50px" }}>
+                <Spin size="large" />
+            </div>
+        );
+    }
 
     return (
-        <Form layout="vertical" onFinish={onFinish}>
-            <h2>Create Store</h2>
+        <>
+            {contextHolder}
+            <Form layout="vertical" onFinish={onFinish} form={form}>
+                <h2>Edit Store</h2>
 
-            <Form.Item label="Store Name" name="name" rules={[{ required: true, message: 'Please input the store name!' }]}>
-                <Input placeholder="Enter store name" />
-            </Form.Item>
+                <Form.Item label="Store Name" name="name" rules={[{ required: true }]}>
+                    <Input placeholder="Enter store name" />
+                </Form.Item>
 
-            <Form.Item label="Location" name="location" rules={[{ required: true, message: 'Please input the location!' }]}>
-                <Input placeholder="Enter location" />
-            </Form.Item>
+                <Form.Item label="Location" name="location" rules={[{ required: true }]}>
+                    <Input placeholder="Enter location" />
+                </Form.Item>
 
-            <Form.Item label="Contact Info" name="contact_info" rules={[{ required: true, message: 'Please input the contact info!' }]}>
-                <Input placeholder="Enter contact information" />
-            </Form.Item>
+                <Form.Item label="Contact Info" name="contact_info" rules={[{ required: true }]}>
+                    <Input placeholder="Enter contact information" />
+                </Form.Item>
 
-            <Form.Item label="Description" name="description">
-                <TextArea rows={4} placeholder="Describe the store" />
-            </Form.Item>
+                <Form.Item label="Description" name="description">
+                    <TextArea rows={4} placeholder="Describe the store" />
+                </Form.Item>
 
-            <Form.Item label="Opening Time" name="time_open" rules={[{ required: true, message: 'Please select opening time!' }]}>
-                <TimePicker format="HH:mm" />
-            </Form.Item>
+                <Form.Item label="Opening Time" name="time_open" rules={[{ required: true }]}>
+                    <TimePicker format="HH:mm" />
+                </Form.Item>
 
-            <Form.Item label="Status" name="status" rules={[{ required: true, message: 'Please select store status!' }]}>
-                <Select placeholder="Select status">
-                    <Option value="open">Open</Option>
-                    <Option value="close">Close</Option>
-                    <Option value="full">Full</Option>
-                </Select>
-            </Form.Item>
+                <Form.Item label="Status" name="status" rules={[{ required: true }]}>
+                    <Select placeholder="Select status">
+                        <Option value="open">Open</Option>
+                        <Option value="close">Close</Option>
+                        <Option value="full">Full</Option>
+                    </Select>
+                </Form.Item>
 
-            <Divider />
-            <Form.Item label="Upload Images">
-                <Upload
-                    listType="picture-card"
-                    fileList={storeImages}
-                    onChange={handleChangeImage}
-                    beforeUpload={handleBeforeUpload} // เช็คประเภทของไฟล์
-                >
-                    {storeImages.length >= 5 ? null : (
-                        <div>
-                            <PlusOutlined />
-                            <div style={{ marginTop: 8 }}>Upload</div>
-                        </div>
-                    )}
-                </Upload>
-            </Form.Item>
+                <Divider />
+                <Form.Item label="Upload Images">
+                    <Upload
+                        listType="picture-card"
+                        fileList={storeImages.map((image) => ({
+                            uid: image.id || String(Math.random()),
+                            url: image.image_url,
+                        }))}
+                        onChange={handleChangeImage}
+                        beforeUpload={handleBeforeUpload}
+                    >
+                        {storeImages.length >= 5 ? null : (
+                            <div>
+                                <PlusOutlined />
+                                <div style={{ marginTop: 8 }}>Upload</div>
+                            </div>
+                        )}
+                    </Upload>
+                </Form.Item>
 
-            <Divider />
+                {storeImages.length > 0 && (
+                    <div>
+                        <h4>Images:</h4>
+                        {storeImages.map((image, index) => (
+                            <div key={index} style={{ marginBottom: 8 }}>
+                                <img
+                                    src={image.image_url}
+                                    alt={`image-${index}`}
+                                    style={{ width: 100, height: 100, objectFit: "cover" }}
+                                />
+                                <Button
+                                    type="danger"
+                                    size="small"
+                                    onClick={() => removeImage(index)}
+                                    style={{ marginLeft: 8 }}
+                                >
+                                    Remove
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
-            <h3>Store Services</h3>
-            {services.map((service, index) => (
-                <Row key={index} gutter={16} style={{ marginBottom: 10 }}>
-                    <Col span={8}>
-                        <Form.Item label={`Service Name ${index + 1}`}>
-                            <Input
-                                placeholder="Service Name"
-                                value={service.name_service}
-                                onChange={(e) => {
-                                    const updatedServices = [...services];
-                                    updatedServices[index].name_service = e.target.value;
-                                    setServices(updatedServices);
-                                }}
-                            />
-                        </Form.Item>
-                    </Col>
-                    <Col span={6}>
-                        <Form.Item label="Pet Category">
-                            <Select
-                                placeholder="Select Pet Category"
-                                value={service.category_pet}
-                                onChange={(value) => {
-                                    const updatedServices = [...services];
-                                    updatedServices[index].category_pet = value;
-                                    setServices(updatedServices);
-                                }}
-                            >
-                                <Option value="dog">Dog</Option>
-                                <Option value="cat">Cat</Option>
-                                <Option value="bird">Bird</Option>
-                                <Option value="other">Other</Option>
-                            </Select>
-                        </Form.Item>
-                    </Col>
-                    <Col span={8}>
-                        <Form.Item label="Price">
-                            <InputNumber
-                                placeholder="Price"
-                                min={0}
-                                style={{ width: '100%' }}
-                                value={service.price}
-                                onChange={(value) => {
-                                    const updatedServices = [...services];
-                                    updatedServices[index].price = value || 0;
-                                    setServices(updatedServices);
-                                }}
-                            />
-                        </Form.Item>
-                    </Col>
-                    <Col span={8}>
-                        <Form.Item label="Duration (minutes)">
-                            <InputNumber
-                                placeholder="Duration"
-                                min={1}
-                                style={{ width: '100%' }}
-                                value={service.duration}
-                                onChange={(value) => {
-                                    const updatedServices = [...services];
-                                    updatedServices[index].duration = value || 0;
-                                    setServices(updatedServices);
-                                }}
-                            />
-                        </Form.Item>
-                    </Col>
-                </Row>
-            ))}
-
-            <Button type="dashed" onClick={addService} style={{ width: '100%', marginTop: '10px' }}>
-                <PlusOutlined /> Add Service
-            </Button>
-
-            <Divider />
-
-            <Form.Item>
-                <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
-                    Create Store
-                </Button>
-            </Form.Item>
-        </Form>
+                <Divider />
+                <Form.Item>
+                    <Button type="primary" htmlType="submit" block>
+                        Save Changes
+                    </Button>
+                </Form.Item>
+            </Form>
+        </>
     );
 }
 
-export default CreateStore;
+export default StoreEdit;
