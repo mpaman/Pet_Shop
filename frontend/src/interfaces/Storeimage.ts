@@ -1,5 +1,6 @@
 
 export interface StoreImageInterface {
+
     ID?: number;
     image_url: string;
     store_id: number;

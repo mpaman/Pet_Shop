@@ -7,24 +7,19 @@ import {
     TimePicker,
     Upload,
     message,
-    InputNumber,
     Divider,
     Spin,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { StoreInterface } from "../../../interfaces/Store";
-import { StoreImageInterface } from "../../../interfaces/Storeimage";
-import { ServiceInterface } from "../../../interfaces/Service";
+import moment from "moment";
+import { useParams, useNavigate } from "react-router-dom";
 import {
     GetStoreByID,
     GetAllStoreImage,
-    GetAllService,
     UpdateStore,
     CreateStoreImage,
     DeleteStoreImage,
 } from "../../../services/https";
-import { useParams, useNavigate } from "react-router-dom";
-import moment from "moment";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -32,9 +27,9 @@ const { TextArea } = Input;
 function StoreEdit() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [storeImages, setStoreImages] = useState<StoreImageInterface[]>([]);
+    const [storeImages, setStoreImages] = useState<any[]>([]);
     const [deletedImageIDs, setDeletedImageIDs] = useState<number[]>([]);
-    const [storeData, setStoreData] = useState<StoreInterface | null>(null);
+    const [storeData, setStoreData] = useState<any | null>(null);
     const [messageApi, contextHolder] = message.useMessage();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(true);
@@ -46,22 +41,20 @@ function StoreEdit() {
                 const storeResponse = await GetStoreByID(id);
                 if (storeResponse?.data) {
                     setStoreData(storeResponse.data);
-                    setTimeout(() => {
-                        form.setFieldsValue({
-                            name: storeResponse.data.name,
-                            location: storeResponse.data.location,
-                            contact_info: storeResponse.data.contact_info,
-                            description: storeResponse.data.description,
-                            time_open: moment(storeResponse.data.time_open, "HH:mm"),
-                            status: storeResponse.data.status,
-                        });
-                    }, 0);
+                    form.setFieldsValue({
+                        name: storeResponse.data.name,
+                        location: storeResponse.data.location,
+                        contact_info: storeResponse.data.contact_info,
+                        description: storeResponse.data.description,
+                        time_open: moment(storeResponse.data.time_open, "HH:mm"),
+                        status: storeResponse.data.status,
+                    });
                 }
 
                 const storeImagesResponse = await GetAllStoreImage();
                 if (storeImagesResponse?.data?.data) {
                     const filteredImages = storeImagesResponse.data.data.filter(
-                        (img) => img.store_id === parseInt(id!)
+                        (img: any) => img.store_id === parseInt(id!)
                     );
                     setStoreImages(filteredImages);
                 }
@@ -84,52 +77,48 @@ function StoreEdit() {
     };
 
     const handleChangeImage = ({ fileList }: any) => {
-        setStoreImages(
-            fileList.map((file: any) => ({
-                id: file.uid.startsWith("rc-upload-") ? undefined : file.uid,
-                image_url: file.url || URL.createObjectURL(file.originFileObj),
-                originFileObj: file.originFileObj,
-            }))
-        );
+        const newImageList = fileList.map((file: any) => {
+            if (file.originFileObj) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file.originFileObj);
+                reader.onload = () => {
+                    setStoreImages((prevImages) => [
+                        ...prevImages,
+                        { image_url: reader.result as string, store_id: parseInt(id!) },
+                    ]);
+                };
+            }
+            return file;
+        });
     };
+    
 
-    const removeImage = (index: number) => {
-        const imageToRemove = storeImages[index];
-        if (imageToRemove.id) {
-            setDeletedImageIDs([...deletedImageIDs, imageToRemove.id]);
+    const onRemoveImage = (file: any) => {
+        if (file.uid && !file.uid.startsWith("rc-upload-")) {
+            setDeletedImageIDs((prev) => [...prev, parseInt(file.uid)]);
         }
-        setStoreImages(storeImages.filter((_, i) => i !== index));
+        setStoreImages((prev) => prev.filter((img) => img.ID !== parseInt(file.uid)));
     };
 
     const onFinish = async (values: any) => {
         try {
             const updatedStore = { ...values, time_open: values.time_open.format("HH:mm") };
     
-            // เรียกใช้ฟังก์ชัน UpdateStore
+            // อัปเดตร้านค้า
             await UpdateStore(id, updatedStore);
     
-            // ลบภาพที่ถูกลบออกจากระบบ
+            // ลบภาพที่ถูกเลือกให้ลบ
             for (const imgID of deletedImageIDs) {
-                await DeleteStoreImage(imgID);  // เรียกใช้ API DeleteStoreImage
+                await DeleteStoreImage(imgID);
             }
     
-            // อัพโหลดภาพใหม่
+            // อัปโหลดภาพใหม่
             for (const image of storeImages) {
-                if (!image.id) { // ตรวจสอบว่าเป็นภาพใหม่
-                    if (!image.originFileObj) {
-                        messageApi.error("Image file missing!");
-                        return; // ถ้าไม่มีไฟล์จะไม่ทำการอัพโหลด
-                    }
-    
-                    const formData = new FormData();
-                    formData.append("store_id", id!); // ตรวจสอบว่ามี store_id
-                    formData.append("image", image.originFileObj); // ตรวจสอบว่ามีไฟล์
-                    const response = await CreateStoreImage(formData);  // เรียกใช้ API CreateStoreImage
-                    if (response?.status === 200) {
-                        messageApi.success("Image uploaded successfully");
-                    } else {
-                        messageApi.error("Failed to upload image");
-                    }
+                if (!image.ID) {
+                    await CreateStoreImage({
+                        image_url: image.image_url,
+                        store_id: parseInt(id!),
+                    });
                 }
             }
     
@@ -154,7 +143,6 @@ function StoreEdit() {
             {contextHolder}
             <Form layout="vertical" onFinish={onFinish} form={form}>
                 <h2>Edit Store</h2>
-
                 <Form.Item label="Store Name" name="name" rules={[{ required: true }]}>
                     <Input placeholder="Enter store name" />
                 </Form.Item>
@@ -188,12 +176,12 @@ function StoreEdit() {
                     <Upload
                         listType="picture-card"
                         fileList={storeImages.map((image) => ({
-                            uid: image.id || String(Math.random()),
+                            uid: image.ID?.toString() || String(Math.random()),
                             url: image.image_url,
                         }))}
                         onChange={handleChangeImage}
+                        onRemove={onRemoveImage}
                         beforeUpload={handleBeforeUpload}
-                        onRemove={removeImage}  // เมื่อคลิกลบ
                     >
                         {storeImages.length >= 5 ? null : (
                             <div>

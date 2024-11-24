@@ -32,18 +32,10 @@ func GetAll(c *gin.Context) {
 }
 
 func DeleteStoreImage(c *gin.Context) {
-	imageID := c.Param("id")
-
-	var image entity.StoreImage
-	if err := config.DB().Where("id = ?", imageID).First(&image).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Image not found"})
-		return
-	}
-
-	if err := config.DB().Delete(&image).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete image"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Image deleted successfully"})
+    id := c.Param("id")
+    if err := config.DB().Delete(&entity.StoreImage{}, id).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete image"})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"message": "Image deleted successfully"})
 }
