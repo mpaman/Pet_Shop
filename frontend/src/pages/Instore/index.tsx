@@ -36,7 +36,7 @@ const StorePage: React.FC = () => {
 
                 // กรองเฉพาะบริการที่ตรงกับ store_id
                 const filteredServices = allServices.filter(
-                    (service) => service.store_id === Number(storeId)
+                    (service: { store_id: number; }) => service.store_id === Number(storeId)
                 );
 
                 setServices(filteredServices);

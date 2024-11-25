@@ -17,11 +17,18 @@ type Bookingstore struct {
 	ServiceID uint    `json:"service_id" binding:"required"`
 	Service   Service `gorm:"foreignKey:ServiceID;references:ID"`
 
-	BookingTime time.Time `json:"booking_time" binding:"required"`
+	BookingTime string `json:"booking_time"`
 
 	Date time.Time `json:"date" binding:"required"`
 
 	Status string `json:"status"`
 
 	Notes string `json:"notes" gorm:"type:text"`
+
+	TotalCost  int `json:"total_cost"`
+
+	ContactNum string `json:"contact_number" binding:"-"`
+
+	CountPet int `json:"count_pet" binding:"required"` // เพิ่ม CountPet
 }
+

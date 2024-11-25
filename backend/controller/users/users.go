@@ -117,6 +117,8 @@ func Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Deleted successful"})
 
 }
+
+//ADD
 func GetUserProfile(c *gin.Context) {
 	// Extract user email from the context
 	email, exists := c.Get("userEmail")
@@ -134,6 +136,8 @@ func GetUserProfile(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": result.Error.Error()})
 		return
 	}
+	//ฟังก์ชันจะใช้คำสั่ง db.Preload("Gender").Where("email = ?", email).First(&user) 
+	//เพื่อค้นหาข้อมูลผู้ใช้ในตาราง Users โดยใช้เงื่อนไขค้นหาจาก อีเมล ที่ดึงได้จาก context และ preload ความสัมพันธ์กับตาราง Gender เพื่อดึงข้อมูลเพศของผู้ใช้มาด้วย
 
 	// Return user profile details
 	c.JSON(http.StatusOK, gin.H{
@@ -144,6 +148,8 @@ func GetUserProfile(c *gin.Context) {
 		"Role":  user.Role,
 	})
 }
+
+// Mock function to extract user ID from the token
 func extractUserIDFromToken(token string) (uint, error) {
 	// Implement your token parsing and validation logic here
 	// This is a placeholder function

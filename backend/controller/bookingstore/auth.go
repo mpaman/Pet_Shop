@@ -13,9 +13,12 @@ type addBookingstore struct {
 	BookerUserID uint      `json:"booker_user_id" binding:"required"`
 	StoreID      uint      `json:"store_id" binding:"required"`
 	ServiceID    uint      `json:"service_id" binding:"required"`
-	BookingTime  time.Time `json:"booking_time" binding:"required"`
+	BookingTime  string    `json:"booking_time"` // เปลี่ยนเป็น string
 	Notes        string    `json:"notes"`
 	Date         time.Time `json:"date" binding:"required"`
+	TotalCost    int       `json:"total_cost"`
+	ContactNum   string    `json:"contact_number" binding:"-"`
+	CountPet     int       `json:"count_pet" binding:"required"`
 }
 
 // CreateBookingstore handles the creation of a new booking
@@ -25,12 +28,6 @@ func CreateBookingstore(c *gin.Context) {
 	// Bind JSON payload to the struct
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Validate booking time
-	if payload.BookingTime.Before(time.Now()) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Booking time cannot be in the past"})
 		return
 	}
 
@@ -55,15 +52,29 @@ func CreateBookingstore(c *gin.Context) {
 		return
 	}
 
+	// Parse the BookingTime to a specific format (HH:mm)
+	// Convert the date to a time object (you might need the time.Date() method depending on the use case)
+	if payload.BookingTime != "" {
+		// Assuming booking time is in "HH:mm" format
+		_, err := time.Parse("15:04", payload.BookingTime)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid time format for booking_time"})
+			return
+		}
+	}
+
 	// Create the booking
 	bookingstore := entity.Bookingstore{
 		BookerUserID: payload.BookerUserID,
 		StoreID:      payload.StoreID,
 		ServiceID:    payload.ServiceID,
-		BookingTime:  payload.BookingTime,
-		Status:       "pending", // Default status
+		BookingTime:  payload.BookingTime, // Use the string format
+		Status:       "pending",           // Default status
 		Notes:        payload.Notes,
 		Date:         payload.Date,
+		TotalCost:    payload.TotalCost,
+		ContactNum:   payload.ContactNum,
+		CountPet:     payload.CountPet,
 	}
 
 	// Save the booking to the database

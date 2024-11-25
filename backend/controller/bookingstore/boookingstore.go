@@ -51,31 +51,43 @@ func UpdateBookingstore(c *gin.Context) {
 	id := c.Param("id")
 	var booking entity.Bookingstore
 
-	// Find the booking by ID
 	if err := config.DB().First(&booking, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
 
-	// Bind updated data to the booking
-	if err := c.ShouldBindJSON(&booking); err != nil {
+	var payload struct {
+		Status string `json:"status"`
+	}
+	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Save the updated booking
+	// Validate status
+	validStatuses := map[string]bool{"pending": true, "confirmed": true, "cancelled": true, "completed": true}
+	if payload.Status != "" && !validStatuses[payload.Status] {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status"})
+		return
+	}
+
+	// Update fields
+	if payload.Status != "" {
+		booking.Status = payload.Status
+	}
+
 	if err := config.DB().Save(&booking).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Return the updated booking
 	c.JSON(http.StatusOK, gin.H{
 		"status":  200,
 		"message": "Booking updated successfully",
 		"booking": booking,
 	})
 }
+
 
 // DeleteBookingstore deletes a booking by ID
 func DeleteBookingstore(c *gin.Context) {

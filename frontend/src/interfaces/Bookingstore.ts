@@ -1,28 +1,36 @@
 export interface BookingInterface {
-    id?: number;
-    user_id: number;
+    ID?: number;
+    booker_user_id: number;
     store_id: number;
     service_id: number;
-    date: string; // ISO format
-    status?: string;
-    User?: {
-        ID: number; // ID ของผู้ใช้
-        first_name: string; // ชื่อจริงของผู้ใช้
-        last_name: string;  // นามสกุลของผู้ใช้
-        email: string;      // อีเมลของผู้ใช้
-        Profile?: string;
+    date: string; // ISO format (required)
+    booking_time: string; 
+    status?: string; // Optional
+    notes: string; // Optional
+    total_cost: number; // Required
+    contact_number: string; // Required
+    count_pet: number; // Required
+
+    User?: { // Optional User information
+        ID: number; // User's ID (required)
+        first_name: string; // User's first name (required)
+        last_name: string;  // User's last name (required)
+        email: string;      // User's email (required)
+        Profile?: string;   // Optional profile image
     };
-    store?: {
-        name: string;
-        location: string;
-        contact_info: string;
-        description: string;
-        time_open: string;
-        status: string;
+
+    store?: { // Optional Store information
+        name: string;       // Store's name (required)
+        location: string;   // Store's location (required)
+        contact_info: string; // Store's contact information (required)
+        description: string; // Store's description (required)
+        time_open: string;  // Store's working hours (required)
+        status: string;     // Store's status (required)
     };
-    service?: {
-        name_service: string;
-        price: number;
-        duration: number; 
+
+    service?: { // Optional Service information
+        name_service: string; // Service's name (required)
+        price: number;        // Service's price (required)
+        duration: number;     // Service's duration (required)
     };
 }

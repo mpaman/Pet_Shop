@@ -9,13 +9,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
-var HashKey = []byte("very-secret")
-
-var BlockKey = []byte("a-lot-secret1234")
-
-// Authorization เป็นฟังก์ชั่นตรวจเช็ค Cookie
-
+//change
+// Authorization middleware for validating JWT tokens
 func Authorizes() gin.HandlerFunc {
     return func(c *gin.Context) {
         clientToken := c.Request.Header.Get("Authorization")

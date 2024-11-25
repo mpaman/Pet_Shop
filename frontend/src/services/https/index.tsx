@@ -5,7 +5,6 @@ import { BookingInterface } from '../../interfaces/Bookingstore';
 import { ServiceInterface } from '../../interfaces/Service';
 import { StoreInterface } from '../../interfaces/Store';
 import { StoreImageInterface } from '../../interfaces/Storeimage';
-
 const apiUrl = "http://localhost:8000";
 const token = localStorage.getItem("token");
 const tokenType = localStorage.getItem("token_type");
@@ -154,8 +153,28 @@ async function GetStoreByID(id: string) {
 }
 
 
+async function GetAllService() {
+    return await axios.get(`${apiUrl}/services`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+
+async function GetAllStoreImage() {
+    return await axios.get(`${apiUrl}/storeimagess`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+
+
 async function CreateBooking(data: BookingInterface) {
     return await axios.post(`${apiUrl}/booking`, data, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function GetBookingById(id: string) {
+    return await axios.get(`${apiUrl}/booking/${id}`, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
@@ -165,23 +184,6 @@ async function GetAllBookings() {
         .then((res) => res)
         .catch((e) => e.response);
 }
-async function GetAllService() {
-    return await axios.get(`${apiUrl}/services`, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-async function GetAllStoreImage() {
-    return await axios.get(`${apiUrl}/storeimagess`, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-
-async function GetBookingById(id: string) {
-    return await axios.get(`${apiUrl}/booking/${id}`, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-
 async function UpdateBooking(id: string, data: BookingInterface) {
     return await axios.put(`${apiUrl}/booking/${id}`, data, { headers: requestOptions.headers })
         .then((res) => res)
@@ -194,24 +196,6 @@ async function DeleteBooking(id: string) {
         .catch((e) => e.response);
 }
 
-
-
-export const UploadNewImage = async (formData: FormData) => {
-    try {
-        const response = await axios.post("/api/upload/image", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        });
-        if (response.data && response.data.success) {
-            return response.data;  // Response should include image data, like image URL or ID
-        }
-        throw new Error("Image upload failed");
-    } catch (error) {
-        console.error("Error uploading image:", error);
-        throw error;  // Throw the error to be caught in the component
-    }
-};
 // Export all functions
 export {
     SignIn,
