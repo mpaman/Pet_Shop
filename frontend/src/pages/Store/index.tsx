@@ -66,6 +66,18 @@ function Store() {
                 </Button>
             ),
         },
+        {
+            title: "",
+            render: (record) => (
+                <Button
+                    type="primary"
+                    icon={<EditOutlined />}
+                    onClick={() => navigate(`/store/booking/${record.ID}`)}
+                >
+                    ตรวจสอบผู้จอง
+                </Button>
+            ),
+        },
     ];
 
     const deleteStoreById = async (id: string) => {

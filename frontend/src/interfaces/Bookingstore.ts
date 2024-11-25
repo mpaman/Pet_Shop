@@ -1,4 +1,5 @@
 export interface BookingInterface {
+    BookerUser: any;
     ID?: number;
     booker_user_id: number;
     store_id: number;
@@ -28,7 +29,7 @@ export interface BookingInterface {
         status: string;     // Store's status (required)
     };
 
-    service?: { // Optional Service information
+    Service?: { // Optional Service information
         name_service: string; // Service's name (required)
         price: number;        // Service's price (required)
         duration: number;     // Service's duration (required)

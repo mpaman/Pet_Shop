@@ -173,25 +173,25 @@ async function CreateBooking(data: BookingInterface) {
         .then((res) => res)
         .catch((e) => e.response);
 }
-async function GetBookingById(id: string) {
-    return await axios.get(`${apiUrl}/booking/${id}`, { headers: requestOptions.headers })
+async function GetBookingstoreByStoreID(id: string) {
+    return await axios.get(`${apiUrl}/bookingstore/${id}`, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
 
 async function GetAllBookings() {
-    return await axios.get(`${apiUrl}/bookings`, { headers: requestOptions.headers })
+    return await axios.get(`${apiUrl}/bookingstores`, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
-async function UpdateBooking(id: string, data: BookingInterface) {
-    return await axios.put(`${apiUrl}/booking/${id}`, data, { headers: requestOptions.headers })
+async function UpdateBookingStatus(id: string, data: BookingInterface) {
+    return await axios.put(`${apiUrl}/bookingstore/${id}`, data, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
 
 async function DeleteBooking(id: string) {
-    return await axios.delete(`${apiUrl}/booking/${id}`, { headers: requestOptions.headers })
+    return await axios.delete(`${apiUrl}/bookingstore/${id}`, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
@@ -210,5 +210,5 @@ export {
     CreateStore, UpdateStore, DeleteStoreById, GetAllStores, GetStoreByID,
     CreateService, DeleteService, UpdateService, GetAllService, GetServiceByStoreID,
     CreateStoreImage, DeleteStoreImage, GetStoreImages, GetAllStoreImage,
-    CreateBooking, GetAllBookings, GetBookingById, UpdateBooking, DeleteBooking
+    CreateBooking, GetAllBookings, GetBookingstoreByStoreID, UpdateBookingStatus, DeleteBooking
 };

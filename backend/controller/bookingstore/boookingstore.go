@@ -2,9 +2,13 @@ package bookingstore
 
 import (
 	"net/http"
+	"strconv"
+	"time"
+
 	// "gorm.io/gorm"
 	"github.com/mpaman/petshop/config"
 	"github.com/mpaman/petshop/entity"
+
 	// "fmt"
 	"github.com/gin-gonic/gin"
 )
@@ -27,30 +31,42 @@ func GetAllBookingstores(c *gin.Context) {
 	})
 }
 
-// GetBookingstoreByID retrieves a booking by its ID
-func GetBookingstoreByID(c *gin.Context) {
-	id := c.Param("id")
-	var booking entity.Bookingstore
+func GetBookingstoreByStoreID(c *gin.Context) {
+	storeID := c.Param("storeId") // รับ storeId จาก URL
+	var bookings []entity.Bookingstore
 
-	// Find the booking by ID
-	if err := config.DB().Preload("BookerUser").Preload("Store").Preload("Service").First(&booking, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
+	// ตรวจสอบว่า storeID เป็นตัวเลขหรือไม่
+	storeIDInt, err := strconv.Atoi(storeID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid store ID"})
 		return
 	}
 
-	// Return the booking
+	// ดึงข้อมูลการจองที่เกี่ยวข้องกับ StoreID
+	if err := config.DB().
+		Preload("BookerUser"). // โหลดข้อมูลผู้จอง
+		Preload("Store").      // โหลดข้อมูลร้านค้า
+		Preload("Service").    // โหลดข้อมูลบริการ
+		Where("store_id = ?", storeIDInt). // กรองด้วย store_id
+		Find(&bookings).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No bookings found for this store"})
+		return
+	}
+
+	// ส่งข้อมูลกลับ
 	c.JSON(http.StatusOK, gin.H{
-		"status":  200,
-		"message": "Booking retrieved successfully",
-		"booking": booking,
+		"status":   200,
+		"message":  "Bookings retrieved successfully",
+		"bookings": bookings,
 	})
 }
 
-// UpdateBookingstore updates the status or notes of a booking
+// อัปเดตสถานะการจอง
 func UpdateBookingstore(c *gin.Context) {
 	id := c.Param("id")
 	var booking entity.Bookingstore
 
+	// ตรวจสอบว่ามี Booking ตาม ID หรือไม่
 	if err := config.DB().First(&booking, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
@@ -71,10 +87,12 @@ func UpdateBookingstore(c *gin.Context) {
 		return
 	}
 
-	// Update fields
+	// อัปเดตสถานะ
 	if payload.Status != "" {
 		booking.Status = payload.Status
 	}
+
+	booking.UpdatedAt = time.Now()
 
 	if err := config.DB().Save(&booking).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

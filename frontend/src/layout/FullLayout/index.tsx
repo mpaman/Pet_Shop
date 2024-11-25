@@ -10,7 +10,8 @@ import CreateStore from "../../pages/Store/create";
 import Home from "../../pages/Home";
 import Instore from "../../pages/Instore";
 import BookingStore from "../../pages/BookingStore";
-
+import TotalBooking from "../../pages/TotalBooking";
+import Booking from "../../pages/Store/booking";
 const { Header, Content, Footer } = Layout;
 
 const FullLayout: React.FC = () => {
@@ -61,6 +62,13 @@ const FullLayout: React.FC = () => {
                             </Link>
                         </Button>
 
+                        <Button type="text" style={{ color: "white", margin: "0 10px" }}>
+                            <Link to="/totalbooking">
+
+                                <span> booking</span>
+                            </Link>
+                        </Button>
+
                             {/* <Link to="/customer">
                                 <Avatar
                                     style={{
@@ -96,9 +104,11 @@ const FullLayout: React.FC = () => {
                             <Route path="/store/create" element={<CreateStore />} />
                             <Route path="/store/edit/:id" element={<EditStore />} />
                             <Route path="/store/edit/service/:id" element={<EditService />} />
-                            
+                            <Route path="/store/booking/:id" element={<Booking />} />
+
                             <Route path="/stores/:storeId" element={<Instore />} />
                             <Route path="/stores/:storeId/booking" element={<BookingStore />} />
+                            <Route path="/totalbooking" element={<TotalBooking />} />
                         </Routes>
                     </div>
                 </Content>

@@ -12,9 +12,10 @@ const Store = Loadable(lazy(() => import("../pages/Store")));
 const EditStore = Loadable(lazy(() => import("../pages/Store/edit")));
 const EditService = Loadable(lazy(() => import("../pages/Store/edit/service/index")));
 const CreateStore = Loadable(lazy(() => import("../pages/Store/create")));
-
+const Booking = Loadable(lazy(() => import("../pages/Store/booking")));
 const  Instore = Loadable(lazy(() => import("../pages/Instore")));
 const  BookingStore = Loadable(lazy(() => import("../pages/BookingStore")));
+const  TotalBooking = Loadable(lazy(() => import("../pages/TotalBooking")));
 
 const AdminRoutes = (isLoggedIn: boolean): RouteObject => {
     return {
@@ -34,6 +35,10 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject => {
                         element: <CreateStore />,
                     },
                     {
+                        path: "booking/:id",
+                        element: <Booking />,
+                    },
+                    {
                         path: "edit/:id",
                         element: <EditStore />,
                     },
@@ -42,6 +47,10 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject => {
                         element: <EditService />,
                     },
                 ],
+            },
+            {
+                path: "totalbooking",
+                element: <TotalBooking />
             },
             {
                 path: "stores/:storeId",

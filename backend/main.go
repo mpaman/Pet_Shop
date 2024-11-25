@@ -39,7 +39,7 @@ func main() {
 
 		// Routes for bookingstore
 		router.POST("/booking", bookingstore.CreateBookingstore)
-		router.GET("/bookingstore/:id", bookingstore.GetBookingstoreByID)
+		router.GET("/bookingstore/:id", bookingstore.GetBookingstoreByStoreID)
 		router.GET("/bookingstores", bookingstore.GetAllBookingstores)
 		router.PUT("/bookingstore/:id", bookingstore.UpdateBookingstore)
 		router.DELETE("/bookingstore/:id", bookingstore.DeleteBookingstore)
