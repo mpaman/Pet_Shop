@@ -16,7 +16,6 @@ import {
 import { CreateBooking, GetAllService, GetStoreByID, GetUserProfile } from "../../services/https";
 import { StoreInterface } from "../../interfaces/Store";
 import { ServiceInterface } from "../../interfaces/Service";
-import { UsersInterface } from "../../interfaces/IUser";
 import { useParams } from "react-router-dom";
 import moment from "moment"; // ใช้สำหรับการจัดการเวลา
 
@@ -32,10 +31,10 @@ const BookingForm: React.FC = () => {
     const [time, setTime] = useState<string | null>(null); // เวลา
     const [notes, setNotes] = useState<string>("");
     const [contactNumber, setContactNumber] = useState<string>("");
-    const [totalCost, setTotalCost] = useState<number>(0);
+    const [totalCost, setTotalCost] = useState<number>(0); // Total cost
     const [loading, setLoading] = useState<boolean>(true);
     const [bookingSuccess, setBookingSuccess] = useState<string | null>(null);
-    const [countPet, setCountPet] = useState<number>(0);
+    const [countPet, setCountPet] = useState<number>(1);  // กำหนดค่าเริ่มต้นเป็น 1 แทน 0
     const { storeId } = useParams<{ storeId: string }>();
     const [bookerUserId, setBookerUserId] = useState<string | null>(null);
 
@@ -72,26 +71,28 @@ const BookingForm: React.FC = () => {
     }, [storeId]);
 
     const handleSubmit = async () => {
+        console.log("Total Cost on Submit:", totalCost);  // ตรวจสอบ totalCost ที่คำนวณได้
+        
         if (!selectedService || !selectedStore || !date || !contactNumber || !countPet || !time) {
             message.error("Please fill all required fields!");
             return;
         }
-
+    
         // รวมวันที่และเวลาให้เป็นเวลาเดียวกัน โดยใช้ moment เพื่อให้เป็น format "HH:mm"
         const formattedDateTime = moment(`${date} ${time}`, "YYYY-MM-DD HH:mm").toISOString();
-
+    
         const bookingData = {
             booker_user_id: bookerUserId,
             store_id: selectedStore,
             service_id: selectedService,
             date: formattedDateTime,  // ใช้เวลาที่เลือก
             notes,
-            total_cost: totalCost,
+            total_cost: totalCost,  // ใช้ totalCost ที่คำนวณจากจำนวนสัตว์เลี้ยงและราคา
             contact_number: contactNumber,
             count_pet: countPet,
             booking_time: time, // ใช้เวลาในรูปแบบ "HH:mm"
         };
-
+    
         try {
             const response = await CreateBooking(bookingData);
             if (response.status === 201) {
@@ -106,11 +107,30 @@ const BookingForm: React.FC = () => {
             message.error("Error creating booking.");
         }
     };
-
+    
     const handleServiceChange = (serviceID: number) => {
         setSelectedService(serviceID);
         const selected = services.find((service) => service.ID === serviceID);
-        if (selected) setTotalCost(selected.price);
+        console.log("Selected Service:", selected);  // ตรวจสอบค่าที่เลือก
+        
+        if (selected) {
+            // คำนวณ totalCost โดยการคูณจำนวนสัตว์เลี้ยงกับราคาบริการ
+            const newTotalCost = selected.price * countPet;
+            console.log("New Total Cost:", newTotalCost);  // ตรวจสอบการคำนวณ
+            setTotalCost(newTotalCost);
+        }
+    };
+
+    const handleCountPetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newCountPet = Number(e.target.value);
+        setCountPet(newCountPet);
+        
+        if (selectedService) {
+            const selected = services.find((service) => service.ID === selectedService);
+            if (selected) {
+                setTotalCost(selected.price * newCountPet); // คำนวณ total cost เมื่อกรอกจำนวนสัตว์เลี้ยง
+            }
+        }
     };
 
     return (
@@ -204,7 +224,7 @@ const BookingForm: React.FC = () => {
                                 type="number"
                                 placeholder="Enter the number of pets"
                                 value={countPet}
-                                onChange={(e) => setCountPet(Number(e.target.value))}
+                                onChange={handleCountPetChange}
                                 min={1}
                             />
                         </div>

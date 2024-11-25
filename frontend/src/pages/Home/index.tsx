@@ -72,7 +72,7 @@ function StoreList() {
     useEffect(() => {
         const filtered = stores.filter((store) => {
             const matchesSearchTerm =
-                store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                // store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 store.location.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesService =
                 !selectedService || store.services?.some((service: { name_service: string; }) => service.name_service === selectedService);
