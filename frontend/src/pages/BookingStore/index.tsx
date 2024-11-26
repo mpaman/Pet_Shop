@@ -72,15 +72,15 @@ const BookingForm: React.FC = () => {
 
     const handleSubmit = async () => {
         console.log("Total Cost on Submit:", totalCost);  // ตรวจสอบ totalCost ที่คำนวณได้
-        
+
         if (!selectedService || !selectedStore || !date || !contactNumber || !countPet || !time) {
             message.error("Please fill all required fields!");
             return;
         }
-    
+
         // รวมวันที่และเวลาให้เป็นเวลาเดียวกัน โดยใช้ moment เพื่อให้เป็น format "HH:mm"
         const formattedDateTime = moment(`${date} ${time}`, "YYYY-MM-DD HH:mm").toISOString();
-    
+
         const bookingData = {
             booker_user_id: bookerUserId,
             store_id: selectedStore,
@@ -92,7 +92,7 @@ const BookingForm: React.FC = () => {
             count_pet: countPet,
             booking_time: time, // ใช้เวลาในรูปแบบ "HH:mm"
         };
-    
+
         try {
             const response = await CreateBooking(bookingData);
             if (response.status === 201) {
@@ -107,12 +107,12 @@ const BookingForm: React.FC = () => {
             message.error("Error creating booking.");
         }
     };
-    
+
     const handleServiceChange = (serviceID: number) => {
         setSelectedService(serviceID);
         const selected = services.find((service) => service.ID === serviceID);
         console.log("Selected Service:", selected);  // ตรวจสอบค่าที่เลือก
-        
+
         if (selected) {
             // คำนวณ totalCost โดยการคูณจำนวนสัตว์เลี้ยงกับราคาบริการ
             const newTotalCost = selected.price * countPet;
@@ -124,7 +124,7 @@ const BookingForm: React.FC = () => {
     const handleCountPetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newCountPet = Number(e.target.value);
         setCountPet(newCountPet);
-        
+
         if (selectedService) {
             const selected = services.find((service) => service.ID === selectedService);
             if (selected) {
@@ -236,7 +236,7 @@ const BookingForm: React.FC = () => {
                         </div>
 
                         {/* Submit Button */}
-                        <Button type="primary" block onClick={handleSubmit}>
+                        <Button style={{ background: "#954435", color: "white" }} block onClick={handleSubmit}>
                             Book Now
                         </Button>
                     </Space>
@@ -249,10 +249,19 @@ const BookingForm: React.FC = () => {
                         <strong>Store:</strong> {stores.find((store) => store.ID === selectedStore)?.name || "N/A"}
                     </Paragraph>
                     <Paragraph>
-                        <strong>Service:</strong> {services.find((service) => service.ID === selectedService)?.name_service || "N/A"}
+                        <br></br><strong>Service:</strong> {services.find((service) => service.ID === selectedService)?.name_service || "N/A"}
                     </Paragraph>
                     <Paragraph>
-                        <strong>Date:</strong> {date || "N/A"}
+                        <strong>Price:</strong> {services.find((service) => service.ID === selectedService)?.price || "N/A"} THB
+                    </Paragraph>
+                    <Paragraph>
+                        <strong>Duration:</strong> {services.find((service) => service.ID === selectedService)?.duration || "N/A"} minutes
+                    </Paragraph>
+                    <Paragraph>
+                        <strong>Category:</strong> {services.find((service) => service.ID === selectedService)?.category_pet || "N/A"}
+                    </Paragraph>
+                    <Paragraph>
+                        <br></br><strong>Date:</strong> {date || "N/A"}
                     </Paragraph>
                     <Paragraph>
                         <strong>Time:</strong> {time || "N/A"}

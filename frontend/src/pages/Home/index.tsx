@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
-import { Col, Row, Divider, message, Input, Typography, Select, Avatar, Pagination, Card } from "antd";
-import { GetAllStores } from "../../services/https/index"; // สมมุติว่ามีบริการนี้ในการเรียก API
+import {
+    Col, Row, Divider, message, Input, Typography, Select, Avatar, Pagination, Card, Space, Button, Tooltip
+} from "antd";
+import { GetAllStores } from "../../services/https/index";
 import { StoreInterface } from "../../interfaces/Store";
-import { ServiceInterface } from "../../interfaces/Service"; // ต้อง import interface ของ Service ด้วย
+import { ServiceInterface } from "../../interfaces/Service";
 import { useNavigate } from "react-router-dom";
+import { EnvironmentOutlined, SearchOutlined } from "@ant-design/icons"; // เพิ่ม นอกจาก ant
 
 const { Search } = Input;
 const { Option } = Select;
@@ -13,13 +16,13 @@ function StoreList() {
     const [filteredStores, setFilteredStores] = useState<StoreInterface[]>([]);
     const [services, setServices] = useState<ServiceInterface[]>([]);
     const [messageApi, contextHolder] = message.useMessage();
-    const [searchTerm, setSearchTerm] = useState<string>(""); // คำค้นหา
-    const [selectedService, setSelectedService] = useState<string | null>(null); // บริการที่เลือก
+    const [searchTerm, setSearchTerm] = useState<string>("");
+    const [selectedService, setSelectedService] = useState<string | null>(null);
     const navigate = useNavigate();
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const pageSize = 5; // จำนวนรายการต่อหน้า
+    const pageSize = 5;
 
     const getStores = async () => {
         try {
@@ -27,11 +30,13 @@ function StoreList() {
             if (res.status === 200 && Array.isArray(res.data.data)) {
                 setStores(res.data.data);
                 setFilteredStores(res.data.data);
-
-                // ดึงข้อมูลบริการเฉพาะจาก API
+    
+                // ดึงข้อมูลบริการทั้งหมดและกรองข้อมูลซ้ำตาม name_service
+                const allServices = res.data.data.flatMap((store: { services: any; }) => store.services || []);
                 const uniqueServices = Array.from(
-                    new Set(res.data.data.flatMap((store: { services: any; }) => store.services || []))
+                    new Map(allServices.map((service: ServiceInterface) => [service.name_service, service])).values()
                 );
+    
                 setServices(uniqueServices);
             } else {
                 setStores([]);
@@ -48,6 +53,7 @@ function StoreList() {
             });
         }
     };
+    
 
     const handleStoreClick = (storeId: number) => {
         navigate(`/stores/${storeId}`);
@@ -72,7 +78,6 @@ function StoreList() {
     useEffect(() => {
         const filtered = stores.filter((store) => {
             const matchesSearchTerm =
-                // store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 store.location.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesService =
                 !selectedService || store.services?.some((service: { name_service: string; }) => service.name_service === selectedService);
@@ -83,7 +88,6 @@ function StoreList() {
         setCurrentPage(1); // Reset to page 1 after filtering
     }, [searchTerm, selectedService, stores]);
 
-    // Pagination logic
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     const currentStores = filteredStores.slice(startIndex, endIndex);
@@ -91,64 +95,70 @@ function StoreList() {
     return (
         <>
             {contextHolder}
-            <Row justify="center" style={{ marginTop: 20 }}>
-                <Col span={15}>
-                    <h2>รายการร้านค้า</h2>
-                    <Card>
-                        <Row align="middle">
-                            <Col>
-                                <h5>บริการ</h5>
-                                <Select
-                                    placeholder="เลือกบริการ"
-                                    style={{ width: 300, marginTop: 10 }}
-                                    onChange={handleSelectChange}
-                                    allowClear
-                                    value={selectedService || undefined}
-                                >
-                                    {services.map((service) => (
-                                        <Option key={service.ID} value={service.name_service}>
-                                            {service.name_service}
-                                        </Option>
-                                    ))}
-                                </Select>
+            <Row justify="center" style={{ marginTop: 1 }}>
+                <Col span={12}>
+                    <Typography.Title level={2} style={{ textAlign: "center", marginBottom: 20 }}>
+                        รายการร้านค้า
+                    </Typography.Title>
+                    <Card style={{ boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)" }}>
+                        <Row gutter={[16, 16]} align="middle" justify="space-between">
+                            <Col xs={24} md={12}>
+                                <Space direction="vertical" style={{ width: "100%" }}>
+                                    <Typography.Text strong>บริการ</Typography.Text>
+                                    <Select
+                                        placeholder="เลือกบริการ"
+                                        style={{ width: "100%" }}
+                                        onChange={handleSelectChange}
+                                        allowClear
+                                        value={selectedService || undefined}
+                                    >
+                                        {services.map((service) => (
+                                            <Option key={service.ID} value={service.name_service}>
+                                                {service.name_service}
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </Space>
                             </Col>
-                            <Col>
-                                <h5>ค้นหาสถานที่</h5>
-                                <Input
-                                    placeholder="กรอกตำแหน่งที่ตั้ง"
-                                    onChange={(e) => handleSearch(e.target.value)}
-                                    value={searchTerm}
-                                    style={{ width: 300, marginTop: 10 }}
-                                />
+                            <Col xs={24} md={12}>
+                                <Space direction="vertical" style={{ width: "100%" }}>
+                                    <Typography.Text strong>ค้นหาสถานที่</Typography.Text>
+                                    <Input
+                                        placeholder="กรอกตำแหน่งที่ตั้ง"
+                                        onChange={(e) => handleSearch(e.target.value)}
+                                        value={searchTerm}
+                                        prefix={<SearchOutlined />}
+                                        style={{ width: "100%" }}
+                                    />
+                                </Space>
                             </Col>
                         </Row>
                     </Card>
                     <Divider />
                     <div style={{ marginTop: 20 }}>
                         {currentStores.map((store) => (
-                            <Row key={store.ID} style={{ marginBottom: 20 }}>
-                                <Col span={24} onClick={() => handleStoreClick(store.ID)} style={{ cursor: 'pointer' }}>
-                                    <Row align="middle">
-                                        <Col>
-                                            {/* ตรวจสอบว่ามีรูปโปรไฟล์หรือไม่ ถ้าไม่มีใช้ placeholder */}
-                                            <Avatar
-                                                src={store.user?.Profile || "https://via.placeholder.com/100"}
-                                                size={100}
-                                                style={{ marginRight: 10 }}
-                                            />
-                                        </Col>
-                                        <Col>
-                                            <Typography.Text strong>{store.name}</Typography.Text>
-                                        </Col>
-                                    </Row>
-                                    <Row align="middle">
-                                        <Typography.Text>จังหวัด {store.location}</Typography.Text>
-                                    </Row>
-                                    <Card style={{ width: "100%", marginTop: 5, paddingTop: 5 }}>
-                                        {store.description || ""}
-                                    </Card>
-                                </Col>
-                            </Row>
+                            <Card
+                                key={store.ID}
+                                hoverable
+                                style={{ marginBottom: 20 }}
+                                onClick={() => handleStoreClick(store.ID)}
+                            >
+                                <Row gutter={16} align="middle">
+                                    <Col>
+                                        <Avatar
+                                            src={store.user?.Profile || "https://via.placeholder.com/100"}
+                                            size={80}
+                                            style={{ marginRight: 10 }}
+                                        />
+                                    </Col>
+                                    <Col flex="auto">
+                                        <Typography.Title level={4}>{store.name}</Typography.Title>
+                                        <Typography.Text type="secondary">
+                                            <EnvironmentOutlined /> {store.location}
+                                        </Typography.Text>
+                                    </Col>
+                                </Row>
+                            </Card>
                         ))}
                     </div>
                     <Row justify="center" style={{ marginTop: 20 }}>

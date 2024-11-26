@@ -46,7 +46,7 @@ function Store() {
             title: "",
             render: (record) => (
                 <Button
-                    type="primary"
+                    style={{ background: "#954435", color: "white" }}
                     icon={<EditOutlined />}
                     onClick={() => navigate(`/store/edit/${record.ID}`)}
                 >
@@ -58,7 +58,7 @@ function Store() {
             title: "",
             render: (record) => (
                 <Button
-                    type="primary"
+                    style={{ background: "#954435", color: "white" }}
                     icon={<EditOutlined />}
                     onClick={() => navigate(`/store/edit/service/${record.ID}`)}
                 >
@@ -70,7 +70,7 @@ function Store() {
             title: "",
             render: (record) => (
                 <Button
-                    type="primary"
+                    style={{ background: "#954435", color: "white" }}
                     icon={<EditOutlined />}
                     onClick={() => navigate(`/store/booking/${record.ID}`)}
                 >
@@ -104,7 +104,7 @@ function Store() {
             messageApi.open({ type: "error", content: "Error fetching stores" });
         }
     };
-    
+
 
     useEffect(() => {
         getStores();
@@ -121,7 +121,7 @@ function Store() {
                 <Col span={12} style={{ textAlign: "end" }}>
                     <Space>
                         <Link to="/store/create">
-                            <Button type="primary" icon={<PlusOutlined />}>
+                            <Button style={{ background:"#954435",color: "white"}} icon={<PlusOutlined />}>
                                 สร้างร้าน
                             </Button>
                         </Link>

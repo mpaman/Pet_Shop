@@ -34,7 +34,7 @@ const FullLayout: React.FC = () => {
             <Layout style={{ position: "relative", zIndex: 1 }}>
                 <Header
                     style={{
-                        background: "Black",
+                        background: "#775342",
                         padding: 0,
                         display: "flex",
                         justifyContent: "space-between",
@@ -45,7 +45,7 @@ const FullLayout: React.FC = () => {
                 >
                     <div style={{ display: "flex", alignItems: "center" }}>
                         <img src={logo} alt="Logo" style={{ width: 50, margin: "0 10px" }} />
-                        <h1 style={{ color: "white", margin: "0 10px" }}>PET</h1>
+                        <h1 style={{ color: "white", margin: "0 10px" }}>PETSHOP</h1>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", marginRight: "20px" }}>
                         <Button type="text" style={{ color: "white", margin: "0 20px" }}>
@@ -69,18 +69,9 @@ const FullLayout: React.FC = () => {
                             </Link>
                         </Button>
 
-                            {/* <Link to="/customer">
-                                <Avatar
-                                    style={{
-                                        backgroundColor: "#1890ff",
-                                        marginLeft: "20px",
-                                        cursor: "pointer",
-                                    }}
-                                    icon={<UserOutlined />}
-                                />
-                            </Link> */}
 
-                        <Button type="primary" onClick={Logout} style={{ marginLeft: "20px" }}>
+
+                        <Button onClick={Logout} style={{ marginLeft: "20px",background:"#EDC8AE" }}>
                             ออกจากระบบ
                         </Button>
                     </div>

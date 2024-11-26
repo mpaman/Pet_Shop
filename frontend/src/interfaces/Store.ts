@@ -1,4 +1,5 @@
 export interface StoreInterface {
+    services: any;
     ID?: number;
     user?: {
         ID: number;
