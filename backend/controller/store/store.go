@@ -71,13 +71,43 @@ func UpdateStore(c *gin.Context) {
 
 // DeleteStore: ลบร้านตาม ID
 func DeleteStore(c *gin.Context) {
-	id := c.Param("id")
+	id := c.Param("id") // รับ ID ของ Store
 
 	db := config.DB()
-	if err := db.Delete(&entity.Store{}, id).Error; err != nil {
+
+	// เริ่ม Transaction
+	tx := db.Begin()
+
+	// ลบข้อมูลใน Bookingstore ที่เกี่ยวข้อง
+	if err := tx.Where("store_id = ?", id).Delete(&entity.Bookingstore{}).Error; err != nil {
+		tx.Rollback() // ย้อนกลับการเปลี่ยนแปลงถ้ามีข้อผิดพลาด
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete related bookingstore data"})
+		return
+	}
+
+	// ลบข้อมูลใน Service ที่เกี่ยวข้อง
+	if err := tx.Where("store_id = ?", id).Delete(&entity.Service{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete related service data"})
+		return
+	}
+
+	// ลบข้อมูลใน StoreImage ที่เกี่ยวข้อง
+	if err := tx.Where("store_id = ?", id).Delete(&entity.StoreImage{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete related store images"})
+		return
+	}
+
+	// ลบข้อมูลของ Store
+	if err := tx.Delete(&entity.Store{}, id).Error; err != nil {
+		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete store"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Store deleted successfully"})
+	// Commit การเปลี่ยนแปลงถ้าทุกอย่างสำเร็จ
+	tx.Commit()
+
+	c.JSON(http.StatusOK, gin.H{"message": "Store and related data deleted successfully"})
 }

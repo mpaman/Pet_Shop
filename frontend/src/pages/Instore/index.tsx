@@ -10,6 +10,7 @@ import {
     Avatar,
     Card,
     message,
+    Carousel,
 } from "antd";
 import { UserOutlined, PhoneOutlined } from "@ant-design/icons";
 import { useParams, Link } from "react-router-dom";

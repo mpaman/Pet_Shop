@@ -1,6 +1,7 @@
 package users
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -61,44 +62,49 @@ func Get(c *gin.Context) {
 }
 
 func Update(c *gin.Context) {
+    var user entity.Users
+    UserID := c.Param("id")
 
-	var user entity.Users
+    db := config.DB()
+    if err := db.First(&user, UserID).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "id not found"})
+        return
+    }
 
-	UserID := c.Param("id")
+    // ตรวจสอบว่าเป็น multipart form หรือ JSON
+    contentType := c.ContentType()
+    if contentType == "multipart/form-data" {
+        file, err := c.FormFile("Profile")
+        if err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Profile picture upload failed"})
+            return
+        }
 
-	db := config.DB()
+        // เก็บไฟล์ในโฟลเดอร์
+        filePath := fmt.Sprintf("uploads/profiles/%s", file.Filename)
+        if err := c.SaveUploadedFile(file, filePath); err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save profile picture"})
+            return
+        }
 
-	result := db.First(&user, UserID)
+        // อัปเดตเส้นทางของรูปภาพในฐานข้อมูล
+        user.Profile = filePath
+    } else {
+        // แก้ไขข้อมูลผู้ใช้ (JSON)
+        if err := c.ShouldBindJSON(&user); err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request, unable to map payload"})
+            return
+        }
+    }
 
-	if result.Error != nil {
+    if err := db.Save(&user).Error; err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update user"})
+        return
+    }
 
-		c.JSON(http.StatusNotFound, gin.H{"error": "id not found"})
-
-		return
-
-	}
-
-	if err := c.ShouldBindJSON(&user); err != nil {
-
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request, unable to map payload"})
-
-		return
-
-	}
-
-	result = db.Save(&user)
-
-	if result.Error != nil {
-
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
-
-		return
-
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Updated successful"})
-
+    c.JSON(http.StatusOK, gin.H{"message": "Updated successfully", "profile": user.Profile})
 }
+
 
 func Delete(c *gin.Context) {
 

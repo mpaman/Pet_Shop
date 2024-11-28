@@ -20,7 +20,7 @@ export interface BookingInterface {
         Profile?: string;   // Optional profile image
     };
 
-    store?: { // Optional Store information
+    Store?: { // Optional Store information
         name: string;       // Store's name (required)
         location: string;   // Store's location (required)
         contact_info: string; // Store's contact information (required)

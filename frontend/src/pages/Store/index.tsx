@@ -1,139 +1,196 @@
-// components/Store.tsx
-import { useState, useEffect } from "react";
-import { Space, Table, Button, Col, Row, Divider, message } from "antd";
-import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { ColumnsType } from "antd/es/table";
-import { Link, useNavigate } from "react-router-dom";
+import { Card, Row, Col, Avatar, Button, Typography, Space, Divider, Modal, message } from "antd";
+import { EditOutlined, DeleteOutlined, PlusOutlined, EyeOutlined } from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { StoreInterface } from "../../interfaces/Store";
-import { DeleteStoreById, GetAllStores } from "../../services/https";
+import { DeleteStoreById, GetAllStores, GetUserProfile } from "../../services/https";
+
+const { Title, Text } = Typography;
+const { confirm } = Modal;
 
 function Store() {
     const navigate = useNavigate();
     const [store, setStore] = useState<StoreInterface[]>([]);
-    const [messageApi, contextHolder] = message.useMessage();
+    const [loading, setLoading] = useState<boolean>(false);
+    const [userId, setUserId] = useState<number | null>(null);
 
-    const columns: ColumnsType<StoreInterface> = [
-        {
-            title: "",
-            render: (record) => (
-                <Button
-                    type="dashed"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => deleteStoreById(record.ID)}
-                />
-            ),
-        },
-        {
-            title: "ชื่อร้าน",
-            dataIndex: "name",
-            key: "name",
-        },
-        {
-            title: "ที่อยู่ร้าน",
-            dataIndex: "location",
-            key: "location",
-        },
-        {
-            title: "ชื่อผู้ใช้",
-            render: (record) => <>{record.user?.first_name || "ไม่พบข้อมูล"}</>,
-        },
-        {
-            title: "นามสกุลผู้ใช้",
-            render: (record) => <>{record.user?.last_name || "ไม่พบข้อมูล"}</>,
-        },
-        {
-            title: "",
-            render: (record) => (
-                <Button
-                    style={{ background: "#954435", color: "white" }}
-                    icon={<EditOutlined />}
-                    onClick={() => navigate(`/store/edit/${record.ID}`)}
-                >
-                    แก้ไขStore
-                </Button>
-            ),
-        },
-        {
-            title: "",
-            render: (record) => (
-                <Button
-                    style={{ background: "#954435", color: "white" }}
-                    icon={<EditOutlined />}
-                    onClick={() => navigate(`/store/edit/service/${record.ID}`)}
-                >
-                    แก้ไข service
-                </Button>
-            ),
-        },
-        {
-            title: "",
-            render: (record) => (
-                <Button
-                    style={{ background: "#954435", color: "white" }}
-                    icon={<EditOutlined />}
-                    onClick={() => navigate(`/store/booking/${record.ID}`)}
-                >
-                    ตรวจสอบผู้จอง
-                </Button>
-            ),
-        },
-    ];
-
-    const deleteStoreById = async (id: string) => {
+    const getUserProfile = async () => {
         try {
-            let res = await DeleteStoreById(id);
-            if (res.status === 200) {
-                messageApi.open({ type: "success", content: "ลบข้อมูลสำเร็จ" });
-                await getStores();
-            } else {
-                messageApi.open({ type: "error", content: "เกิดข้อผิดพลาด" });
-            }
+            const res = await GetUserProfile();
+            setUserId(res.ID);
         } catch (error) {
-            messageApi.open({ type: "error", content: "Error occurred" });
+            console.error("Error fetching user profile:", error);
         }
     };
 
     const getStores = async () => {
+        setLoading(true);
         try {
-            let res = await GetAllStores();
-            console.log("Data fetched from API:", res.data); // Debugging line
-            setStore(res.data.data || []); // ใช้ res.data.data ตามข้อมูลที่คุณส่งมา
+            const res = await GetAllStores();
+            const allStores = res.data.data || [];
+            const filteredStores = allStores.filter((store) => store.user_id === userId);
+            setStore(filteredStores);
         } catch (error) {
             console.error("Error fetching stores:", error);
-            messageApi.open({ type: "error", content: "Error fetching stores" });
+        } finally {
+            setLoading(false);
         }
     };
 
+    const deleteStoreById = async (id: string) => {
+        try {
+            await DeleteStoreById(id);
+            message.success("ลบร้านค้าและข้อมูลที่เกี่ยวข้องเรียบร้อยแล้ว");
+            getStores(); // Refresh ข้อมูลร้านค้า
+        } catch (error) {
+            console.error("Error deleting store:", error);
+            message.error("เกิดข้อผิดพลาดในการลบร้านค้า");
+        }
+    };
+    
+
+    const confirmDelete = (id: string) => {
+        confirm({
+            title: "ยืนยันการลบร้านค้า",
+            content: "คุณแน่ใจหรือไม่ว่าต้องการลบร้านค้านี้? การกระทำนี้ไม่สามารถย้อนกลับได้",
+            okText: "ยืนยัน",
+            okType: "danger",
+            cancelText: "ยกเลิก",
+            onOk() {
+                deleteStoreById(id);
+            },
+        });
+    };
 
     useEffect(() => {
-        getStores();
+        const fetchData = async () => {
+            await getUserProfile();
+        };
+        fetchData();
     }, []);
+
+    useEffect(() => {
+        if (userId !== null) {
+            getStores();
+        }
+    }, [userId]);
 
     return (
         <>
-            {contextHolder}
             <Divider />
-            <Row>
-                <Col span={12}>
-                    <h2>สร้าง Store</h2>
+            <Row justify="space-between" align="middle" style={{ marginBottom: 20 }}>
+                <Col>
+                    <Title level={2} style={{ color: "#1D3557" }}>จัดการร้านค้า</Title>
                 </Col>
-                <Col span={12} style={{ textAlign: "end" }}>
-                    <Space>
-                        <Link to="/store/create">
-                            <Button style={{ background:"#954435",color: "white"}} icon={<PlusOutlined />}>
-                                สร้างร้าน
-                            </Button>
-                        </Link>
-                    </Space>
+                <Col>
+                    {store.length === 0 && (
+                        <Button
+                            style={{
+                                background: "#2A9D8F",
+                                color: "white",
+                                fontWeight: "bold",
+                            }}
+                            icon={<PlusOutlined />}
+                            onClick={() => navigate("/store/create")}
+                        >
+                            เพิ่มร้านค้า
+                        </Button>
+                    )}
                 </Col>
             </Row>
-            <Divider />
-            <Table
-                columns={columns}
-                dataSource={store}
-                rowKey="ID"
-            />
+            <Row gutter={[24, 24]} justify="center">
+                {store.map((item) => (
+                    <Col key={item.ID} xs={24} sm={12} md={8} lg={6}>
+                        <Card
+
+                            style={{
+                                borderRadius: 16,
+                                overflow: "hidden",
+                                boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)",
+                            }}
+                            cover={
+                                <div style={{ textAlign: "center", padding: "16px" }}>
+                                    <Avatar
+                                        shape="square"
+                                        size={150}
+                                        src={item.user?.Profile || "https://via.placeholder.com/150"}
+                                        alt={item.user?.first_name || "No Image"}
+                                        style={{
+                                            boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.2)",
+                                        }}
+                                    />
+                                </div>
+                            }
+
+                        >
+                            <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                                <Title level={4} style={{ textAlign: "center", color: "#264653" }}>
+                                    {item.name}
+                                </Title>
+                                <Text type="secondary" style={{ textAlign: "center" }}>
+                                    {item.location}
+                                </Text>
+                                <Text>
+                                    <strong>สถานะ: </strong>
+                                    {item.status || "ไม่มีข้อมูล"}
+                                </Text>
+                                <Text>
+                                    <strong>เจ้าของ: </strong>
+                                    {item.user?.first_name || "ไม่พบข้อมูล"} {item.user?.last_name || ""}
+                                </Text>
+                            </Space>
+                            <Divider />
+                            <Space style={{ width: "100%", flexWrap: "wrap", justifyContent: "space-evenly" }}>
+                                <Button
+                                    style={{
+                                        background: "#E63946",
+                                        color: "white",
+                                        fontWeight: "bold",
+                                    }}
+                                    icon={<EditOutlined />}
+                                    onClick={() => navigate(`/store/edit/${item.ID}`)}
+                                >
+                                    แก้ไขร้าน
+                                </Button>
+                                <Button
+                                    style={{
+                                        background: "#F4A261",
+                                        color: "white",
+                                        fontWeight: "bold",
+                                    }}
+                                    icon={<EditOutlined />}
+                                    onClick={() => navigate(`/store/edit/service/${item.ID}`)}
+                                >
+                                    แก้ไข Service
+                                </Button>
+                                <Button
+                                    style={{
+                                        background: "#2A9D8F",
+                                        color: "white",
+                                        fontWeight: "bold",
+                                    }}
+                                    icon={<EyeOutlined />}
+                                    onClick={() => navigate(`/store/booking/${item.ID}`)}
+                                >
+                                    ตรวจสอบผู้จอง
+                                </Button>
+                                <Button
+                                    style={{
+                                        background: "#8D99AE",
+                                        color: "white",
+                                        fontWeight: "bold",
+                                    }}
+                                    icon={<DeleteOutlined />}
+                                    onClick={() => confirmDelete(item.ID)}
+                                >
+                                    ลบร้าน
+                                </Button>
+                            </Space>
+
+                        </Card>
+                    </Col>
+                ))}
+            </Row>
         </>
     );
 }

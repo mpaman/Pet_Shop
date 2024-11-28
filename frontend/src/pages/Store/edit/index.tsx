@@ -6,11 +6,12 @@ import {
     Select,
     TimePicker,
     Upload,
+    Avatar,
     message,
     Divider,
     Spin,
 } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, UserOutlined } from "@ant-design/icons";
 import moment from "moment";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -19,6 +20,8 @@ import {
     UpdateStore,
     CreateStoreImage,
     DeleteStoreImage,
+    GetUserProfile,
+    UpdateUsersById,
 } from "../../../services/https";
 
 const { Option } = Select;
@@ -30,12 +33,14 @@ function StoreEdit() {
     const [storeImages, setStoreImages] = useState<any[]>([]);
     const [deletedImageIDs, setDeletedImageIDs] = useState<number[]>([]);
     const [storeData, setStoreData] = useState<any | null>(null);
-    const [messageApi, contextHolder] = message.useMessage();
-    const [form] = Form.useForm();
+    const [profile, setProfile] = useState<any | null>(null);
+    const [uploadingProfile, setUploadingProfile] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [form] = Form.useForm();
+    const [messageApi, contextHolder] = message.useMessage();
 
     useEffect(() => {
-        const fetchStoreDetails = async () => {
+        const fetchData = async () => {
             setLoading(true);
             try {
                 const storeResponse = await GetStoreByID(id);
@@ -58,15 +63,50 @@ function StoreEdit() {
                     );
                     setStoreImages(filteredImages);
                 }
+
+                const profileResponse = await GetUserProfile();
+                setProfile(profileResponse.Profile);
+
             } catch (error) {
-                messageApi.error("Failed to fetch store details");
+                messageApi.error("Failed to fetch data");
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchStoreDetails();
+        fetchData();
     }, [id, form, messageApi]);
+
+    // const handleProfileUpload = async (info: any) => {
+    //     const { file } = info;
+    //     const isImage = file.type.startsWith("image/");
+    //     if (!isImage) {
+    //         message.error("You can only upload image files!");
+    //         return;
+    //     }
+    
+    //     const formData = new FormData();
+    //     formData.append("Profile", file);
+    
+    //     setUploadingProfile(true);
+    //     try {
+    //         const response = await UpdateUsersById(profile, formData);
+    //         if (response.status === 200) {
+    //             message.success("Profile picture updated successfully!");
+    //             setProfile((prevProfile: any) => ({
+    //                 ...prevProfile,
+    //                 Profile: URL.createObjectURL(file),
+    //             }));
+    //         } else {
+    //             message.error("Failed to update profile picture");
+    //         }
+    //     } catch (error) {
+    //         message.error("Error occurred while updating profile");
+    //     } finally {
+    //         setUploadingProfile(false);
+    //     }
+    // };
+    
 
     const handleBeforeUpload = (file: File) => {
         const isImage = file.type.startsWith("image/");
@@ -91,7 +131,6 @@ function StoreEdit() {
             return file;
         });
     };
-    
 
     const onRemoveImage = (file: any) => {
         if (file.uid && !file.uid.startsWith("rc-upload-")) {
@@ -103,16 +142,13 @@ function StoreEdit() {
     const onFinish = async (values: any) => {
         try {
             const updatedStore = { ...values, time_open: values.time_open.format("HH:mm") };
-    
-            // อัปเดตร้านค้า
+
             await UpdateStore(id, updatedStore);
-    
-            // ลบภาพที่ถูกเลือกให้ลบ
+
             for (const imgID of deletedImageIDs) {
                 await DeleteStoreImage(imgID);
             }
-    
-            // อัปโหลดภาพใหม่
+
             for (const image of storeImages) {
                 if (!image.ID) {
                     await CreateStoreImage({
@@ -121,14 +157,13 @@ function StoreEdit() {
                     });
                 }
             }
-    
+
             messageApi.success("Store updated successfully!");
             navigate(`/store`);
         } catch (error) {
             messageApi.error("Failed to update store");
         }
     };
-    
 
     if (loading) {
         return (
@@ -141,6 +176,27 @@ function StoreEdit() {
     return (
         <>
             {contextHolder}
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>
+                <h3>User Profile</h3>
+                <Avatar
+                    size={120}
+                    icon={<UserOutlined />}
+                    src={profile}
+                    style={{ marginBottom: "10px" }}
+                />
+                <h4>{`${profile?.FirstName || ""} ${profile?.LastName || ""}`}</h4>
+                {/* <Upload
+                    showUploadList={false}
+                    beforeUpload={(file) => file.type.startsWith("image/") || Upload.LIST_IGNORE}
+                    customRequest={handleProfileUpload}
+                    disabled={uploadingProfile}
+                >
+                    <Button type="primary" loading={uploadingProfile}>
+                        {uploadingProfile ? "Uploading..." : "Change Profile Picture"}
+                    </Button>
+                </Upload> */}
+            </div>
+
             <Form layout="vertical" onFinish={onFinish} form={form}>
                 <h2>Edit Store</h2>
                 <Form.Item label="Store Name" name="name" rules={[{ required: true }]}>
@@ -194,7 +250,7 @@ function StoreEdit() {
 
                 <Divider />
                 <Form.Item>
-                    <Button style={{ background:"#954435",color: "white"}} htmlType="submit" block>
+                    <Button style={{ background: "#954435", color: "white" }} htmlType="submit" block>
                         Save Changes
                     </Button>
                 </Form.Item>

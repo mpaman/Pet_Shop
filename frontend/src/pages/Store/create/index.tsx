@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Select, TimePicker, Upload, message, InputNumber, Divider, Row, Col } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'; // เพิ่มไอคอน Delete
 import { StoreImageInterface } from "../../../interfaces/Storeimage";
 import { ServiceInterface } from "../../../interfaces/Service";
 import { CreateStoreImage, CreateService, CreateStore as CreateNewStore } from '../../../services/https';
@@ -13,6 +13,7 @@ function CreateStore() {
     const [services, setServices] = useState<ServiceInterface[]>([]);
     const [image, setImage] = useState<string | undefined>(undefined);
     const navigate = useNavigate();
+
     // ฟังก์ชันเพิ่มบริการใหม่
     const addService = () => {
         setServices([...services, {
@@ -21,6 +22,17 @@ function CreateStore() {
             name_service: '',
             category_pet: ''
         }]);
+    };
+
+    // ฟังก์ชันลบรูปภาพ
+    const handleRemoveImage = (url: string) => {
+        setStoreImages(storeImages.filter(image => image.url !== url));
+    };
+
+    // ฟังก์ชันลบบริการ
+    const handleRemoveService = (index: number) => {
+        const updatedServices = services.filter((_, i) => i !== index);
+        setServices(updatedServices);
     };
 
     // ฟังก์ชันสำหรับเมื่อฟอร์มถูกส่ง
@@ -99,7 +111,6 @@ function CreateStore() {
                 const reader = new FileReader();
                 reader.readAsDataURL(file.originFileObj);
                 reader.onload = () => {
-                    // ต้องใช้ฟังก์ชัน setStoreImages หลังจากที่ทำการอ่านไฟล์เสร็จแล้ว
                     setStoreImages((prevImages) => [
                         ...prevImages,
                         { url: reader.result as string }, // เพิ่มรูปใหม่เข้าไปใน array
@@ -157,6 +168,18 @@ function CreateStore() {
                         </div>
                     )}
                 </Upload>
+                <div style={{ marginTop: 10 }}>
+                    {storeImages.map((file) => (
+                        <div key={file.url} style={{ display: 'inline-block', marginRight: '10px' }}>
+                            <img src={file.url} alt="store-image" style={{ width: 100, height: 100 }} />
+                            <Button
+                                type="link"
+                                icon={<DeleteOutlined />}
+                                onClick={() => handleRemoveImage(file.url)}
+                            />
+                        </div>
+                    ))}
+                </div>
             </Form.Item>
 
             <Divider />
@@ -225,6 +248,13 @@ function CreateStore() {
                             />
                         </Form.Item>
                     </Col>
+                    <Button
+                        icon={<DeleteOutlined />}
+                        type="link"
+                        onClick={() => handleRemoveService(index)}
+                    >
+                        Remove Service
+                    </Button>
                 </Row>
             ))}
 

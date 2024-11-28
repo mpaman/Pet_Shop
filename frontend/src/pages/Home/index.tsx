@@ -30,13 +30,13 @@ function StoreList() {
             if (res.status === 200 && Array.isArray(res.data.data)) {
                 setStores(res.data.data);
                 setFilteredStores(res.data.data);
-    
+
                 // ดึงข้อมูลบริการทั้งหมดและกรองข้อมูลซ้ำตาม name_service
                 const allServices = res.data.data.flatMap((store: { services: any; }) => store.services || []);
                 const uniqueServices = Array.from(
                     new Map(allServices.map((service: ServiceInterface) => [service.name_service, service])).values()
                 );
-    
+
                 setServices(uniqueServices);
             } else {
                 setStores([]);
@@ -53,7 +53,7 @@ function StoreList() {
             });
         }
     };
-    
+
 
     const handleStoreClick = (storeId: number) => {
         navigate(`/stores/${storeId}`);
@@ -124,7 +124,7 @@ function StoreList() {
                                 <Space direction="vertical" style={{ width: "100%" }}>
                                     <Typography.Text strong>ค้นหาสถานที่</Typography.Text>
                                     <Input
-                                        placeholder="กรอกตำแหน่งที่ตั้ง"
+                                        placeholder="กรอกจังหวัดที่ต้องการ"
                                         onChange={(e) => handleSearch(e.target.value)}
                                         value={searchTerm}
                                         prefix={<SearchOutlined />}
@@ -136,31 +136,58 @@ function StoreList() {
                     </Card>
                     <Divider />
                     <div style={{ marginTop: 20 }}>
-                        {currentStores.map((store) => (
-                            <Card
-                                key={store.ID}
-                                hoverable
-                                style={{ marginBottom: 20 }}
-                                onClick={() => handleStoreClick(store.ID)}
-                            >
-                                <Row gutter={16} align="middle">
-                                    <Col>
-                                        <Avatar
-                                            src={store.user?.Profile || "https://via.placeholder.com/100"}
-                                            size={80}
-                                            style={{ marginRight: 10 }}
-                                        />
-                                    </Col>
-                                    <Col flex="auto">
-                                        <Typography.Title level={4}>{store.name}</Typography.Title>
-                                        <Typography.Text type="secondary">
-                                            <EnvironmentOutlined /> {store.location}
-                                        </Typography.Text>
-                                    </Col>
-                                </Row>
-                            </Card>
-                        ))}
+                        {currentStores.map((store) => {
+                            // หา service ที่ตรงกับ selectedService ในร้านปัจจุบัน
+                            const matchedService = store.services?.find(
+                                (service: { name_service: string | null; }) => service.name_service === selectedService
+                            );
+
+                            return (
+                                <Card
+                                    key={store.ID}
+                                    hoverable
+                                    style={{ marginBottom: 20 }}
+                                    onClick={() => handleStoreClick(store.ID)}
+                                >
+                                    <Row gutter={16} align="middle">
+                                        <Col>
+                                            <Avatar
+                                                src={store.user?.Profile || "https://via.placeholder.com/100"}
+                                                size={80}
+                                                style={{ marginRight: 10 }}
+                                            />
+                                        </Col>
+                                        <Col flex="auto">
+                                            <Typography.Title level={4}>{store.name}</Typography.Title>
+                                            <Typography.Text type="secondary">
+                                                <EnvironmentOutlined /> {store.location}
+                                            </Typography.Text>
+                                            {selectedService && (
+                                                <div style={{ marginTop: 10 }}>
+                                                    {matchedService ? (
+                                                        <Space direction="vertical">
+                                                            <Typography.Text strong>
+                                                                ราคา: {matchedService.price} บาท
+                                                            </Typography.Text>
+                                                            <Typography.Text>
+                                                                ระยะเวลา: {matchedService.duration} นาที
+                                                            </Typography.Text>
+                                                        </Space>
+                                                    ) : (
+                                                        <Typography.Text type="danger">
+                                                            ไม่มีข้อมูลสำหรับบริการนี้
+                                                        </Typography.Text>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </Col>
+                                    </Row>
+                                </Card>
+                            );
+                        })}
                     </div>
+
+
                     <Row justify="center" style={{ marginTop: 20 }}>
                         <Pagination
                             current={currentPage}
