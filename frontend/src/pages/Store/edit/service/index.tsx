@@ -10,6 +10,7 @@ import {
     Col,
     Spin,
     message,
+    Modal,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { ServiceInterface } from "../../../../interfaces/Service";
@@ -56,15 +57,26 @@ function ServiceEdit() {
         setServices([...services, { id: undefined, name_service: "", price: 0, duration: 0, store_id: parseInt(id!) }]);
     };
 
+    // ใช้ Modal.confirm เพื่อตรวจสอบการลบ
     const removeService = (index: number) => {
         const serviceToRemove = services[index];
         if (serviceToRemove.ID) {  // Use "id" instead of "ID"
-            setDeletedServiceIDs((prevDeletedServiceIDs) => [
-                ...prevDeletedServiceIDs,
-                serviceToRemove.ID,
-            ]);
+            Modal.confirm({
+                title: 'Are you sure you want to delete this service?',
+                content: `This will also delete any related bookings.`,
+                onOk: async () => {
+                    try {
+                        // เรียก API เพื่อลบ service และ bookings ที่เกี่ยวข้อง
+                        await DeleteService(serviceToRemove.ID);
+                        messageApi.success("Service and related bookings deleted successfully!");
+                    } catch (error) {
+                        messageApi.error("Failed to delete service and related bookings");
+                    }
+                    // ลบจาก list หลังจากยืนยัน
+                    setServices(services.filter((_, i) => i !== index));
+                },
+            });
         }
-        setServices(services.filter((_, i) => i !== index));
     };
 
     // useEffect ที่ใช้ติดตาม deletedServiceIDs

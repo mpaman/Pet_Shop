@@ -56,13 +56,13 @@ func main() {
 		router.GET("/store/:id", store.GetStoreByID)
 		router.GET("/stores", store.GetAllStores)
 		router.PUT("/store/:id", store.UpdateStore)
+		router.PUT("/store/:id/status", store.UpdateStoreStatus)
 		router.DELETE("/store/:id", store.DeleteStore)
 
 		// Routes for store images
 		router.POST("/storeimage", storeimage.CreateStoreImage)
 		router.GET("/storeimages/:id", storeimage.GetStoreImages)
 		router.GET("/storeimagess", storeimage.GetAll)
-		// router.PUT("/storeimage/:id", storeimage.UpdateStoreImage)
 		router.DELETE("/storeimage/:id", storeimage.DeleteStoreImage)
 	}
 

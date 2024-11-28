@@ -74,18 +74,34 @@ func UpdateService(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Service updated successfully", "service": service})
 }
 func DeleteService(c *gin.Context) {
-	serviceID := c.Param("id")
+    serviceID := c.Param("id")
 
-	var service entity.Service
-	if err := config.DB().Where("id = ?", serviceID).First(&service).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
-		return
-	}
+    // ค้นหา service ที่ต้องการลบ
+    var service entity.Service
+    if err := config.DB().Where("id = ?", serviceID).First(&service).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
+        return
+    }
 
-	if err := config.DB().Delete(&service).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete service"})
-		return
-	}
+    // ลบ bookings ที่เกี่ยวข้องกับ service นี้
+    var bookings []entity.Bookingstore
+    if err := config.DB().Where("service_id = ?", serviceID).Find(&bookings).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "No bookings found for this service"})
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{"message": "Service deleted successfully"})
+    // ลบ bookings ที่เกี่ยวข้อง
+    if err := config.DB().Delete(&bookings).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete related bookings"})
+        return
+    }
+
+    // ลบ service
+    if err := config.DB().Delete(&service).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete service"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Service and related bookings deleted successfully"})
 }
+

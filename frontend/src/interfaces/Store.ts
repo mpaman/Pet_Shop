@@ -1,17 +1,21 @@
+import { UsersInterface } from "./IUser";
+
 export interface StoreInterface {
-    services: any;
     ID?: number;
-    user?: {
-        ID: number;
-        first_name: string;
-        last_name: string;
-        email: string;
-        Profile?: string; // รูปแบบ Base64
-    };
+    user?: UsersInterface;
     name: string;
     location: string;
     contact_info: string;
     description: string;
     time_open: string;
     status: string;
+    address: string;
+    time_close: string;
+    services?: {
+        ID: number;
+        name_service: string;
+        category_pet: string;
+        duration: number;
+        price: number;
+    }[];
 }

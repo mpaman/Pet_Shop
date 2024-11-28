@@ -10,9 +10,8 @@ import {
     Avatar,
     Card,
     message,
-    Carousel,
 } from "antd";
-import { UserOutlined, PhoneOutlined } from "@ant-design/icons";
+import { UserOutlined, PhoneOutlined, HomeOutlined, ClockCircleOutlined } from "@ant-design/icons";
 import { useParams, Link } from "react-router-dom";
 import { GetStoreByID, GetAllService, GetAllStoreImage } from "../../services/https/index";
 import { StoreInterface } from "../../interfaces/Store";
@@ -32,15 +31,19 @@ const StorePage: React.FC = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
+
+                // Fetch store details
                 const storeResponse = await GetStoreByID(storeId);
                 setStore(storeResponse.data);
 
+                // Fetch services related to the store
                 const serviceResponse = await GetAllService();
                 const filteredServices = serviceResponse.data?.data.filter(
                     (service: { store_id: number }) => service.store_id === Number(storeId)
                 );
                 setServices(filteredServices || []);
 
+                // Fetch images related to the store
                 const imageResponse = await GetAllStoreImage();
                 const filteredStoreImages = imageResponse.data?.data.filter(
                     (image: { store_id: number }) => image.store_id === Number(storeId)
@@ -63,7 +66,7 @@ const StorePage: React.FC = () => {
             {store && (
                 <div style={{ textAlign: "center", marginBottom: "20px" }}>
                     <Title level={2} style={{ color: "#1D3557" }}>
-                        {store.name}
+                        {store.name || "No Store Name"}
                     </Title>
                 </div>
             )}
@@ -83,14 +86,13 @@ const StorePage: React.FC = () => {
 
                     {/* Store Images */}
                     <div style={{ marginBottom: "30px" }}>
-                        <Title level={3} style={{ color: "#457B9D" }}>Images</Title>
+                        <Title level={3} style={{ color: "#457B9D" }}>Gallery</Title>
                         {storeImages.length > 0 ? (
                             <Row gutter={[16, 16]}>
                                 {storeImages.map((image) => (
                                     <Col xs={24} sm={12} lg={8} key={image.ID}>
                                         <Image
                                             src={image.image_url}
-                                            alt="Store"
                                             style={{
                                                 width: "100%",
                                                 borderRadius: "8px",
@@ -104,28 +106,6 @@ const StorePage: React.FC = () => {
                             <Paragraph>No images available for this store.</Paragraph>
                         )}
                     </div>
-                    {/* <div style={{ marginBottom: "30px" }}>
-                        <Title level={3} style={{ color: "#457B9D" }}>Images</Title>
-                        {storeImages.length > 0 ? (
-                            <Carousel autoplay style={{ borderRadius: "8px", overflow: "hidden" }}>
-                                {storeImages.map((image) => (
-                                    <div key={image.ID}>
-                                        <img
-                                            src={image.image_url}
-                                            alt="Store"
-                                            style={{
-                                                width: "100%",
-                                                height: "400px",
-                                                objectFit: "contain", // คงอัตราส่วนของภาพ
-                                            }}
-                                        />
-                                    </div>
-                                ))}
-                            </Carousel>
-                        ) : (
-                            <Paragraph>No images available for this store.</Paragraph>
-                        )}
-                    </div> */}
 
                     {/* Services */}
                     <div>
@@ -204,13 +184,26 @@ const StorePage: React.FC = () => {
                                     <strong>Location:</strong> {store.location || "No location provided"}
                                 </Paragraph>
                                 <Paragraph>
-                                    <strong>Time Open:</strong> {store.time_open || "No time provided"}
+                                    <strong>Opening:</strong> {store.time_open || "No time provided"}
+                                </Paragraph>
+                                <Paragraph>
+                                    <strong>Closing:</strong> {store.time_close || "No time provided"}
                                 </Paragraph>
                                 <Paragraph>
                                     <strong>Status:</strong> {store.status || "No status provided"}
                                 </Paragraph>
+                                <Paragraph>
+                                    <strong>Contact:</strong> {store.contact_info || "No contact info"}
+                                </Paragraph>
                                 <Link to={`/stores/${storeId}/booking`}>
-                                    <Button  block style={{ marginTop: "10px" , background:"#954435",color: "white"} }>
+                                    <Button
+                                        block
+                                        style={{
+                                            marginTop: "10px",
+                                            background: "#E63946",
+                                            color: "white",
+                                        }}
+                                    >
                                         Book Now
                                     </Button>
                                 </Link>

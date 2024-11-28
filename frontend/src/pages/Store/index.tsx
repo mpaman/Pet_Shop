@@ -1,12 +1,13 @@
-import { Card, Row, Col, Avatar, Button, Typography, Space, Divider, Modal, message } from "antd";
-import { EditOutlined, DeleteOutlined, PlusOutlined, EyeOutlined } from "@ant-design/icons";
+import { Card, Row, Col, Avatar, Button, Typography, Space, Divider, Modal, message, Select } from "antd";
+import { EditOutlined, DeleteOutlined, PlusOutlined, EyeOutlined, AppstoreAddOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { StoreInterface } from "../../interfaces/Store";
-import { DeleteStoreById, GetAllStores, GetUserProfile } from "../../services/https";
+import { DeleteStoreById, GetAllStores, UpdateStoreStatus, GetUserProfile } from "../../services/https";
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;
+const { Option } = Select;
 
 function Store() {
     const navigate = useNavigate();
@@ -47,7 +48,6 @@ function Store() {
             message.error("เกิดข้อผิดพลาดในการลบร้านค้า");
         }
     };
-    
 
     const confirmDelete = (id: string) => {
         confirm({
@@ -62,6 +62,18 @@ function Store() {
         });
     };
 
+    const handleStatusChange = async (storeId: string, status: string) => {
+        try {
+            const payload = { status: status };
+            await UpdateStoreStatus(storeId, payload); // Passing payload to UpdateStoreStatus
+            message.success("อัพเดตสถานะร้านสำเร็จ");
+            getStores(); // Refresh store list
+        } catch (error) {
+            console.error("Error updating status:", error);
+            message.error("เกิดข้อผิดพลาดในการอัพเดตสถานะร้าน");
+        }
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             await getUserProfile();
@@ -74,6 +86,19 @@ function Store() {
             getStores();
         }
     }, [userId]);
+
+    const statusColor = (status: string) => {
+        switch (status) {
+            case "open":
+                return "#2A9D8F"; // Green
+            case "close":
+                return "#F4A261"; // Orange
+            case "full":
+                return "#E63946"; // Red
+            default:
+                return "#8D99AE"; // Gray
+        }
+    };
 
     return (
         <>
@@ -102,11 +127,11 @@ function Store() {
                 {store.map((item) => (
                     <Col key={item.ID} xs={24} sm={12} md={8} lg={6}>
                         <Card
-
                             style={{
                                 borderRadius: 16,
                                 overflow: "hidden",
                                 boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)",
+                                marginBottom: 16,
                             }}
                             cover={
                                 <div style={{ textAlign: "center", padding: "16px" }}>
@@ -121,18 +146,27 @@ function Store() {
                                     />
                                 </div>
                             }
-
                         >
                             <Space direction="vertical" size="small" style={{ width: "100%" }}>
                                 <Title level={4} style={{ textAlign: "center", color: "#264653" }}>
                                     {item.name}
                                 </Title>
-                                <Text type="secondary" style={{ textAlign: "center" }}>
+                                <Text>
+                                    <strong>จังหวัด: </strong>
                                     {item.location}
                                 </Text>
                                 <Text>
                                     <strong>สถานะ: </strong>
-                                    {item.status || "ไม่มีข้อมูล"}
+                                    <span
+                                        style={{
+                                            color: "white",
+                                            backgroundColor: statusColor(item.status),
+                                            padding: "4px 8px",
+                                            borderRadius: "4px",
+                                        }}
+                                    >
+                                        {item.status || "ไม่มีข้อมูล"}
+                                    </span>
                                 </Text>
                                 <Text>
                                     <strong>เจ้าของ: </strong>
@@ -176,6 +210,17 @@ function Store() {
                                 </Button>
                                 <Button
                                     style={{
+                                        background: "#2A9D8F",
+                                        color: "white",
+                                        fontWeight: "bold",
+                                    }}
+                                    icon={<AppstoreAddOutlined />}
+                                    onClick={() => navigate(`/stores/${item.ID}`)}
+                                >
+                                    Preview Store
+                                </Button>
+                                <Button
+                                    style={{
                                         background: "#8D99AE",
                                         color: "white",
                                         fontWeight: "bold",
@@ -185,8 +230,16 @@ function Store() {
                                 >
                                     ลบร้าน
                                 </Button>
+                                <Select
+                                    value={item.status}
+                                    onChange={(value) => handleStatusChange(item.ID, value)}
+                                    style={{ width: 120 }}
+                                >
+                                    <Option value="open">เปิด</Option>
+                                    <Option value="close">ปิด</Option>
+                                    <Option value="full">เต็ม</Option>
+                                </Select>
                             </Space>
-
                         </Card>
                     </Col>
                 ))}

@@ -10,12 +10,14 @@ import (
 )
 
 type StorePayload struct {
-    Name        string `json:"name"`
-    Location    string `json:"location"`
-    ContactInfo string `json:"contact_info"`
-    Description string `json:"description"`
-    TimeOpen    string `json:"time_open"`
-    Status      string `json:"status"`
+	Name         string `json:"name"`
+	Location     string `json:"location"`
+	ContactInfo  string `json:"contact_info"`
+	AddressStore string `json:"address"` //ที่ตั้งหน้าร้าน
+	Description  string `json:"description"`
+	TimeOpen     string `json:"time_open"`
+	TimeClose    string `json:"time_close"`
+	Status       string `json:"status"`
 }
 
 // CreateStore: สร้างร้านใหม่

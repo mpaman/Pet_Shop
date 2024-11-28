@@ -1,25 +1,29 @@
 import { useState, useEffect } from "react";
-import { Table, Typography, message, Spin } from "antd";
+import { Table, Typography, message, Spin, Avatar } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { BookingInterface } from "../../interfaces/Bookingstore";
 import { GetAllBookings, GetUserProfile, GetStoreByID } from "../../services/https";
 import { Link } from "react-router-dom";
-import moment from "moment";  // นำเข้า moment
+import moment from "moment";
 
 const { Title } = Typography;
 
 function TotalBooking() {
     const [bookings, setBookings] = useState<BookingInterface[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [userId, setUserId] = useState<string | null>(null);
+    const [userId, setUserId] = useState<number | null>(null);
 
-    // ดึงข้อมูลผู้ใช้ที่ล็อกอิน
+    // ดึงข้อมูลโปรไฟล์ผู้ใช้
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
                 const response = await GetUserProfile();
-                setUserId(response.ID);
-                console.log("User ID from profile:", response.ID);
+                if (response?.ID) {
+                    setUserId(response.ID); // บันทึก User ID
+                    console.log("User ID from profile:", response.ID);
+                } else {
+                    message.error("User profile not found.");
+                }
             } catch (error) {
                 console.error("Error fetching user profile:", error);
                 message.error("Error fetching user profile.");
@@ -28,7 +32,7 @@ function TotalBooking() {
         fetchUserProfile();
     }, []);
 
-    // ดึงข้อมูลการจองทั้งหมด
+    // ดึงข้อมูลการจอง
     useEffect(() => {
         const fetchBookings = async () => {
             setLoading(true);
@@ -36,9 +40,18 @@ function TotalBooking() {
                 const response = await GetAllBookings();
                 if (response.status === 200) {
                     const filteredBookings = response.data.bookings.filter(
-                        (booking: BookingInterface) => booking.booker_user_id === Number(userId)
+                        (booking: BookingInterface) => booking.booker_user_id === userId
                     );
-                    setBookings(filteredBookings);
+                    const bookingsWithStoreData = await Promise.all(
+                        filteredBookings.map(async (booking: BookingInterface) => {
+                            const storeResponse = await GetStoreByID(booking.store_id);
+                            return {
+                                ...booking,
+                                Store: storeResponse.data, // เพิ่มข้อมูลร้านค้า
+                            };
+                        })
+                    );
+                    setBookings(bookingsWithStoreData);
                 } else {
                     message.error("Failed to load bookings.");
                 }
@@ -55,33 +68,56 @@ function TotalBooking() {
         }
     }, [userId]);
 
-    // กำหนดคอลัมน์ของตาราง
+    // คอลัมน์ของตาราง
     const columns: ColumnsType<BookingInterface> = [
         {
-            title: "Store name",
-            dataIndex: "BookerUser",
-            key: "BookerUser",
-            render: (_, record) =>
-                record.BookerUser ? `${record.Store?.name}` : "N/A",
+            title: "Store",
+            dataIndex: "Store",
+            key: "owner",
+            render: (_, record) => {
+                const user = record.Store?.user;
+                if (!user) return "N/A";
+
+                const profileSrc = user.Profile?.startsWith("data:image")
+                    ? user.Profile
+                    : user.Profile
+                        ? `data:image/png;base64,${user.Profile}`
+                        : null;
+                return (
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                        <Avatar
+                            src={profileSrc}
+                            alt={user.first_name}
+                            size={64} // เพิ่มขนาดของ Avatar ให้ใหญ่ขึ้น
+                            style={{ marginRight: "8px" }}
+                        />
+                    </div>
+                );
+            },
         },
+        {
+            title: "Store Name",
+            dataIndex: "Store",
+            key: "store",
+            render: (_, record) => record.Store?.name || "N/A",
+        },
+
         {
             title: "Service",
             dataIndex: "Service",
-            key: "Service",
+            key: "service",
             render: (_, record) => record.Service?.name_service || "N/A",
         },
         {
             title: "Date",
             dataIndex: "date",
             key: "date",
-            render: (date) => {
-                return date ? moment(date).format("DD/MM/YYYY") : "N/A";  // ใช้ moment เพื่อจัดรูปแบบวันที่
-            },
+            render: (date) => (date ? moment(date).format("DD/MM/YYYY") : "N/A"),
         },
         {
             title: "Time",
             dataIndex: "booking_time",
-            key: "booking_time",
+            key: "time",
         },
         {
             title: "Status",
@@ -89,10 +125,10 @@ function TotalBooking() {
             key: "status",
         },
         {
-            title: "หน้าของโพสต์",
+            title: "Details",
             key: "store_id",
             render: (record) => (
-                <Link to={`/stores/${record.store_id}`}>ดูรายละเอียดโพสต์</Link>
+                <Link to={`/stores/${record.store_id}`}>View Store Details</Link>
             ),
         },
     ];
@@ -103,7 +139,12 @@ function TotalBooking() {
             {loading ? (
                 <Spin size="large" />
             ) : (
-                <Table columns={columns} dataSource={bookings} rowKey="ID" />
+                <Table
+                    columns={columns}
+                    dataSource={bookings}
+                    rowKey="ID"
+                    pagination={{ pageSize: 5 }} // เพิ่ม Pagination
+                />
             )}
         </div>
     );

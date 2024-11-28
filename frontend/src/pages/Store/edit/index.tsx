@@ -26,7 +26,12 @@ import {
 
 const { Option } = Select;
 const { TextArea } = Input;
-
+const provinces = [
+    "กรุงเทพมหานคร", "เชียงใหม่", "เชียงราย", "ชลบุรี", "กระบี่", "ภูเก็ต",
+    "นนทบุรี", "ปทุมธานี", "สมุทรปราการ", "ขอนแก่น", "สุราษฎร์ธานี",
+    "ระยอง", "นครราชสีมา", "พระนครศรีอยุธยา", "อุดรธานี", "สงขลา",
+    "ตรัง", "ลำปาง", "ราชบุรี", "ประจวบคีรีขันธ์", "นราธิวาส"
+];
 function StoreEdit() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -53,6 +58,8 @@ function StoreEdit() {
                         description: storeResponse.data.description,
                         time_open: moment(storeResponse.data.time_open, "HH:mm"),
                         status: storeResponse.data.status,
+                        address: storeResponse.data.address,
+                        time_close: moment(storeResponse.data.time_close, "HH:mm"),
                     });
                 }
 
@@ -77,36 +84,7 @@ function StoreEdit() {
         fetchData();
     }, [id, form, messageApi]);
 
-    // const handleProfileUpload = async (info: any) => {
-    //     const { file } = info;
-    //     const isImage = file.type.startsWith("image/");
-    //     if (!isImage) {
-    //         message.error("You can only upload image files!");
-    //         return;
-    //     }
-    
-    //     const formData = new FormData();
-    //     formData.append("Profile", file);
-    
-    //     setUploadingProfile(true);
-    //     try {
-    //         const response = await UpdateUsersById(profile, formData);
-    //         if (response.status === 200) {
-    //             message.success("Profile picture updated successfully!");
-    //             setProfile((prevProfile: any) => ({
-    //                 ...prevProfile,
-    //                 Profile: URL.createObjectURL(file),
-    //             }));
-    //         } else {
-    //             message.error("Failed to update profile picture");
-    //         }
-    //     } catch (error) {
-    //         message.error("Error occurred while updating profile");
-    //     } finally {
-    //         setUploadingProfile(false);
-    //     }
-    // };
-    
+
 
     const handleBeforeUpload = (file: File) => {
         const isImage = file.type.startsWith("image/");
@@ -177,7 +155,6 @@ function StoreEdit() {
         <>
             {contextHolder}
             <div style={{ textAlign: "center", marginBottom: "20px" }}>
-                <h3>User Profile</h3>
                 <Avatar
                     size={120}
                     icon={<UserOutlined />}
@@ -185,16 +162,6 @@ function StoreEdit() {
                     style={{ marginBottom: "10px" }}
                 />
                 <h4>{`${profile?.FirstName || ""} ${profile?.LastName || ""}`}</h4>
-                {/* <Upload
-                    showUploadList={false}
-                    beforeUpload={(file) => file.type.startsWith("image/") || Upload.LIST_IGNORE}
-                    customRequest={handleProfileUpload}
-                    disabled={uploadingProfile}
-                >
-                    <Button type="primary" loading={uploadingProfile}>
-                        {uploadingProfile ? "Uploading..." : "Change Profile Picture"}
-                    </Button>
-                </Upload> */}
             </div>
 
             <Form layout="vertical" onFinish={onFinish} form={form}>
@@ -203,9 +170,24 @@ function StoreEdit() {
                     <Input placeholder="Enter store name" />
                 </Form.Item>
 
-                <Form.Item label="Location" name="location" rules={[{ required: true }]}>
-                    <Input placeholder="Enter location" />
-                </Form.Item>
+                <Form.Item label="Location" name="location" rules={[{ required: true, message: 'Please select the location!' }]}>
+                <Select
+                    showSearch
+                    placeholder="Select a province"
+                    filterOption={(input, option) =>
+                        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                    }
+                >
+                    {provinces.map((province) => (
+                        <Option key={province} value={province}>{province}</Option>
+                    ))}
+                </Select>
+            </Form.Item>
+
+
+                <Form.Item label="Address" name="address" rules={[{ required: true, message: 'Please input the address!' }]}>
+                <Input placeholder="Enter detailed address" />
+            </Form.Item>
 
                 <Form.Item label="Contact Info" name="contact_info" rules={[{ required: true }]}>
                     <Input placeholder="Enter contact information" />
@@ -216,6 +198,11 @@ function StoreEdit() {
                 </Form.Item>
 
                 <Form.Item label="Opening Time" name="time_open" rules={[{ required: true }]}>
+                    <TimePicker format="HH:mm" />
+                </Form.Item>
+
+
+                <Form.Item label="Closing Time" name="time_close" rules={[{ required: true, message: 'Please select closing time!' }]}>
                     <TimePicker format="HH:mm" />
                 </Form.Item>
 
@@ -255,6 +242,7 @@ function StoreEdit() {
                     </Button>
                 </Form.Item>
             </Form>
+
         </>
     );
 }

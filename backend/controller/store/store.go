@@ -111,3 +111,35 @@ func DeleteStore(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Store and related data deleted successfully"})
 }
+// UpdateStoreStatus: อัพเดตสถานะของร้านตาม ID
+func UpdateStoreStatus(c *gin.Context) {
+	storeID := c.Param("id")
+	var payload struct {
+		Status string `json:"status"` // รับสถานะใหม่
+	}
+
+	// Bind JSON payload to the struct
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	// Find the store by ID
+	var store entity.Store
+	db := config.DB()
+	if err := db.First(&store, storeID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
+		return
+	}
+
+	// Update the store's status
+	store.Status = payload.Status
+
+	// Save the updated store
+	if err := db.Save(&store).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update store status"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Store status updated successfully", "store": store})
+}

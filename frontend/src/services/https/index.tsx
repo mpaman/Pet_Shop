@@ -189,9 +189,13 @@ async function UpdateBookingStatus(id: string, data: BookingInterface) {
         .then((res) => res)
         .catch((e) => e.response);
 }
-
 async function DeleteBooking(id: string) {
     return await axios.delete(`${apiUrl}/bookingstore/${id}`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function UpdateStoreStatus(id: string, data: BookingInterface) {
+    return await axios.put(`${apiUrl}/store/${id}/status`, data, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
@@ -209,6 +213,6 @@ export {
 
     CreateStore, UpdateStore, DeleteStoreById, GetAllStores, GetStoreByID,
     CreateService, DeleteService, UpdateService, GetAllService, GetServiceByStoreID,
-    CreateStoreImage, DeleteStoreImage, GetStoreImages, GetAllStoreImage,
+    CreateStoreImage, DeleteStoreImage, GetStoreImages, GetAllStoreImage,UpdateStoreStatus,
     CreateBooking, GetAllBookings, GetBookingstoreByStoreID, UpdateBookingStatus, DeleteBooking
 };
