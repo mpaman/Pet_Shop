@@ -4,6 +4,7 @@ import { ColumnsType } from "antd/es/table";
 import { useParams } from "react-router-dom";
 import { BookingInterface } from "../../../interfaces/Bookingstore";
 import { GetAllBookings, UpdateBookingStatus } from "../../../services/https";
+import moment from "moment";
 
 const { Title } = Typography;
 const { TabPane } = Tabs;
@@ -17,23 +18,20 @@ function Booking() {
     const [cancelledBookings, setCancelledBookings] = useState<BookingInterface[]>([]); // For cancelled bookings
     const [loading, setLoading] = useState<boolean>(true);
 
-    // ดึงข้อมูลการจองทั้งหมดที่ storeId ตรงกับ URL
     useEffect(() => {
         const fetchBookings = async () => {
             setLoading(true);
             try {
-                const response = await GetAllBookings(); // ดึงข้อมูล Booking ทั้งหมด
+                const response = await GetAllBookings();
                 if (response.status === 200) {
-                    // กรองข้อมูลให้แสดงเฉพาะการจองที่ storeId ตรงกับ URL
                     const filteredBookings = response.data.bookings.filter(
                         (booking: BookingInterface) => booking.store_id.toString() === storeId
                     );
-                    setBookings(filteredBookings); // ตั้งค่า bookings ที่กรองแล้ว
-                    // แยกข้อมูลตามสถานะ
-                    setPendingBookings(filteredBookings.filter((booking: { status: string; }) => booking.status === "pending"));
-                    setConfirmedBookings(filteredBookings.filter((booking: { status: string; }) => booking.status === "confirmed"));
-                    setCompletedBookings(filteredBookings.filter((booking: { status: string; }) => booking.status === "completed"));
-                    setCancelledBookings(filteredBookings.filter((booking: { status: string; }) => booking.status === "cancelled"));
+                    setBookings(filteredBookings);
+                    setPendingBookings(filteredBookings.filter((booking) => booking.status === "pending"));
+                    setConfirmedBookings(filteredBookings.filter((booking) => booking.status === "confirmed"));
+                    setCompletedBookings(filteredBookings.filter((booking) => booking.status === "completed"));
+                    setCancelledBookings(filteredBookings.filter((booking) => booking.status === "cancelled"));
                 } else {
                     message.error("Failed to load bookings.");
                 }
@@ -47,29 +45,17 @@ function Booking() {
         fetchBookings();
     }, [storeId]);
 
-    // ฟังก์ชันสำหรับการอัปเดตสถานะ
     const handleUpdateStatus = async (bookingId: number, status: string) => {
         try {
             const response = await UpdateBookingStatus(bookingId, { status });
             if (response.status === 200) {
                 message.success("Booking status updated successfully.");
-                // รีเฟรชข้อมูลการจอง
                 setBookings((prevBookings) =>
                     prevBookings.map((booking) =>
                         booking.ID === bookingId ? { ...booking, status } : booking
                     )
                 );
-                // Update lists according to status
-                setPendingBookings(prev => prev.filter(booking => booking.ID !== bookingId));
-                setConfirmedBookings(prev => prev.map(booking =>
-                    booking.ID === bookingId ? { ...booking, status } : booking
-                ));
-                setCompletedBookings(prev => prev.map(booking =>
-                    booking.ID === bookingId ? { ...booking, status } : booking
-                ));
-                setCancelledBookings(prev => prev.map(booking =>
-                    booking.ID === bookingId ? { ...booking, status } : booking
-                ));
+                setPendingBookings((prev) => prev.filter((booking) => booking.ID !== bookingId));
             } else {
                 message.error("Failed to update booking status.");
             }
@@ -79,17 +65,16 @@ function Booking() {
         }
     };
 
-    // ฟังก์ชันสำหรับการอัปเดตสถานะเป็น "cancelled"
+    // ฟังก์ชันยกเลิกการจอง
     const handleCancelBooking = async (bookingId: number) => {
         await handleUpdateStatus(bookingId, "cancelled");
     };
 
-    // ฟังก์ชันสำหรับการอัปเดตสถานะเป็น "completed"
+    // ฟังก์ชันเสร็จสิ้นการจอง
     const handleCompleteBooking = async (bookingId: number) => {
         await handleUpdateStatus(bookingId, "completed");
     };
 
-    // กำหนดคอลัมน์ของตาราง
     const columns: ColumnsType<BookingInterface> = [
         {
             title: "Customer Name",
@@ -100,24 +85,31 @@ function Booking() {
         },
         { title: "Service", dataIndex: "Service", key: "Service", render: (_, record) => record.Service?.name_service || "N/A" },
         { title: "Contact", dataIndex: "contact_number", key: "contact_number" },
-        { title: "Date", dataIndex: "date", key: "date" },
+        {
+            title: "Date",
+            dataIndex: "date",
+            key: "date",
+            render: (date) => (date ? moment(date).format("DD/MM/YYYY") : "N/A"),
+        },
         { title: "Time", dataIndex: "booking_time", key: "booking_time" },
         { title: "Status", dataIndex: "status", key: "status" },
         {
             title: "Actions",
             key: "actions",
+            width: 250, // กำหนดความกว้างสำหรับคอลัมน์
             render: (_, record) => (
-                <>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                     {record.status === "pending" && (
                         <>
                             <Button
                                 onClick={() => handleUpdateStatus(record.ID, "confirmed")}
-                                style={{ marginRight: 8 }}
+                                type="primary"
                             >
                                 Confirm
                             </Button>
                             <Button
                                 onClick={() => handleCancelBooking(record.ID)}
+                                danger
                             >
                                 Cancel
                             </Button>
@@ -127,59 +119,56 @@ function Booking() {
                         <>
                             <Button
                                 onClick={() => handleCompleteBooking(record.ID)}
-                                style={{ marginRight: 8 }}
+                                type="primary"
                             >
                                 Complete
                             </Button>
                             <Button
                                 onClick={() => handleCancelBooking(record.ID)}
+                                danger
                             >
                                 Cancel
                             </Button>
                         </>
                     )}
                     {record.status === "completed" && (
-                        <Button
-                            disabled
-                        >
-                            Completed
-                        </Button>
+                        <Button disabled>Completed</Button>
                     )}
                     {record.status === "cancelled" && (
-                        <Button
-                            disabled
-                        >
-                            Cancelled
-                        </Button>
+                        <Button disabled>Cancelled</Button>
                     )}
-                </>
+                </div>
             ),
         },
     ];
 
     return (
-        <div>
-            <Title level={2}>Bookings Management for Store {storeId}</Title>
+        <div
+            style={{
+                maxWidth: "900px",
+                margin: "0 auto",
+                padding: "20px",
+                border: "1px solid #d9d9d9",
+                borderRadius: "8px",
+                backgroundColor: "#fff",
+            }}
+        >
+            <Title level={2} style={{ textAlign: "center", marginBottom: "20px" }}>
+                Bookings Management for Store {storeId}
+            </Title>
             {loading ? (
-                <Spin size="large" />
+                <Spin size="large" style={{ display: "block", margin: "50px auto" }} />
             ) : (
                 <Tabs defaultActiveKey="1">
-                    {/* Tab for Pending Bookings */}
                     <TabPane tab="Pending" key="1">
                         <Table columns={columns} dataSource={pendingBookings} rowKey="ID" pagination={false} />
                     </TabPane>
-
-                    {/* Tab for Confirmed Bookings */}
                     <TabPane tab="Confirmed" key="2">
                         <Table columns={columns} dataSource={confirmedBookings} rowKey="ID" pagination={false} />
                     </TabPane>
-
-                    {/* Tab for Completed Bookings */}
                     <TabPane tab="Completed" key="3">
                         <Table columns={columns} dataSource={completedBookings} rowKey="ID" pagination={false} />
                     </TabPane>
-
-                    {/* Tab for Cancelled Bookings */}
                     <TabPane tab="Cancelled" key="4">
                         <Table columns={columns} dataSource={cancelledBookings} rowKey="ID" pagination={false} />
                     </TabPane>

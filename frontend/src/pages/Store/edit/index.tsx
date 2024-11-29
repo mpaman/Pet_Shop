@@ -21,17 +21,16 @@ import {
     CreateStoreImage,
     DeleteStoreImage,
     GetUserProfile,
-    UpdateUsersById,
 } from "../../../services/https";
 
 const { Option } = Select;
 const { TextArea } = Input;
 const provinces = [
-    "กรุงเทพมหานคร", "เชียงใหม่", "เชียงราย", "ชลบุรี", "กระบี่", "ภูเก็ต",
-    "นนทบุรี", "ปทุมธานี", "สมุทรปราการ", "ขอนแก่น", "สุราษฎร์ธานี",
-    "ระยอง", "นครราชสีมา", "พระนครศรีอยุธยา", "อุดรธานี", "สงขลา",
-    "ตรัง", "ลำปาง", "ราชบุรี", "ประจวบคีรีขันธ์", "นราธิวาส"
+    "กรุงเทพมหานคร", "เชียงใหม่", "ชลบุรี", "กระบี่", "ภูเก็ต",
+    "นนทบุรี", "ปทุมธานี", "สมุทรปราการ", "ขอนแก่น", "นครราชสีมา",
+    "พระนครศรีอยุธยา", "อุดรธานี", "สงขลา", "ตรัง", "ลำปาง",
 ];
+
 function StoreEdit() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -39,41 +38,37 @@ function StoreEdit() {
     const [deletedImageIDs, setDeletedImageIDs] = useState<number[]>([]);
     const [storeData, setStoreData] = useState<any | null>(null);
     const [profile, setProfile] = useState<any | null>(null);
-    const [uploadingProfile, setUploadingProfile] = useState(false);
     const [loading, setLoading] = useState(true);
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
 
     useEffect(() => {
         const fetchData = async () => {
-            setLoading(true);
             try {
+                setLoading(true);
                 const storeResponse = await GetStoreByID(id);
+                const profileResponse = await GetUserProfile();
+                const storeImagesResponse = await GetAllStoreImage();
+
                 if (storeResponse?.data) {
                     setStoreData(storeResponse.data);
                     form.setFieldsValue({
-                        name: storeResponse.data.name,
-                        location: storeResponse.data.location,
-                        contact_info: storeResponse.data.contact_info,
-                        description: storeResponse.data.description,
+                        ...storeResponse.data,
                         time_open: moment(storeResponse.data.time_open, "HH:mm"),
-                        status: storeResponse.data.status,
-                        address: storeResponse.data.address,
                         time_close: moment(storeResponse.data.time_close, "HH:mm"),
                     });
                 }
 
-                const storeImagesResponse = await GetAllStoreImage();
+                if (profileResponse?.Profile) {
+                    setProfile(profileResponse.Profile);
+                }
+
                 if (storeImagesResponse?.data?.data) {
                     const filteredImages = storeImagesResponse.data.data.filter(
                         (img: any) => img.store_id === parseInt(id!)
                     );
                     setStoreImages(filteredImages);
                 }
-
-                const profileResponse = await GetUserProfile();
-                setProfile(profileResponse.Profile);
-
             } catch (error) {
                 messageApi.error("Failed to fetch data");
             } finally {
@@ -84,14 +79,12 @@ function StoreEdit() {
         fetchData();
     }, [id, form, messageApi]);
 
-
-
     const handleBeforeUpload = (file: File) => {
-        const isImage = file.type.startsWith("image/");
-        if (!isImage) {
+        if (!file.type.startsWith("image/")) {
             message.error("You can only upload image files!");
+            return Upload.LIST_IGNORE;
         }
-        return isImage || Upload.LIST_IGNORE;
+        return true;
     };
 
     const handleChangeImage = ({ fileList }: any) => {
@@ -100,8 +93,8 @@ function StoreEdit() {
                 const reader = new FileReader();
                 reader.readAsDataURL(file.originFileObj);
                 reader.onload = () => {
-                    setStoreImages((prevImages) => [
-                        ...prevImages,
+                    setStoreImages((prev) => [
+                        ...prev,
                         { image_url: reader.result as string, store_id: parseInt(id!) },
                     ]);
                 };
@@ -119,7 +112,11 @@ function StoreEdit() {
 
     const onFinish = async (values: any) => {
         try {
-            const updatedStore = { ...values, time_open: values.time_open.format("HH:mm") };
+            const updatedStore = {
+                ...values,
+                time_open: values.time_open.format("HH:mm"),
+                time_close: values.time_close.format("HH:mm"),
+            };
 
             await UpdateStore(id, updatedStore);
 
@@ -152,7 +149,7 @@ function StoreEdit() {
     }
 
     return (
-        <>
+        <div style={{ maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
             {contextHolder}
             <div style={{ textAlign: "center", marginBottom: "20px" }}>
                 <Avatar
@@ -170,24 +167,19 @@ function StoreEdit() {
                     <Input placeholder="Enter store name" />
                 </Form.Item>
 
-                <Form.Item label="Location" name="location" rules={[{ required: true, message: 'Please select the location!' }]}>
-                <Select
-                    showSearch
-                    placeholder="Select a province"
-                    filterOption={(input, option) =>
-                        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                    }
-                >
-                    {provinces.map((province) => (
-                        <Option key={province} value={province}>{province}</Option>
-                    ))}
-                </Select>
-            </Form.Item>
+                <Form.Item label="Location" name="location" rules={[{ required: true }]}>
+                    <Select showSearch placeholder="Select a province">
+                        {provinces.map((province) => (
+                            <Option key={province} value={province}>
+                                {province}
+                            </Option>
+                        ))}
+                    </Select>
+                </Form.Item>
 
-
-                <Form.Item label="Address" name="address" rules={[{ required: true, message: 'Please input the address!' }]}>
-                <Input placeholder="Enter detailed address" />
-            </Form.Item>
+                <Form.Item label="Address" name="address" rules={[{ required: true }]}>
+                    <Input placeholder="Enter detailed address" />
+                </Form.Item>
 
                 <Form.Item label="Contact Info" name="contact_info" rules={[{ required: true }]}>
                     <Input placeholder="Enter contact information" />
@@ -201,8 +193,7 @@ function StoreEdit() {
                     <TimePicker format="HH:mm" />
                 </Form.Item>
 
-
-                <Form.Item label="Closing Time" name="time_close" rules={[{ required: true, message: 'Please select closing time!' }]}>
+                <Form.Item label="Closing Time" name="time_close" rules={[{ required: true }]}>
                     <TimePicker format="HH:mm" />
                 </Form.Item>
 
@@ -242,8 +233,7 @@ function StoreEdit() {
                     </Button>
                 </Form.Item>
             </Form>
-
-        </>
+        </div>
     );
 }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Table, Typography, message, Spin, Avatar } from "antd";
+import { Table, Typography, message, Spin, Avatar, Row, Col } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { BookingInterface } from "../../interfaces/Bookingstore";
 import { GetAllBookings, GetUserProfile, GetStoreByID } from "../../services/https";
@@ -134,18 +134,20 @@ function TotalBooking() {
     ];
 
     return (
-        <div>
-            <Title level={2}>Your Bookings</Title>
-            {loading ? (
-                <Spin size="large" />
-            ) : (
-                <Table
-                    columns={columns}
-                    dataSource={bookings}
-                    rowKey="ID"
-                    pagination={{ pageSize: 5 }} // เพิ่ม Pagination
-                />
-            )}
+        <div style={{ padding: '20px', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '100%', maxWidth: '1000px' }}>
+                <Title level={2} style={{ textAlign: 'center' }}>Your Bookings</Title>
+                {loading ? (
+                    <Spin size="large" style={{ display: 'block', margin: '0 auto' }} />
+                ) : (
+                    <Table
+                        columns={columns}
+                        dataSource={bookings}
+                        rowKey="ID"
+                        pagination={{ pageSize: 5 }} // เพิ่ม Pagination
+                    />
+                )}
+            </div>
         </div>
     );
 }

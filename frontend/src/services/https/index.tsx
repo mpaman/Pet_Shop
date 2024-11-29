@@ -5,6 +5,7 @@ import { BookingInterface } from '../../interfaces/Bookingstore';
 import { ServiceInterface } from '../../interfaces/Service';
 import { StoreInterface } from '../../interfaces/Store';
 import { StoreImageInterface } from '../../interfaces/Storeimage';
+import { PetInterface } from "../../interfaces/Pet";
 const apiUrl = "http://localhost:8000";
 const token = localStorage.getItem("token");
 const tokenType = localStorage.getItem("token_type");
@@ -199,7 +200,27 @@ async function UpdateStoreStatus(id: string, data: BookingInterface) {
         .then((res) => res)
         .catch((e) => e.response);
 }
-
+//pet
+// async function CreatePet(data: PetInterface) {
+//     return await axios.post(`${apiUrl}/pet`, data, { headers: requestOptions.headers })
+//         .then((res) => res)
+//         .catch((e) => e.response);
+// }
+// async function UpdatePet(id: string, data: PetInterface) {
+//     return await axios.put(`${apiUrl}/pet/${id}`, data, { headers: requestOptions.headers })
+//         .then((res) => res)
+//         .catch((e) => e.response);
+// }
+// async function DeletePet(id: string) {
+//     return await axios.delete(`${apiUrl}/pet/${id}`, { headers: requestOptions.headers })
+//         .then((res) => res)
+//         .catch((e) => e.response);
+// }
+// async function GetAllPets() {
+//     return await axios.get(`${apiUrl}/pets`, { headers: requestOptions.headers })
+//         .then((res) => res)
+//         .catch((e) => e.response);
+// }
 // Export all functions
 export {
     SignIn,
@@ -210,7 +231,7 @@ export {
     CreateUser,
 
 
-
+    // CreatePet,UpdatePet,DeletePet,GetAllPets,
     CreateStore, UpdateStore, DeleteStoreById, GetAllStores, GetStoreByID,
     CreateService, DeleteService, UpdateService, GetAllService, GetServiceByStoreID,
     CreateStoreImage, DeleteStoreImage, GetStoreImages, GetAllStoreImage,UpdateStoreStatus,

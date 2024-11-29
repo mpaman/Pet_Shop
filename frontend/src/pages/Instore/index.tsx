@@ -11,12 +11,22 @@ import {
     Card,
     message,
 } from "antd";
-import { UserOutlined, PhoneOutlined, HomeOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import {
+    UserOutlined,
+    PhoneOutlined,
+    HomeOutlined,
+    ClockCircleOutlined,
+} from "@ant-design/icons";
 import { useParams, Link } from "react-router-dom";
-import { GetStoreByID, GetAllService, GetAllStoreImage } from "../../services/https/index";
+import {
+    GetStoreByID,
+    GetAllService,
+    GetAllStoreImage,
+} from "../../services/https/index";
 import { StoreInterface } from "../../interfaces/Store";
 import { ServiceInterface } from "../../interfaces/Service";
 import { StoreImageInterface } from "../../interfaces/Storeimage";
+import "../../App.css";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -39,14 +49,16 @@ const StorePage: React.FC = () => {
                 // Fetch services related to the store
                 const serviceResponse = await GetAllService();
                 const filteredServices = serviceResponse.data?.data.filter(
-                    (service: { store_id: number }) => service.store_id === Number(storeId)
+                    (service: { store_id: number }) =>
+                        service.store_id === Number(storeId)
                 );
                 setServices(filteredServices || []);
 
                 // Fetch images related to the store
                 const imageResponse = await GetAllStoreImage();
                 const filteredStoreImages = imageResponse.data?.data.filter(
-                    (image: { store_id: number }) => image.store_id === Number(storeId)
+                    (image: { store_id: number }) =>
+                        image.store_id === Number(storeId)
                 );
                 setStoreImages(filteredStoreImages || []);
             } catch (error) {
@@ -61,32 +73,64 @@ const StorePage: React.FC = () => {
     }, [storeId]);
 
     return (
-        <div style={{ padding: "20px" }}>
+        <div
+            style={{
+                padding: "40px 20px",
+                backgroundColor: "#f7f9fc",
+                minHeight: "100vh",
+            }}
+        >
             {/* Store Name */}
             {store && (
-                <div style={{ textAlign: "center", marginBottom: "20px" }}>
+                <div style={{ textAlign: "center", marginBottom: "30px" }}>
                     <Title level={2} style={{ color: "#1D3557" }}>
                         {store.name || "No Store Name"}
                     </Title>
                 </div>
             )}
 
-            <Row gutter={[24, 24]}>
+            <Row
+                gutter={[24, 24]}
+                justify="center"
+                style={{ maxWidth: "1200px", margin: "0 auto" }}
+            >
                 {/* Left Section */}
                 <Col xs={24} md={16}>
                     {/* Description */}
-                    {store && (
-                        <div style={{ marginBottom: "30px" }}>
-                            <Title level={3} style={{ color: "#457B9D" }}>About</Title>
-                            <Paragraph style={{ textAlign: "justify", lineHeight: 1.8 }}>
-                                {store.description || "No description provided."}
-                            </Paragraph>
-                        </div>
-                    )}
+                    <div>
+                        {store && (
+                            <div style={{ marginBottom: "30px" }}>
+                                <Title level={3} style={{ color: "#457B9D" }}>
+                                    About
+                                </Title>
+                                {/* Option 1: Using CSS */}
+                                <Paragraph
+                                    className="preformatted-text"
+                                    style={{
+                                        textAlign: "justify",
+                                        lineHeight: 1.8,
+                                        padding: "0 15px",
+                                    }}
+                                >
+                                    {store.description ? (
+                                        <span
+                                            dangerouslySetInnerHTML={{
+                                                __html: store.description,
+                                            }}
+                                        />
+                                    ) : (
+                                        "ไม่มีคำอธิบาย"
+                                    )}
+                                </Paragraph>
+                            </div>
+                        )}
+                    </div>
 
                     {/* Store Images */}
                     <div style={{ marginBottom: "30px" }}>
-                        <Title level={3} style={{ color: "#457B9D" }}>Gallery</Title>
+                        <Title level={3} style={{ color: "#457B9D" }}>
+                            Gallery
+                        </Title>
                         {storeImages.length > 0 ? (
                             <Row gutter={[16, 16]}>
                                 {storeImages.map((image) => (
@@ -96,29 +140,35 @@ const StorePage: React.FC = () => {
                                             style={{
                                                 width: "100%",
                                                 borderRadius: "8px",
-                                                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                                                boxShadow:
+                                                    "0px 4px 8px rgba(0, 0, 0, 0.1)",
                                             }}
                                         />
                                     </Col>
                                 ))}
                             </Row>
                         ) : (
-                            <Paragraph>No images available for this store.</Paragraph>
+                            <Paragraph>
+                                No images available for this store.
+                            </Paragraph>
                         )}
                     </div>
 
                     {/* Services */}
                     <div>
-                        <Title level={3} style={{ color: "#457B9D" }}>Services</Title>
+                        <Title level={3} style={{ color: "#457B9D" }}>
+                            Services
+                        </Title>
                         {services.length > 0 ? (
-                            <Row gutter={[10, 10]}>
+                            <Row gutter={[16, 16]}>
                                 {services.map((service) => (
                                     <Col xs={24} sm={12} lg={12} key={service.ID}>
                                         <Card
                                             hoverable
                                             style={{
                                                 borderRadius: "8px",
-                                                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                                                boxShadow:
+                                                    "0px 4px 8px rgba(0, 0, 0, 0.1)",
                                                 padding: "16px",
                                             }}
                                         >
@@ -126,12 +176,19 @@ const StorePage: React.FC = () => {
                                                 {service.name_service}
                                             </Title>
                                             <Paragraph>
-                                                <b>Category:</b> {service.category_pet || "N/A"}
+                                                <b>Category:</b>{" "}
+                                                {service.category_pet || "N/A"}
                                             </Paragraph>
                                             <Paragraph>
-                                                <b>Duration:</b> {service.duration} minutes
+                                                <b>Duration:</b>{" "}
+                                                {service.duration} minutes
                                             </Paragraph>
-                                            <div style={{ textAlign: "right", marginTop: "10px" }}>
+                                            <div
+                                                style={{
+                                                    textAlign: "right",
+                                                    marginTop: "10px",
+                                                }}
+                                            >
                                                 <Text
                                                     style={{
                                                         fontSize: "18px",
@@ -147,17 +204,25 @@ const StorePage: React.FC = () => {
                                 ))}
                             </Row>
                         ) : (
-                            <Paragraph>No services available for this store.</Paragraph>
+                            <Paragraph>
+                                No services available for this store.
+                            </Paragraph>
                         )}
                     </div>
                 </Col>
 
                 {/* Right Section */}
-                <Col xs={24} md={7}>
+                <Col xs={24} md={8}>
                     {store && (
-                        <div style={{ position: "sticky", top: "1px" }}>
+                        <div style={{ position: "sticky", top: "10px" }}>
                             {/* User Info */}
-                            <Card style={{ marginBottom: "20px", textAlign: "center" }}>
+                            <Card
+                                style={{
+                                    marginBottom: "20px",
+                                    textAlign: "center",
+                                    padding: "20px",
+                                }}
+                            >
                                 <Space direction="vertical" align="center">
                                     <Avatar
                                         size={120}
@@ -166,11 +231,13 @@ const StorePage: React.FC = () => {
                                         shape="square"
                                         style={{
                                             borderRadius: "8px",
-                                            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                                            boxShadow:
+                                                "0px 4px 8px rgba(0, 0, 0, 0.1)",
                                         }}
                                     />
                                     <Title level={4}>
-                                        {store.user?.first_name} {store.user?.last_name || ""}
+                                        {store.user?.first_name}{" "}
+                                        {store.user?.last_name || ""}
                                     </Title>
                                 </Space>
                             </Card>
@@ -181,19 +248,28 @@ const StorePage: React.FC = () => {
                                     <PhoneOutlined /> Contact
                                 </Title>
                                 <Paragraph>
-                                    <strong>Location:</strong> {store.location || "No location provided"}
+                                    <strong>Location:</strong>{" "}
+                                    {store.location || "No location provided"}
                                 </Paragraph>
                                 <Paragraph>
-                                    <strong>Opening:</strong> {store.time_open || "No time provided"}
+                                    <strong>Address:</strong>{" "}
+                                    {store.address || "No location provided"}
                                 </Paragraph>
                                 <Paragraph>
-                                    <strong>Closing:</strong> {store.time_close || "No time provided"}
+                                    <strong>Opening:</strong>{" "}
+                                    {store.time_open || "No time provided"}
                                 </Paragraph>
                                 <Paragraph>
-                                    <strong>Status:</strong> {store.status || "No status provided"}
+                                    <strong>Closing:</strong>{" "}
+                                    {store.time_close || "No time provided"}
                                 </Paragraph>
                                 <Paragraph>
-                                    <strong>Contact:</strong> {store.contact_info || "No contact info"}
+                                    <strong>Status:</strong>{" "}
+                                    {store.status || "No status provided"}
+                                </Paragraph>
+                                <Paragraph>
+                                    <strong>Contact:</strong>{" "}
+                                    {store.contact_info || "No contact info"}
                                 </Paragraph>
                                 <Link to={`/stores/${storeId}/booking`}>
                                     <Button

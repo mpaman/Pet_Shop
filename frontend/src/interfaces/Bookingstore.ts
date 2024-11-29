@@ -2,6 +2,7 @@ import { UsersInterface } from "./IUser";
 import { StoreInterface } from "./Store";
 
 export interface BookingInterface {
+    BookerUser: any;
     ID?: number;
     booker_user_id: number; // เชื่อมกับ UsersInterface
     store_id: number;       // เชื่อมกับ StoreInterface

@@ -59,6 +59,8 @@ func UpdateStore(c *gin.Context) {
 	store.Description = payload.Description
 	store.TimeOpen = payload.TimeOpen
 	store.Status = payload.Status
+	store.TimeClose= payload.TimeClose
+	store.AddressStore= payload.AddressStore
 
 	// Save the updated store
 	if err := db.Save(&store).Error; err != nil {

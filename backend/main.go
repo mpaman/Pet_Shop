@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mpaman/petshop/config"
 	"github.com/mpaman/petshop/controller/bookingstore"
+	"github.com/mpaman/petshop/controller/pet"
 	"github.com/mpaman/petshop/controller/service"
 	"github.com/mpaman/petshop/controller/store"
 	"github.com/mpaman/petshop/controller/storeimage"
@@ -64,6 +65,13 @@ func main() {
 		router.GET("/storeimages/:id", storeimage.GetStoreImages)
 		router.GET("/storeimagess", storeimage.GetAll)
 		router.DELETE("/storeimage/:id", storeimage.DeleteStoreImage)
+
+		// Routes for pet
+		router.POST("/pet", pet.CreatePet)
+		router.PUT("/pet/:id", pet.UpdatePet)
+		router.DELETE("/pet/:id", pet.DeletePet)
+		router.GET("/pets", pet.GetAllPets)
+
 	}
 
 	// Start the server

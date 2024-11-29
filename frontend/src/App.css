@@ -1,56 +1,56 @@
 /* กำหนดรูปแบบของหน้า Login */
 .login-page {
-  background: linear-gradient(135deg, #bc8f8f, #000000);
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    background: linear-gradient(135deg, #bc8f8f, #000000);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* ตกแต่ง Card */
 .card-login {
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 15px;
-  background-color: #fff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    background-color: #fff;
 }
 
 /* Logo */
 .login-logo {
-  width: 60%;
-  margin-bottom: 20px;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+    width: 60%;
+    margin-bottom: 20px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* ช่องกรอกข้อมูล */
 .input-field {
-  border-radius: 5px;
-  padding: 10px;
-  font-size: 14px;
-  border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
 }
 
 /* ปุ่ม login */
 .login-form-button {
-  background-color: #252525;
-  border-color: #3f3f3f;
-  color: #fff;
-  font-size: 16px;
-  padding: 10px;
-  border-radius: 5px;
+    background-color: #252525;
+    border-color: #3f3f3f;
+    color: #fff;
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 5px;
 }
 
 /* การจัดการลิงก์สำหรับ signup */
 .signup-link {
-  text-align: center;
-  margin-top: 10px;
+    text-align: center;
+    margin-top: 10px;
 }
 
 .signup-link a {
-  color: #3a7bd5;
-  font-weight: bold;
-  text-decoration: none;
+    color: #3a7bd5;
+    font-weight: bold;
+    text-decoration: none;
 }
 
 
@@ -90,7 +90,9 @@ body {
 }
 
 /* Typography */
-h1, h2, h3 {
+h1,
+h2,
+h3 {
     font-weight: bold;
     color: #333333;
 }
@@ -152,4 +154,22 @@ p {
         position: static;
         margin-top: 20px;
     }
+}
+/* App.css */
+.preformatted-text {
+    white-space: pre-wrap; /* Preserves newlines and spaces */
+    word-wrap: break-word; /* Ensures long words are wrapped */
+}
+/* เพิ่มขอบและระยะห่างภายในให้ฟอร์ม */
+.store-form {
+    border: 1px solid #d9d9d9;  /* ขอบสีเทา */
+    padding: 20px;              /* ระยะห่างภายใน */
+    border-radius: 8px;         /* ขอบมน */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* เงาเล็กน้อย */
+    background-color: #fff;     /* พื้นหลังขาว */
+}
+
+/* เพิ่มระยะห่างระหว่างฟอร์ม Item */
+.store-form .ant-form-item {
+    margin-bottom: 16px;  /* ระยะห่างระหว่างฟอร์ม Item */
 }

@@ -151,7 +151,7 @@ function Store() {
                                 <Title level={4} style={{ textAlign: "center", color: "#264653" }}>
                                     {item.name}
                                 </Title>
-                                <Text>
+                                <Text  >
                                     <strong>จังหวัด: </strong>
                                     {item.location}
                                 </Text>
@@ -174,12 +174,13 @@ function Store() {
                                 </Text>
                             </Space>
                             <Divider />
-                            <Space style={{ width: "100%", flexWrap: "wrap", justifyContent: "space-evenly" }}>
+                            <Space style={{ width: "100%", flexWrap: "wrap", justifyContent: "space-between" }}>
                                 <Button
                                     style={{
                                         background: "#E63946",
                                         color: "white",
-                                        fontWeight: "bold",
+                                        width: "150px", /* ความกว้าง */
+
                                     }}
                                     icon={<EditOutlined />}
                                     onClick={() => navigate(`/store/edit/${item.ID}`)}
@@ -190,7 +191,8 @@ function Store() {
                                     style={{
                                         background: "#F4A261",
                                         color: "white",
-                                        fontWeight: "bold",
+                                        width: "150px", /* ความกว้าง */
+
                                     }}
                                     icon={<EditOutlined />}
                                     onClick={() => navigate(`/store/edit/service/${item.ID}`)}
@@ -201,7 +203,8 @@ function Store() {
                                     style={{
                                         background: "#2A9D8F",
                                         color: "white",
-                                        fontWeight: "bold",
+                                        width: "150px", /* ความกว้าง */
+
                                     }}
                                     icon={<EyeOutlined />}
                                     onClick={() => navigate(`/store/booking/${item.ID}`)}
@@ -213,6 +216,8 @@ function Store() {
                                         background: "#2A9D8F",
                                         color: "white",
                                         fontWeight: "bold",
+                                        width: "150px", /* ความกว้าง */
+
                                     }}
                                     icon={<AppstoreAddOutlined />}
                                     onClick={() => navigate(`/stores/${item.ID}`)}
@@ -224,6 +229,7 @@ function Store() {
                                         background: "#8D99AE",
                                         color: "white",
                                         fontWeight: "bold",
+                                        
                                     }}
                                     icon={<DeleteOutlined />}
                                     onClick={() => confirmDelete(item.ID)}
