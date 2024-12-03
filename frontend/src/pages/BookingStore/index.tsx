@@ -17,7 +17,7 @@ import { CreateBooking, GetAllService, GetStoreByID, GetUserProfile } from "../.
 import { StoreInterface } from "../../interfaces/Store";
 import { ServiceInterface } from "../../interfaces/Service";
 import { useParams } from "react-router-dom";
-import moment from "moment"; // ใช้สำหรับการจัดการเวลา
+import moment from "moment";
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -73,13 +73,19 @@ const BookingForm: React.FC = () => {
             return;
         }
 
-        const formattedDateTime = moment(`${date} ${time}`, "YYYY-MM-DD HH:mm").toISOString();
+        const formattedDateTime = moment(`${date} ${time}`, "YYYY-MM-DD HH:mm");
+        const now = moment();
+
+        if (formattedDateTime.isBefore(now)) {
+            message.error("The selected date and time must be in the future.");
+            return;
+        }
 
         const bookingData = {
             booker_user_id: bookerUserId,
             store_id: selectedStore,
             service_id: selectedService,
-            date: formattedDateTime,
+            date: formattedDateTime.toISOString(),
             notes,
             total_cost: totalCost,
             contact_number: contactNumber,
@@ -164,7 +170,13 @@ const BookingForm: React.FC = () => {
                                 <Text strong>Date:</Text>
                                 <DatePicker
                                     style={{ width: "100%" }}
-                                    onChange={(date, dateString) => setDate(dateString)}
+                                    onChange={(date, dateString) => {
+                                        if (date && date.isBefore(moment(), "day")) {
+                                            message.error("You cannot select a past date.");
+                                            return;
+                                        }
+                                        setDate(dateString);
+                                    }}
                                 />
                             </div>
                             <div>
@@ -172,7 +184,14 @@ const BookingForm: React.FC = () => {
                                 <TimePicker
                                     format="HH:mm"
                                     style={{ width: "100%" }}
-                                    onChange={(time, timeString) => setTime(timeString)}
+                                    onChange={(time, timeString) => {
+                                        const selectedDateTime = moment(`${date} ${timeString}`, "YYYY-MM-DD HH:mm");
+                                        if (date && selectedDateTime.isBefore(moment())) {
+                                            message.error("You cannot select a past time.");
+                                            return;
+                                        }
+                                        setTime(timeString);
+                                    }}
                                 />
                             </div>
                             <div>
@@ -218,7 +237,7 @@ const BookingForm: React.FC = () => {
                             <strong>Store:</strong> {stores.find((store) => store.ID === selectedStore)?.name || "N/A"}
                         </Paragraph>
                         <Paragraph>
-                            <br></br><strong>Service:</strong> {services.find((service) => service.ID === selectedService)?.name_service || "N/A"}
+                            <strong>Service:</strong> {services.find((service) => service.ID === selectedService)?.name_service || "N/A"}
                         </Paragraph>
                         <Paragraph>
                             <strong>Price:</strong> {services.find((service) => service.ID === selectedService)?.price || "N/A"} THB
@@ -230,7 +249,7 @@ const BookingForm: React.FC = () => {
                             <strong>Category:</strong> {services.find((service) => service.ID === selectedService)?.category_pet || "N/A"}
                         </Paragraph>
                         <Paragraph>
-                            <br></br><strong>Date:</strong> {date || "N/A"}
+                            <strong>Date:</strong> {date || "N/A"}
                         </Paragraph>
                         <Paragraph>
                             <strong>Time:</strong> {time || "N/A"}

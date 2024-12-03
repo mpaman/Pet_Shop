@@ -173,3 +173,7 @@ p {
 .store-form .ant-form-item {
     margin-bottom: 16px;  /* ระยะห่างระหว่างฟอร์ม Item */
 }
+.logout-button:hover {
+    background: #d6a580;
+    color: white;
+}
