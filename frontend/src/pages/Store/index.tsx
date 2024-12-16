@@ -138,7 +138,7 @@ function Store() {
                                     <Avatar
                                         shape="square"
                                         size={150}
-                                        src={item.user?.Profile || "https://via.placeholder.com/150"}
+                                        src={item.profile_image || "https://via.placeholder.com/150"}
                                         alt={item.user?.first_name || "No Image"}
                                         style={{
                                             boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.2)",

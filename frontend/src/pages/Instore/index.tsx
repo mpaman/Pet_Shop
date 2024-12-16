@@ -71,6 +71,18 @@ const StorePage: React.FC = () => {
 
         if (storeId) fetchData();
     }, [storeId]);
+    const statusColor = (status: string) => {
+        switch (status) {
+            case "open":
+                return "#2A9D8F"; // Green
+            case "close":
+                return "#F4A261"; // Orange
+            case "full":
+                return "#E63946"; // Red
+            default:
+                return "#8D99AE"; // Gray
+        }
+    };
 
     return (
         <div
@@ -226,7 +238,7 @@ const StorePage: React.FC = () => {
                                 <Space direction="vertical" align="center">
                                     <Avatar
                                         size={120}
-                                        src={store.user?.Profile || undefined}
+                                        src={store.profile_image || undefined}
                                         icon={<UserOutlined />}
                                         shape="square"
                                         style={{
@@ -235,10 +247,6 @@ const StorePage: React.FC = () => {
                                                 "0px 4px 8px rgba(0, 0, 0, 0.1)",
                                         }}
                                     />
-                                    <Title level={4}>
-                                        {store.user?.first_name}{" "}
-                                        {store.user?.last_name || ""}
-                                    </Title>
                                 </Space>
                             </Card>
 
@@ -248,12 +256,20 @@ const StorePage: React.FC = () => {
                                     <PhoneOutlined /> Contact
                                 </Title>
                                 <Paragraph>
-                                    <strong>Location:</strong>{" "}
-                                    {store.location || "No location provided"}
+                                    <strong>Province:</strong>{" "}
+                                    {store.province || "No location provided"}
                                 </Paragraph>
                                 <Paragraph>
-                                    <strong>Address:</strong>{" "}
-                                    {store.address || "No location provided"}
+                                    <strong>District:</strong>{" "}
+                                    {store.district || "No location provided"}
+                                </Paragraph>
+                                <Paragraph>
+                                    <strong>Sub_district:</strong>{" "}
+                                    {store.sub_district || "No location provided"}
+                                </Paragraph>
+                                <Paragraph>
+                                    <strong>Street:</strong>{" "}
+                                    {store.street || "No location provided"}
                                 </Paragraph>
                                 <Paragraph>
                                     <strong>Opening:</strong>{" "}
@@ -264,8 +280,17 @@ const StorePage: React.FC = () => {
                                     {store.time_close || "No time provided"}
                                 </Paragraph>
                                 <Paragraph>
-                                    <strong>Status:</strong>{" "}
-                                    {store.status || "No status provided"}
+                                    <b>Status:</b>{" "}
+                                    <span
+                                        style={{
+                                            color: "white",
+                                            backgroundColor: statusColor(store.status),
+                                            padding: "2px 8px",
+                                            borderRadius: "4px",
+                                        }}
+                                    >
+                                        {store.status || "N/A"}
+                                    </span>
                                 </Paragraph>
                                 <Paragraph>
                                     <strong>Contact:</strong>{" "}

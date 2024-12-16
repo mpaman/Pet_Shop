@@ -20,8 +20,8 @@ import {
     UpdateStore,
     CreateStoreImage,
     DeleteStoreImage,
-    GetUserProfile,
 } from "../../../services/https";
+import ImgCrop from "antd-img-crop";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -41,13 +41,13 @@ function StoreEdit() {
     const [loading, setLoading] = useState(true);
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
+    const [fileList, setFileList] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
                 const storeResponse = await GetStoreByID(id);
-                const profileResponse = await GetUserProfile();
                 const storeImagesResponse = await GetAllStoreImage();
 
                 if (storeResponse?.data) {
@@ -59,9 +59,7 @@ function StoreEdit() {
                     });
                 }
 
-                if (profileResponse?.Profile) {
-                    setProfile(profileResponse.Profile);
-                }
+
 
                 if (storeImagesResponse?.data?.data) {
                     const filteredImages = storeImagesResponse.data.data.filter(
@@ -114,16 +112,19 @@ function StoreEdit() {
         try {
             const updatedStore = {
                 ...values,
+                profile_image: fileList[0]?.thumbUrl || storeData.profile_image, // ใช้รูปที่อัปโหลดใหม่ หรือรูปเดิม
                 time_open: values.time_open.format("HH:mm"),
                 time_close: values.time_close.format("HH:mm"),
             };
 
             await UpdateStore(id, updatedStore);
 
+            // ลบรูปภาพที่ถูกลบ
             for (const imgID of deletedImageIDs) {
                 await DeleteStoreImage(imgID);
             }
 
+            // อัปโหลดรูปภาพใหม่
             for (const image of storeImages) {
                 if (!image.ID) {
                     await CreateStoreImage({
@@ -140,6 +141,7 @@ function StoreEdit() {
         }
     };
 
+
     if (loading) {
         return (
             <div style={{ textAlign: "center", marginTop: "50px" }}>
@@ -148,6 +150,7 @@ function StoreEdit() {
         );
     }
 
+    const onChange = ({ fileList: newFileList }) => setFileList(newFileList);
     return (
         <div style={{ maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
             {contextHolder}
@@ -155,19 +158,37 @@ function StoreEdit() {
                 <Avatar
                     size={120}
                     icon={<UserOutlined />}
-                    src={profile}
+                    src={storeData?.profile_image || null} // ดึงรูปโปรไฟล์จาก storeData
                     style={{ marginBottom: "10px" }}
                 />
-                <h4>{`${profile?.FirstName || ""} ${profile?.LastName || ""}`}</h4>
             </div>
+
 
             <Form layout="vertical" onFinish={onFinish} form={form}>
                 <h2>Edit Store</h2>
+                <Form.Item label="Profile Image" name="profile_image">
+                    <ImgCrop rotationSlider>
+                        <Upload
+                            listType="picture-card"
+                            fileList={fileList}
+                            onChange={({ fileList: newFileList }) => setFileList(newFileList)} // เก็บรูปที่อัปโหลดใหม่
+                            beforeUpload={() => false} // ป้องกันการอัปโหลดทันที
+                            maxCount={1} // จำกัดรูปได้เพียง 1 รูป
+                        >
+                            {fileList.length < 1 && (
+                                <div>
+                                    <PlusOutlined />
+                                    <div style={{ marginTop: 8 }}>อัพโหลด</div>
+                                </div>
+                            )}
+                        </Upload>
+                    </ImgCrop>
+                </Form.Item>
                 <Form.Item label="Store Name" name="name" rules={[{ required: true }]}>
                     <Input placeholder="Enter store name" />
                 </Form.Item>
 
-                <Form.Item label="Location" name="location" rules={[{ required: true }]}>
+                <Form.Item label="Province" name="province" rules={[{ required: true }]}>
                     <Select showSearch placeholder="Select a province">
                         {provinces.map((province) => (
                             <Option key={province} value={province}>
@@ -177,8 +198,16 @@ function StoreEdit() {
                     </Select>
                 </Form.Item>
 
-                <Form.Item label="Address" name="address" rules={[{ required: true }]}>
-                    <Input placeholder="Enter detailed address" />
+                <Form.Item label="District" name="district" rules={[{ required: true }]}>
+                    <Input placeholder="Enter detailed district" />
+                </Form.Item>
+
+                <Form.Item label="Sub_district" name="sub_district" rules={[{ required: true }]}>
+                    <Input placeholder="Enter detailed Sub_district" />
+                </Form.Item>
+
+                <Form.Item label="Street" name="street" rules={[{ required: true }]}>
+                    <Input placeholder="Enter detailed Street" />
                 </Form.Item>
 
                 <Form.Item label="Contact Info" name="contact_info" rules={[{ required: true }]}>

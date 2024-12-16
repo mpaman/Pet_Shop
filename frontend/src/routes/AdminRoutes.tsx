@@ -8,6 +8,7 @@ const MainPages = Loadable(lazy(() => import("../pages/authentication/Login")));
 const Home = Loadable(lazy(() => import("../pages/Home")));
 
 // Store-related pages
+const SearchStore = Loadable(lazy(() => import("../pages/SearchStore")));
 const Store = Loadable(lazy(() => import("../pages/Store")));
 const EditStore = Loadable(lazy(() => import("../pages/Store/edit")));
 const EditService = Loadable(lazy(() => import("../pages/Store/edit/service/index")));
@@ -47,6 +48,10 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject => {
                         element: <EditService />,
                     },
                 ],
+            },
+            {
+                path: "stores",
+                element: <SearchStore />
             },
             {
                 path: "totalbooking",

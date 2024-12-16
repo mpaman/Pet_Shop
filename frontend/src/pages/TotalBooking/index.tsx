@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Table, Typography, message, Spin, Avatar, Row, Col } from "antd";
+import { Table, Typography, message, Spin, Avatar } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { BookingInterface } from "../../interfaces/Bookingstore";
 import { GetAllBookings, GetUserProfile, GetStoreByID } from "../../services/https";
@@ -20,7 +20,6 @@ function TotalBooking() {
                 const response = await GetUserProfile();
                 if (response?.ID) {
                     setUserId(response.ID); // บันทึก User ID
-                    console.log("User ID from profile:", response.ID);
                 } else {
                     message.error("User profile not found.");
                 }
@@ -71,27 +70,18 @@ function TotalBooking() {
     // คอลัมน์ของตาราง
     const columns: ColumnsType<BookingInterface> = [
         {
-            title: "Store",
-            dataIndex: "Store",
-            key: "owner",
+            title: "Profile Image",
+            dataIndex: "profile_image",
+            key: "profile_image",
             render: (_, record) => {
-                const user = record.Store?.user;
-                if (!user) return "N/A";
-
-                const profileSrc = user.Profile?.startsWith("data:image")
-                    ? user.Profile
-                    : user.Profile
-                        ? `data:image/png;base64,${user.Profile}`
-                        : null;
+                const profileImage = record.Store?.profile_image;
                 return (
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                        <Avatar
-                            src={profileSrc}
-                            alt={user.first_name}
-                            size={64} // เพิ่มขนาดของ Avatar ให้ใหญ่ขึ้น
-                            style={{ marginRight: "8px" }}
-                        />
-                    </div>
+                    <Avatar
+                        src={profileImage || null} // ใช้ profile_image หากมีค่า
+                        alt="Profile"
+                        size={64} // ขนาด Avatar
+                        style={{ marginRight: "8px" }}
+                    />
                 );
             },
         },
@@ -101,7 +91,6 @@ function TotalBooking() {
             key: "store",
             render: (_, record) => record.Store?.name || "N/A",
         },
-
         {
             title: "Service",
             dataIndex: "Service",
@@ -134,11 +123,11 @@ function TotalBooking() {
     ];
 
     return (
-        <div style={{ padding: '20px', display: 'flex', justifyContent: 'center' }}>
-            <div style={{ width: '100%', maxWidth: '1000px' }}>
-                <Title level={2} style={{ textAlign: 'center' }}>Your Bookings</Title>
+        <div style={{ padding: "20px", display: "flex", justifyContent: "center" }}>
+            <div style={{ width: "100%", maxWidth: "1000px" }}>
+                <Title level={2} style={{ textAlign: "center" }}>Your Bookings</Title>
                 {loading ? (
-                    <Spin size="large" style={{ display: 'block', margin: '0 auto' }} />
+                    <Spin size="large" style={{ display: "block", margin: "0 auto" }} />
                 ) : (
                     <Table
                         columns={columns}

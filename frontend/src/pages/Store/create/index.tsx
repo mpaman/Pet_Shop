@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Select, TimePicker, Upload, message, InputNumber, Divider, Row, Col } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from "react-router-dom";
-import { CreateStore as CreateNewStore, CreateStoreImage, CreateService } from '../../../services/https';
+import { CreateStore as CreateNewStore, CreateStoreImage, CreateService, UpdateUsersById } from '../../../services/https';
 import "../../../App.css";
+import ImgCrop from 'antd-img-crop';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -19,6 +20,7 @@ function CreateStore() {
     const [storeImages, setStoreImages] = useState([]);
     const [services, setServices] = useState([]);
     const navigate = useNavigate();
+    const [fileList, setFileList] = useState([]);
 
     const addService = () => {
         setServices([
@@ -69,13 +71,33 @@ function CreateStore() {
     const handleRemoveService = (index) => {
         setServices(services.filter((_, i) => i !== index));
     };
-
     const onFinish = async (values) => {
         try {
+            // Check if profile image is selected
+            if (fileList.length === 0) {
+                message.error("Please upload a profile image");
+                return;
+            }
+
+            // Convert profile image to base64 or retain uploaded file reference
+            const profileImageFile = fileList[0].originFileObj;
+            const profileImageBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(profileImageFile);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = (error) => reject(error);
+            });
+
             const storeData = {
                 name: values.name,
-                location: values.location,
-                address: values.address,
+                profile_image: profileImageBase64, // Attach profile image
+
+                street: values.street,
+                sub_district: values.sub_district,
+                district: values.district,
+                province: values.province,
+                country: values.country, // อาจจะยังไม่ได้ใช้
+
                 contact_info: values.contact_info,
                 description: values.description.replace(/\n/g, "<br/>"), // Replacing newlines with <br/>
                 time_open: values.time_open.format("HH:mm"),
@@ -88,7 +110,11 @@ function CreateStore() {
                 const storeId = response.data.store_id;
 
                 // Upload images
-                await Promise.all(storeImages.map((file) => CreateStoreImage({ store_id: storeId, image_url: file.url })));
+                await Promise.all(
+                    storeImages.map((file) =>
+                        CreateStoreImage({ store_id: storeId, image_url: file.url })
+                    )
+                );
 
                 // Upload services
                 await Promise.all(
@@ -112,6 +138,7 @@ function CreateStore() {
         }
     };
 
+
     const handleChangeImage = ({ fileList }) => {
         const processedFiles = fileList.map((file) => {
             if (file.originFileObj) {
@@ -127,15 +154,39 @@ function CreateStore() {
         Promise.all(processedFiles).then((results) => setStoreImages(results));
     };
 
+    const onChange = ({ fileList: newFileList }) => setFileList(newFileList);
+
     return (
         <div className="create-store-container" style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
             <Form layout="vertical" onFinish={onFinish} style={{ width: '100%', maxWidth: '800px' }}>
                 <h2>Create Store</h2>
+
+
+                <Form.Item label="Profile Image" name="profile_image">
+                    <ImgCrop rotationSlider>
+                        <Upload
+                            listType="picture-card"
+                            fileList={fileList}
+                            onChange={onChange}
+                            beforeUpload={() => false} // Prevent direct upload
+                            maxCount={1}
+                        >
+                            {fileList.length < 1 && (
+                                <div>
+                                    <PlusOutlined />
+                                    <div style={{ marginTop: 8 }}>อัพโหลด</div>
+                                </div>
+                            )}
+                        </Upload>
+                    </ImgCrop>
+                </Form.Item>
+
+
                 <Form.Item label="Store Name" name="name" rules={[{ required: true, message: 'Please input the store name!' }]}>
                     <Input placeholder="Enter store name" />
                 </Form.Item>
 
-                <Form.Item label="Location" name="location" rules={[{ required: true, message: 'Please select the location!' }]}>
+                <Form.Item label="Province" name="province" rules={[{ required: true, message: 'Please select the location!' }]}>
                     <Select showSearch placeholder="Select a province" filterOption={(input, option) =>
                         option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                     }>
@@ -145,8 +196,16 @@ function CreateStore() {
                     </Select>
                 </Form.Item>
 
-                <Form.Item label="Address" name="address" rules={[{ required: true, message: 'Please input the address!' }]}>
-                    <Input placeholder="Enter detailed address" />
+                <Form.Item label="District" name="district" rules={[{ required: true, message: 'Please input the district!' }]}>
+                    <Input placeholder="Enter detailed district" />
+                </Form.Item>
+
+                <Form.Item label="Sub_district" name="sub_district" rules={[{ required: true, message: 'Please input the sub_district!' }]}>
+                    <Input placeholder="Enter detailed sub_district" />
+                </Form.Item>
+
+                <Form.Item label="Street" name="street" rules={[{ required: true, message: 'Please input the street!' }]}>
+                    <Input placeholder="Enter detailed street" />
                 </Form.Item>
 
                 <Form.Item label="Contact Info" name="contact_info" rules={[{ required: true, message: 'Please input the contact info!' }]}>

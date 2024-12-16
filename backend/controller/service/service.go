@@ -83,15 +83,8 @@ func DeleteService(c *gin.Context) {
         return
     }
 
-    // ลบ bookings ที่เกี่ยวข้องกับ service นี้
-    var bookings []entity.Bookingstore
-    if err := config.DB().Where("service_id = ?", serviceID).Find(&bookings).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "No bookings found for this service"})
-        return
-    }
-
-    // ลบ bookings ที่เกี่ยวข้อง
-    if err := config.DB().Delete(&bookings).Error; err != nil {
+    // ลบ bookings ที่เกี่ยวข้องกับ service นี้ ถ้ามี bookings ก็จะลบออก
+    if err := config.DB().Where("service_id = ?", serviceID).Delete(&entity.Bookingstore{}).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete related bookings"})
         return
     }

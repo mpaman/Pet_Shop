@@ -9,17 +9,16 @@ import (
 	"github.com/mpaman/petshop/entity"
 )
 
-
 func GetStoreByID(c *gin.Context) {
-    storeID := c.Param("id")
-    var store entity.Store
+	storeID := c.Param("id")
+	var store entity.Store
 
-    if err := config.DB().Preload("Services").Preload("User").First(&store, storeID).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
-        return
-    }
+	if err := config.DB().Preload("Services").Preload("User").First(&store, storeID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
+		return
+	}
 
-    c.JSON(http.StatusOK, store)
+	c.JSON(http.StatusOK, store)
 }
 
 func GetAllStores(c *gin.Context) {
@@ -54,13 +53,17 @@ func UpdateStore(c *gin.Context) {
 
 	// Update store fields
 	store.Name = payload.Name
-	store.Location = payload.Location
+	store.ProfileImage = payload.ProfileImage // Update รูปโปรไฟล์
+	store.Street = payload.Street             // Update บ้านเลขที่ / ถนน
+	store.SubDistrict = payload.SubDistrict   // Update ตำบล
+	store.District = payload.District         // Update อำเภอ
+	store.Province = payload.Province         // Update จังหวัด
+	store.Country = payload.Country           // Update ประเทศ
 	store.ContactInfo = payload.ContactInfo
 	store.Description = payload.Description
 	store.TimeOpen = payload.TimeOpen
+	store.TimeClose = payload.TimeClose
 	store.Status = payload.Status
-	store.TimeClose= payload.TimeClose
-	store.AddressStore= payload.AddressStore
 
 	// Save the updated store
 	if err := db.Save(&store).Error; err != nil {
@@ -113,6 +116,7 @@ func DeleteStore(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Store and related data deleted successfully"})
 }
+
 // UpdateStoreStatus: อัพเดตสถานะของร้านตาม ID
 func UpdateStoreStatus(c *gin.Context) {
 	storeID := c.Param("id")

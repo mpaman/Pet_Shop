@@ -11,9 +11,13 @@ import (
 
 type StorePayload struct {
 	Name         string `json:"name"`
-	Location     string `json:"location"`
 	ContactInfo  string `json:"contact_info"`
-	AddressStore string `json:"address"` //ที่ตั้งหน้าร้าน
+	ProfileImage string `gorm:"type:longtext"` // URL รูปโปรไฟล์ร้านค้า
+	Street       string `json:"street"`        // บ้านเลขที่ / ชื่อถนน
+	SubDistrict  string `json:"sub_district"`  // ตำบล
+	District     string `json:"district"`      // อำเภอ
+	Province     string `json:"province"`      // จังหวัด
+	Country      string `json:"country"`       // ประเทศ
 	Description  string `json:"description"`
 	TimeOpen     string `json:"time_open"`
 	TimeClose    string `json:"time_close"`

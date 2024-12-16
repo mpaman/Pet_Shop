@@ -12,6 +12,7 @@ import Instore from "../../pages/Instore";
 import BookingStore from "../../pages/BookingStore";
 import TotalBooking from "../../pages/TotalBooking";
 import Booking from "../../pages/Store/booking";
+import SearchStore from "../../pages/SearchStore";
 
 const { Header, Content, Footer } = Layout;
 
@@ -153,6 +154,7 @@ const FullLayout: React.FC = () => {
                 >
                     <Routes>
                         <Route path="/" element={<Home />} />
+                        <Route path="/stores" element={<SearchStore />} />
                         <Route path="/store" element={<Store />} />
                         <Route path="/store/create" element={<CreateStore />} />
                         <Route path="/store/edit/:id" element={<EditStore />} />
