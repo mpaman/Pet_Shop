@@ -12,11 +12,11 @@ type Store struct {
 	Name         string `json:"name"`
 	ProfileImage string `gorm:"type:longtext" json:"profile_image"`
 
-	Street      string `json:"street"`       // บ้านเลขที่ / ชื่อถนน
-	SubDistrict string `json:"sub_district"` // ตำบล
-	District    string `json:"district"`     // อำเภอ
-	Province    string `json:"province"`     // จังหวัด
-	Country     string `json:"country"`      // ประเทศ
+	Longitude float64 `json:"longitude"`    
+	Latitude  float64 `json:"latitude"`     
+
+	District  string `json:"district"`     // อำเภอ
+	Province  string `json:"province"`     // จังหวัด
 
 	ContactInfo string `json:"contact_info"`
 	Description string `json:"description"`

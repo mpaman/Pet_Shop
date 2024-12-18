@@ -264,14 +264,6 @@ const StorePage: React.FC = () => {
                                     {store.district || "No location provided"}
                                 </Paragraph>
                                 <Paragraph>
-                                    <strong>Sub_district:</strong>{" "}
-                                    {store.sub_district || "No location provided"}
-                                </Paragraph>
-                                <Paragraph>
-                                    <strong>Street:</strong>{" "}
-                                    {store.street || "No location provided"}
-                                </Paragraph>
-                                <Paragraph>
                                     <strong>Opening:</strong>{" "}
                                     {store.time_open || "No time provided"}
                                 </Paragraph>

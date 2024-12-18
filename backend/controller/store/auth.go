@@ -12,12 +12,12 @@ import (
 type StorePayload struct {
 	Name         string `json:"name"`
 	ContactInfo  string `json:"contact_info"`
-	ProfileImage string `gorm:"type:longtext"` // URL รูปโปรไฟล์ร้านค้า
-	Street       string `json:"street"`        // บ้านเลขที่ / ชื่อถนน
-	SubDistrict  string `json:"sub_district"`  // ตำบล
-	District     string `json:"district"`      // อำเภอ
-	Province     string `json:"province"`      // จังหวัด
-	Country      string `json:"country"`       // ประเทศ
+	ProfileImage string `gorm:"type:longtext"`
+	Latitude     string `json:"latitude"`
+	Longitude    string `json:"longitude"`
+	District     string `json:"district"`
+	Province     string `json:"province"`
+	Country      string `json:"country"`
 	Description  string `json:"description"`
 	TimeOpen     string `json:"time_open"`
 	TimeClose    string `json:"time_close"`

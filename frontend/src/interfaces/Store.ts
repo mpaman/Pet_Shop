@@ -6,11 +6,10 @@ export interface StoreInterface {
     name: string;
     profile_image: string;
 
-    street: string; // บ้านเลขที่ / ชื่อถนน
-    sub_district: string;// ตำบล
+    longitude: number; 
+    latitude: number;
     district: string;// อำเภอ
     province: string; // จังหวัด
-    country: string;// ประเทศ
 
     contact_info: string;
     description: string;

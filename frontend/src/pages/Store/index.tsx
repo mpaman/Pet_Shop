@@ -102,8 +102,7 @@ function Store() {
 
     return (
         <>
-            <Divider />
-            <Row justify="space-between" align="middle" style={{ marginBottom: 20 }}>
+            <Row justify="center" align="middle" style={{ marginBottom: 20 }}>
                 <Col>
                     <Title level={2} style={{ color: "#1D3557" }}>จัดการร้านค้า</Title>
                 </Col>
@@ -153,7 +152,7 @@ function Store() {
                                 </Title>
                                 <Text  >
                                     <strong>จังหวัด: </strong>
-                                    {item.location}
+                                    {item.province}
                                 </Text>
                                 <Text>
                                     <strong>สถานะ: </strong>
@@ -229,7 +228,7 @@ function Store() {
                                         background: "#8D99AE",
                                         color: "white",
                                         fontWeight: "bold",
-                                        
+
                                     }}
                                     icon={<DeleteOutlined />}
                                     onClick={() => confirmDelete(item.ID)}

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Select, TimePicker, Upload, message, InputNumber, Divider, Row, Col } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from "react-router-dom";
-import { CreateStore as CreateNewStore, CreateStoreImage, CreateService, UpdateUsersById } from '../../../services/https';
+import { CreateStore as CreateNewStore, CreateStoreImage, CreateService } from '../../../services/https';
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "../../../App.css";
 import ImgCrop from 'antd-img-crop';
 
@@ -21,6 +22,8 @@ function CreateStore() {
     const [services, setServices] = useState([]);
     const navigate = useNavigate();
     const [fileList, setFileList] = useState([]);
+    const [latitude, setLatitude] = useState(13.736717); // Default: กรุงเทพฯ
+    const [longitude, setLongitude] = useState(100.523186);
 
     const addService = () => {
         setServices([
@@ -73,13 +76,11 @@ function CreateStore() {
     };
     const onFinish = async (values) => {
         try {
-            // Check if profile image is selected
             if (fileList.length === 0) {
                 message.error("Please upload a profile image");
                 return;
             }
 
-            // Convert profile image to base64 or retain uploaded file reference
             const profileImageFile = fileList[0].originFileObj;
             const profileImageBase64 = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -89,54 +90,62 @@ function CreateStore() {
             });
 
             const storeData = {
+                user_id: 1, // ตัวอย่างการใส่ User ID
                 name: values.name,
-                profile_image: profileImageBase64, // Attach profile image
-
-                street: values.street,
-                sub_district: values.sub_district,
+                profile_image: profileImageBase64,
                 district: values.district,
                 province: values.province,
-                country: values.country, // อาจจะยังไม่ได้ใช้
-
+                latitude,
+                longitude,
                 contact_info: values.contact_info,
-                description: values.description.replace(/\n/g, "<br/>"), // Replacing newlines with <br/>
+                description: values.description.replace(/\n/g, "<br/>"),
                 time_open: values.time_open.format("HH:mm"),
                 time_close: values.time_close.format("HH:mm"),
                 status: values.status,
             };
+
+            console.log("Store Data:", storeData);
 
             const response = await CreateNewStore(storeData);
             if (response.status === 201) {
                 const storeId = response.data.store_id;
 
                 // Upload images
-                await Promise.all(
-                    storeImages.map((file) =>
-                        CreateStoreImage({ store_id: storeId, image_url: file.url })
-                    )
-                );
+                if (storeImages.length > 0) {
+                    await Promise.all(
+                        storeImages.map((file) =>
+                            CreateStoreImage({ store_id: storeId, image_url: file.url })
+                        )
+                    );
+                }
 
                 // Upload services
-                await Promise.all(
-                    services.map((service) =>
-                        CreateService({
-                            store_id: storeId,
-                            name_service: service.name_service,
-                            category_pet: service.category_pet,
-                            duration: service.duration,
-                            price: service.price,
-                        })
-                    )
-                );
+                if (services.length > 0) {
+                    await Promise.all(
+                        services.map((service) =>
+                            CreateService({
+                                store_id: storeId,
+                                name_service: service.name_service,
+                                category_pet: service.category_pet,
+                                duration: service.duration,
+                                price: service.price,
+                                description: service.description,
+                            })
+                        )
+                    );
+                }
 
                 message.success("Store created successfully!");
                 navigate(`/store`);
+            } else {
+                throw new Error("Failed to create store");
             }
         } catch (error) {
+            console.error("Error:", error);
             message.error("Failed to create store");
-            console.error(error);
         }
     };
+
 
 
     const handleChangeImage = ({ fileList }) => {
@@ -155,6 +164,19 @@ function CreateStore() {
     };
 
     const onChange = ({ fileList: newFileList }) => setFileList(newFileList);
+
+    const handleMapClick = (e) => {
+        setLatitude(e.latlng.lat);
+        setLongitude(e.latlng.lng);
+        message.success(`Updated location: Lat ${e.latlng.lat}, Lng ${e.latlng.lng}`);
+    };
+
+    const MapClickHandler = () => {
+        useMapEvents({
+            click: handleMapClick,
+        });
+        return null;
+    };
 
     return (
         <div className="create-store-container" style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
@@ -200,13 +222,33 @@ function CreateStore() {
                     <Input placeholder="Enter detailed district" />
                 </Form.Item>
 
-                <Form.Item label="Sub_district" name="sub_district" rules={[{ required: true, message: 'Please input the sub_district!' }]}>
-                    <Input placeholder="Enter detailed sub_district" />
-                </Form.Item>
+                <h3>Choose Store Location</h3>
 
-                <Form.Item label="Street" name="street" rules={[{ required: true, message: 'Please input the street!' }]}>
-                    <Input placeholder="Enter detailed street" />
-                </Form.Item>
+                {/* Map */}
+                <div style={{ height: "400px", marginBottom: "20px", border: "1px solid #d9d9d9" }}>
+                    <MapContainer center={[latitude, longitude]} zoom={13} style={{ height: "100%", width: "100%" }}>
+                        <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+                        />
+                        <MapClickHandler />
+                        <Marker position={[latitude, longitude]} />
+                    </MapContainer>
+                </div>
+
+                {/* Latitude & Longitude */}
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Form.Item label="Latitude">
+                            <Input value={latitude} readOnly />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item label="Longitude">
+                            <Input value={longitude} readOnly />
+                        </Form.Item>
+                    </Col>
+                </Row>
 
                 <Form.Item label="Contact Info" name="contact_info" rules={[{ required: true, message: 'Please input the contact info!' }]}>
                     <Input placeholder="Enter contact information" />

@@ -43,7 +43,6 @@ function StoreList() {
         return null; // หากไม่พบพิกัด
     };
 
-    // ฟังก์ชันดึงข้อมูลร้านค้า
     const getStores = async () => {
         try {
             let res = await GetAllStores();
@@ -57,10 +56,12 @@ function StoreList() {
                 );
                 setServices(uniqueServices);
 
-                // ดึงพิกัดจาก sub_district และ province
-                const locations = await Promise.all(res.data.data.map(async (store) => {
-                    const coordinates = await getCoordinates(store.sub_district, store.province);
-                    return { id: store.ID, coordinates };
+                // ดึงพิกัดจาก API โดยตรง
+                const locations = res.data.data.map((store) => ({
+                    id: store.ID,
+                    coordinates: store.latitude && store.longitude
+                        ? { lat: store.latitude, lon: store.longitude }
+                        : null,
                 }));
                 setStoreLocations(locations);
             } else {
@@ -78,6 +79,7 @@ function StoreList() {
             });
         }
     };
+
 
     // ฟังก์ชันคลิกไปยังร้านค้า
     const handleStoreClick = (storeId: number) => {
@@ -157,7 +159,7 @@ function StoreList() {
                                 <Space direction="vertical" style={{ width: "100%" }}>
                                     <Typography.Text strong>ค้นหาสถานที่</Typography.Text>
                                     <Input
-                                        placeholder="ค้นหาร้านหรือสถานที่"
+                                        placeholder="ค้นหาจังหวัดที่ต้องการ"
                                         onChange={(e) => handleSearch(e.target.value)}
                                         value={searchTerm}
                                         prefix={<SearchOutlined />}
@@ -196,7 +198,7 @@ function StoreList() {
                                         <Col flex="auto">
                                             <Typography.Title level={4}>{store.name}</Typography.Title>
                                             <Typography.Text type="secondary">
-                                                <EnvironmentOutlined /> {store.sub_district}, {store.district}, {store.province}
+                                                <EnvironmentOutlined /> {store.district}, {store.province}
                                             </Typography.Text>
                                             {selectedService && (
                                                 <div style={{ marginTop: 10 }}>
@@ -247,7 +249,7 @@ function StoreList() {
                         />
                         {storeLocations
                             .filter((storeLocation) =>
-                                filteredStores.some((store) => store.ID === storeLocation.id) // กรองเฉพาะร้านที่อยู่ใน filteredStores
+                                filteredStores.some((store) => store.ID === storeLocation.id)
                             )
                             .map((storeLocation) => {
                                 const store = stores.find((s) => s.ID === storeLocation.id);
@@ -264,11 +266,12 @@ function StoreList() {
                                         <Popup>
                                             <strong>{store.name}</strong>
                                             <br />
-                                            {store.sub_district}, {store.district}, {store.province}
+                                            {store.district}, {store.province}
                                         </Popup>
                                     </Marker>
                                 ) : null;
                             })}
+
                     </MapContainer>
                 </Col>
 

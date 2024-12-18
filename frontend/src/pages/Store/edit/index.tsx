@@ -10,6 +10,8 @@ import {
     message,
     Divider,
     Spin,
+    Row,
+    Col,
 } from "antd";
 import { PlusOutlined, UserOutlined } from "@ant-design/icons";
 import moment from "moment";
@@ -22,6 +24,8 @@ import {
     DeleteStoreImage,
 } from "../../../services/https";
 import ImgCrop from "antd-img-crop";
+import "leaflet/dist/leaflet.css";
+import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -38,6 +42,8 @@ function StoreEdit() {
     const [deletedImageIDs, setDeletedImageIDs] = useState<number[]>([]);
     const [storeData, setStoreData] = useState<any | null>(null);
     const [profile, setProfile] = useState<any | null>(null);
+    const [latitude, setLatitude] = useState<number>(0);
+    const [longitude, setLongitude] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
@@ -52,14 +58,14 @@ function StoreEdit() {
 
                 if (storeResponse?.data) {
                     setStoreData(storeResponse.data);
+                    setLatitude(storeResponse.data.latitude);
+                    setLongitude(storeResponse.data.longitude);
                     form.setFieldsValue({
                         ...storeResponse.data,
                         time_open: moment(storeResponse.data.time_open, "HH:mm"),
                         time_close: moment(storeResponse.data.time_close, "HH:mm"),
                     });
                 }
-
-
 
                 if (storeImagesResponse?.data?.data) {
                     const filteredImages = storeImagesResponse.data.data.filter(
@@ -112,19 +118,19 @@ function StoreEdit() {
         try {
             const updatedStore = {
                 ...values,
-                profile_image: fileList[0]?.thumbUrl || storeData.profile_image, // ใช้รูปที่อัปโหลดใหม่ หรือรูปเดิม
+                latitude,
+                longitude,
+                profile_image: fileList[0]?.thumbUrl || storeData.profile_image,
                 time_open: values.time_open.format("HH:mm"),
                 time_close: values.time_close.format("HH:mm"),
             };
 
             await UpdateStore(id, updatedStore);
 
-            // ลบรูปภาพที่ถูกลบ
             for (const imgID of deletedImageIDs) {
                 await DeleteStoreImage(imgID);
             }
 
-            // อัปโหลดรูปภาพใหม่
             for (const image of storeImages) {
                 if (!image.ID) {
                     await CreateStoreImage({
@@ -141,6 +147,16 @@ function StoreEdit() {
         }
     };
 
+    const MapClickHandler = () => {
+        useMapEvents({
+            click: (e) => {
+                setLatitude(e.latlng.lat);
+                setLongitude(e.latlng.lng);
+                message.success(`Updated location: Lat ${e.latlng.lat}, Lng ${e.latlng.lng}`);
+            },
+        });
+        return null;
+    };
 
     if (loading) {
         return (
@@ -150,7 +166,6 @@ function StoreEdit() {
         );
     }
 
-    const onChange = ({ fileList: newFileList }) => setFileList(newFileList);
     return (
         <div style={{ maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
             {contextHolder}
@@ -158,11 +173,10 @@ function StoreEdit() {
                 <Avatar
                     size={120}
                     icon={<UserOutlined />}
-                    src={storeData?.profile_image || null} // ดึงรูปโปรไฟล์จาก storeData
+                    src={storeData?.profile_image || null}
                     style={{ marginBottom: "10px" }}
                 />
             </div>
-
 
             <Form layout="vertical" onFinish={onFinish} form={form}>
                 <h2>Edit Store</h2>
@@ -171,9 +185,9 @@ function StoreEdit() {
                         <Upload
                             listType="picture-card"
                             fileList={fileList}
-                            onChange={({ fileList: newFileList }) => setFileList(newFileList)} // เก็บรูปที่อัปโหลดใหม่
-                            beforeUpload={() => false} // ป้องกันการอัปโหลดทันที
-                            maxCount={1} // จำกัดรูปได้เพียง 1 รูป
+                            onChange={({ fileList: newFileList }) => setFileList(newFileList)}
+                            beforeUpload={() => false}
+                            maxCount={1}
                         >
                             {fileList.length < 1 && (
                                 <div>
@@ -202,13 +216,29 @@ function StoreEdit() {
                     <Input placeholder="Enter detailed district" />
                 </Form.Item>
 
-                <Form.Item label="Sub_district" name="sub_district" rules={[{ required: true }]}>
-                    <Input placeholder="Enter detailed Sub_district" />
-                </Form.Item>
+                <div style={{ height: "400px", marginBottom: "20px", border: "1px solid #d9d9d9" }}>
+                    <MapContainer center={[latitude, longitude]} zoom={13} style={{ height: "100%", width: "100%" }}>
+                        <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution="&copy; OpenStreetMap contributors"
+                        />
+                        <MapClickHandler />
+                        <Marker position={[latitude, longitude]} />
+                    </MapContainer>
+                </div>
 
-                <Form.Item label="Street" name="street" rules={[{ required: true }]}>
-                    <Input placeholder="Enter detailed Street" />
-                </Form.Item>
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Form.Item label="Latitude">
+                            <Input value={latitude} readOnly />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item label="Longitude">
+                            <Input value={longitude} readOnly />
+                        </Form.Item>
+                    </Col>
+                </Row>
 
                 <Form.Item label="Contact Info" name="contact_info" rules={[{ required: true }]}>
                     <Input placeholder="Enter contact information" />

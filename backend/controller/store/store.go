@@ -53,12 +53,11 @@ func UpdateStore(c *gin.Context) {
 
 	// Update store fields
 	store.Name = payload.Name
-	store.ProfileImage = payload.ProfileImage // Update รูปโปรไฟล์
-	store.Street = payload.Street             // Update บ้านเลขที่ / ถนน
-	store.SubDistrict = payload.SubDistrict   // Update ตำบล
-	store.District = payload.District         // Update อำเภอ
-	store.Province = payload.Province         // Update จังหวัด
-	store.Country = payload.Country           // Update ประเทศ
+	store.ProfileImage = payload.ProfileImage
+	store.Longitude = payload.Longitude
+	store.Latitude = payload.Latitude
+	store.District = payload.District
+	store.Province = payload.Province
 	store.ContactInfo = payload.ContactInfo
 	store.Description = payload.Description
 	store.TimeOpen = payload.TimeOpen
