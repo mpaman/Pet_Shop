@@ -13,9 +13,10 @@ import {
     Col,
     TimePicker,
 } from "antd";
-import { CreateBooking, GetAllService, GetStoreByID, GetUserProfile } from "../../services/https";
+import { CreateBooking, GetAllService, GetStoreByID, GetUserProfile, CreatePet } from "../../services/https";
 import { StoreInterface } from "../../interfaces/Store";
 import { ServiceInterface } from "../../interfaces/Service";
+import { PetInterface } from "../../interfaces/Pet";
 import { useParams } from "react-router-dom";
 import moment from "moment";
 
@@ -34,6 +35,18 @@ const BookingForm: React.FC = () => {
     const [totalCost, setTotalCost] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
     const [countPet, setCountPet] = useState<number>(1);
+    const [pets, setPets] = useState<{
+        name: string;
+        breed?: string;
+        age?: number;
+        gender: string;
+        weight: number;
+        vaccinated: string;
+        picturePet?: string;
+    }[]>([
+        { name: "", breed: "", age: 0, gender: "", weight: 0, vaccinated: "yes" },
+    ]);
+
     const { storeId } = useParams<{ storeId: string }>();
     const [bookerUserId, setBookerUserId] = useState<string | null>(null);
 
@@ -67,6 +80,31 @@ const BookingForm: React.FC = () => {
         if (storeId) fetchData();
     }, [storeId]);
 
+    const handlePetChange = (index: number, field: string, value: any) => {
+        const updatedPets = [...pets];
+        updatedPets[index] = { ...updatedPets[index], [field]: value };
+
+        if (field === "age" || field === "weight") {
+            updatedPets[index][field] = Math.max(0, value); // Ensure no negative values
+        }
+
+        setPets(updatedPets);
+    };
+
+    const handleFileUpload = (index: number, file: File) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const updatedPets = [...pets];
+            updatedPets[index].picturePet = reader.result as string;
+            setPets(updatedPets);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const addPetField = () => {
+        setPets([...pets, { name: "", breed: "", age: 0, gender: "", weight: 0, vaccinated: "yes" }]);
+    };
+
     const handleSubmit = async () => {
         if (!selectedService || !selectedStore || !date || !contactNumber || !countPet || !time) {
             message.error("Please fill all required fields!");
@@ -94,9 +132,29 @@ const BookingForm: React.FC = () => {
         };
 
         try {
+            // Create Booking first
             const response = await CreateBooking(bookingData);
             if (response.status === 201) {
-                message.success("Booking created successfully!");
+                const bookingID = response.data.booking_id;  // Get the booking ID from the response
+
+                // Send pet data with the correct bookingID
+                const petPromises = pets.map((pet) =>
+                    CreatePet({
+                        booking_id: bookingID,  // Use the booking_id from the response
+                        name: pet.name,
+                        breed: pet.breed,
+                        age: pet.age,
+                        weight: pet.weight,
+                        gender: pet.gender,
+                        vaccinated: pet.vaccinated,
+                        owner_id: bookerUserId,
+                        picture_pet: pet.picturePet,  // Include the pet picture as base64 string
+                    })
+                );
+
+                await Promise.all(petPromises);
+
+                message.success("Booking and pets created successfully!");
             } else {
                 message.error("Failed to create booking.");
             }
@@ -115,14 +173,24 @@ const BookingForm: React.FC = () => {
     };
 
     const handleCountPetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newCountPet = Number(e.target.value);
+        const newCountPet = Math.max(1, Number(e.target.value)); // Ensure it stays at least 1 pet
         setCountPet(newCountPet);
 
-        if (selectedService) {
-            const selected = services.find((service) => service.ID === selectedService);
-            if (selected) {
-                setTotalCost(selected.price * newCountPet);
-            }
+        const updatedPets = [...pets];
+        if (newCountPet > pets.length) {
+            // Add new pets if countPet is greater than current length
+            const additionalPets = Array(newCountPet - pets.length).fill({
+                name: "",
+                breed: "",
+                age: 0,
+                gender: "",
+                weight: 0,
+                vaccinated: "yes",
+            });
+            setPets([...updatedPets, ...additionalPets]);
+        } else if (newCountPet < pets.length) {
+            // Remove pets if countPet is less than current length
+            setPets(updatedPets.slice(0, newCountPet));
         }
     };
 
@@ -134,6 +202,7 @@ const BookingForm: React.FC = () => {
                         <Title level={2} style={{ textAlign: "center", color: "#1D3557" }}>Book a Service</Title>
                         <Divider />
                         <Space direction="vertical" style={{ width: "100%" }}>
+                            {/* Booking Fields */}
                             <div>
                                 <Text strong>Store:</Text>
                                 <Select
@@ -220,13 +289,103 @@ const BookingForm: React.FC = () => {
                                     min={1}
                                 />
                             </div>
+
+                            {/* Pet Information Fields */}
+                            <div>
+                                <Text strong>Pet Information:</Text>
+                                {pets.map((pet, index) => (
+                                    <Card key={index} style={{ marginBottom: "10px" }}>
+                                        <Space direction="vertical" style={{ width: "100%" }}>
+                                            <div>
+                                                <Text type="secondary">Pet Name (required)</Text>
+                                                <Input
+                                                    placeholder="Enter your pet's name"
+                                                    value={pet.name}
+                                                    onChange={(e) => handlePetChange(index, "name", e.target.value)}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <Text type="secondary">Breed (optional)</Text>
+                                                <Input
+                                                    placeholder="Enter your pet's breed"
+                                                    value={pet.breed}
+                                                    onChange={(e) => handlePetChange(index, "breed", e.target.value)}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <Text type="secondary">Age (optional)</Text>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="Enter your pet's age"
+                                                    value={pet.age}
+                                                    onChange={(e) => handlePetChange(index, "age", Number(e.target.value))}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <Text type="secondary">Weight (required)</Text>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="Enter your pet's weight"
+                                                    value={pet.weight}
+                                                    onChange={(e) => handlePetChange(index, "weight", Number(e.target.value))}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <Text type="secondary">Vaccinated (required)</Text>
+                                                <Select
+                                                    placeholder="Select vaccination status"
+                                                    value={pet.vaccinated}
+                                                    onChange={(value) => handlePetChange(index, "vaccinated", value)}
+                                                >
+                                                    <Option value="Yes">Yes</Option>
+                                                    <Option value="No">No</Option>
+                                                </Select>
+                                            </div>
+
+                                            <div>
+                                                <Text type="secondary">Gender (required)</Text>
+                                                <Select
+                                                    placeholder="Select your pet's gender"
+                                                    value={pet.gender || undefined}
+                                                    onChange={(value) => handlePetChange(index, "gender", value)}
+                                                >
+                                                    <Option value="Male">Male</Option>
+                                                    <Option value="Female">Female</Option>
+                                                </Select>
+                                            </div>
+
+                                            <div>
+                                                <Text type="secondary">Pet Picture (optional)</Text>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => {
+                                                        if (e.target.files[0]) {
+                                                            handleFileUpload(index, e.target.files[0]);
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+                                        </Space>
+                                    </Card>
+                                ))}
+                            </div>
+
+
                             <div>
                                 <Text strong>Total Cost:</Text>
                                 <Paragraph>{totalCost} THB</Paragraph>
                             </div>
-                            <Button type="primary" block onClick={handleSubmit}>
-                                Book Now
-                            </Button>
+
+                            <div>
+                                <Button type="primary" block onClick={handleSubmit}>
+                                    Book Now
+                                </Button>
+                            </div>
                         </Space>
                     </Card>
                 </Col>
@@ -253,15 +412,6 @@ const BookingForm: React.FC = () => {
                         </Paragraph>
                         <Paragraph>
                             <strong>Time:</strong> {time || "N/A"}
-                        </Paragraph>
-                        <Paragraph>
-                            <strong>Contact Number:</strong> {contactNumber || "N/A"}
-                        </Paragraph>
-                        <Paragraph>
-                            <strong>Pets:</strong> {countPet || "N/A"}
-                        </Paragraph>
-                        <Paragraph>
-                            <strong>Total Cost:</strong> {totalCost} THB
                         </Paragraph>
                     </Card>
                 </Col>

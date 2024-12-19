@@ -53,9 +53,7 @@ func CreateBookingstore(c *gin.Context) {
 	}
 
 	// Parse the BookingTime to a specific format (HH:mm)
-	// Convert the date to a time object (you might need the time.Date() method depending on the use case)
 	if payload.BookingTime != "" {
-		// Assuming booking time is in "HH:mm" format
 		_, err := time.Parse("15:04", payload.BookingTime)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid time format for booking_time"})
@@ -68,8 +66,8 @@ func CreateBookingstore(c *gin.Context) {
 		BookerUserID: payload.BookerUserID,
 		StoreID:      payload.StoreID,
 		ServiceID:    payload.ServiceID,
-		BookingTime:  payload.BookingTime, // Use the string format
-		Status:       "pending",           // Default status
+		BookingTime:  payload.BookingTime,
+		Status:       "pending",
 		Notes:        payload.Notes,
 		Date:         payload.Date,
 		TotalCost:    payload.TotalCost,
@@ -83,10 +81,11 @@ func CreateBookingstore(c *gin.Context) {
 		return
 	}
 
-	// Return success message
+	// Return success message with booking ID
 	c.JSON(http.StatusCreated, gin.H{
-		"status":  201,
-		"message": "Booking created successfully",
-		"booking": bookingstore,
+		"status":     201,
+		"message":    "Booking created successfully",
+		"booking":    bookingstore,
+		"booking_id": bookingstore.ID, // Return the Booking ID here
 	})
 }

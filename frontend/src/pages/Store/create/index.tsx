@@ -4,7 +4,7 @@ import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from "react-router-dom";
 import { CreateStore as CreateNewStore, CreateStoreImage, CreateService } from '../../../services/https';
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
-import "../../../App.css";
+import "./createstore.css";
 import ImgCrop from 'antd-img-crop';
 
 const { TextArea } = Input;
@@ -129,7 +129,6 @@ function CreateStore() {
                                 category_pet: service.category_pet,
                                 duration: service.duration,
                                 price: service.price,
-                                description: service.description,
                             })
                         )
                     );
@@ -182,7 +181,7 @@ function CreateStore() {
         <div className="create-store-container" style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
             <Form layout="vertical" onFinish={onFinish} style={{ width: '100%', maxWidth: '800px' }}>
                 <h2>Create Store</h2>
-
+                <Divider />
 
                 <Form.Item label="Profile Image" name="profile_image">
                     <ImgCrop rotationSlider>
@@ -204,19 +203,20 @@ function CreateStore() {
                 </Form.Item>
 
 
-                <Form.Item label="Store Name" name="name" rules={[{ required: true, message: 'Please input the store name!' }]}>
-                    <Input placeholder="Enter store name" />
-                </Form.Item>
-
-                <Form.Item label="Province" name="province" rules={[{ required: true, message: 'Please select the location!' }]}>
-                    <Select showSearch placeholder="Select a province" filterOption={(input, option) =>
-                        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                    }>
-                        {provinces.map((province) => (
-                            <Option key={province} value={province}>{province}</Option>
-                        ))}
-                    </Select>
-                </Form.Item>
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Form.Item label="Store Name" name="name" rules={[{ required: true, message: 'Please input the store name!' }]}>
+                            <Input placeholder="Enter store name" />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item label="Province" name="province" rules={[{ required: true, message: 'Please select a province!' }]}>
+                            <Select placeholder="Select a province">
+                                {provinces.map(province => <Option key={province} value={province}>{province}</Option>)}
+                            </Select>
+                        </Form.Item>
+                    </Col>
+                </Row>
 
                 <Form.Item label="District" name="district" rules={[{ required: true, message: 'Please input the district!' }]}>
                     <Input placeholder="Enter detailed district" />
@@ -257,14 +257,19 @@ function CreateStore() {
                 <Form.Item label="Description" name="description">
                     <TextArea rows={4} placeholder="Describe the store" />
                 </Form.Item>
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Form.Item label="Opening Time" name="time_open" rules={[{ required: true, message: 'Please select opening time!' }]}>
+                            <TimePicker format="HH:mm" />
+                        </Form.Item>
+                    </Col>
 
-                <Form.Item label="Opening Time" name="time_open" rules={[{ required: true, message: 'Please select opening time!' }]}>
-                    <TimePicker format="HH:mm" />
-                </Form.Item>
-
-                <Form.Item label="Closing Time" name="time_close" rules={[{ required: true, message: 'Please select closing time!' }]}>
-                    <TimePicker format="HH:mm" />
-                </Form.Item>
+                    <Col span={12}>
+                        <Form.Item label="Closing Time" name="time_close" rules={[{ required: true, message: 'Please select closing time!' }]}>
+                            <TimePicker format="HH:mm" />
+                        </Form.Item>
+                    </Col>
+                </Row>
 
                 <Form.Item label="Status" name="status" rules={[{ required: true, message: 'Please select store status!' }]}>
                     <Select placeholder="Select status">

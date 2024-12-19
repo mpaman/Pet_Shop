@@ -1,0 +1,86 @@
+/* Store.css */
+.store-title {
+    color: #1D3557;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+.add-store-button {
+    background: linear-gradient(90deg, #2A9D8F, #1D3557);
+    color: white;
+    border: none;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.add-store-button:hover {
+    background: linear-gradient(90deg, #1D3557, #2A9D8F);
+    color: white;
+}
+
+.store-card {
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.store-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.store-avatar-container {
+    text-align: center;
+    padding: 16px;
+}
+
+.store-avatar {
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.store-name {
+    text-align: center;
+    color: #264653;
+}
+
+.store-status {
+    margin-top: 8px;
+}
+
+.store-actions button {
+    width: 100%;
+    margin: 4px 0;
+    border: none;
+    font-weight: bold;
+}
+
+.edit-store-button {
+    background: #E63946;
+    color: white;
+}
+
+.edit-service-button {
+    background: #F4A261;
+    color: white;
+}
+
+.view-bookings-button {
+    background: #2A9D8F;
+    color: white;
+}
+
+.preview-store-button {
+    background: #1D3557;
+    color: white;
+}
+
+.delete-store-button {
+    background: #8D99AE;
+    color: white;
+}
+
+.status-selector {
+    margin-top: 8px;
+}

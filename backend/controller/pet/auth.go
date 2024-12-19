@@ -1,6 +1,7 @@
 package pet
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,77 +12,81 @@ import (
 type addBookingstore struct {
 	BookingID   uint    `json:"booking_id" binding:"required"` // เชื่อมกับการจอง
 	OwnerID     uint    `json:"owner_id" binding:"required"`   // เจ้าของสัตว์
+
 	Name        string  `json:"name"`                          // ชื่อสัตว์เลี้ยง
-	Type        string  `json:"type"`                          // ประเภท เช่น สุนัข, แมว
 	Breed       string  `json:"breed"`                         // สายพันธุ์
 	Age         int     `json:"age"`                           // อายุ (เป็นปี)
 	Gender      string  `json:"gender"`                        // เพศ เช่น ชาย/หญิง
 	Weight      float64 `json:"weight"`                        // น้ำหนัก (กิโลกรัม)
-	Color       string  `json:"color"`                         // สีของสัตว์
-	HealthInfo  string  ` json:"health_info"`                  // ข้อมูลสุขภาพ เช่น โรคประจำตัว, การแพ้ยา
-	Vaccinated  bool    `json:"vaccinated"`                    // สถานะการฉีดวัคซีน
-	Picture_pet string  `gorm:"type:longtext" json:"picture_pet"`
-}
-func CreatePet(c *gin.Context) {
-	var payload entity.Pet
+	Vaccinated  string  `json:"vaccinated"` 
 
+	PicturePet string  `gorm:"type:longtext" json:"picture_pet"`
+}
+
+func CreatePet(c *gin.Context) {
+	var payload addBookingstore
+
+	// Bind JSON payload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := config.DB().Create(&payload).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// ตรวจสอบว่า OwnerID มีอยู่ใน Users หรือไม่
+	var user entity.Users
+	if err := config.DB().First(&user, payload.OwnerID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Pet created successfully", "pet": payload})
-}
+	// ตรวจสอบว่า BookingID มีอยู่ใน Bookingstore หรือไม่
+	var booking entity.Bookingstore
+	if err := config.DB().First(&booking, payload.BookingID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
+		return
+	}
 
+	// สร้าง Pet entity
+	pet := entity.Pet{
+		BookingID:  payload.BookingID,
+
+		Name:       payload.Name,
+		Breed:      payload.Breed,
+		Age:        payload.Age,
+		Gender:     payload.Gender,
+		Weight:     payload.Weight,
+		Vaccinated: payload.Vaccinated,
+
+		PicturePet: payload.PicturePet,
+		OwnerID:    payload.OwnerID,
+	}
+
+	// ตรวจสอบข้อผิดพลาดในการบันทึก Pet
+	if err := config.DB().Create(&pet).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to create pet: %v", err)})
+		return
+	}
+
+	// ส่งผลลัพธ์กลับ
+	c.JSON(http.StatusCreated, gin.H{
+		"status":  201,
+		"message": "Pet created successfully",
+		"pet":     pet,
+	})
+}
 // func CreatePet(c *gin.Context) {
-// 	var payload addBookingstore
+// 	var payload entity.Pet
 
 // 	if err := c.ShouldBindJSON(&payload); err != nil {
 // 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 // 		return
 // 	}
 
-// 	var user entity.Users
-// 	if err := config.DB().First(&user, payload.OwnerID).Error; err != nil {
-// 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-// 		return
-// 	}
-
-// 	var booking entity.Bookingstore
-// 	if err := config.DB().First(&booking, payload.BookingID).Error; err != nil {
-// 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
-// 		return
-// 	}
-
-// 	pet := entity.Pet{
-// 		BookingID:  payload.BookingID,
-// 		Name:       payload.Name,
-// 		Type:       payload.Type,
-// 		Breed:      payload.Breed,
-// 		Age:        payload.Age,
-// 		Gender:     payload.Gender,
-// 		Weight:     payload.Weight,
-// 		Color:      payload.Color,
-// 		HealthInfo: payload.HealthInfo,
-// 		Vaccinated: payload.Vaccinated,
-// 		OwnerID:    payload.OwnerID,
-// 	}
-
-// 	// Save the booking to the database
-// 	if err := config.DB().Create(&pet).Error; err != nil {
+// 	if err := config.DB().Create(&payload).Error; err != nil {
 // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 // 		return
 // 	}
 
-// 	// Return success message
-// 	c.JSON(http.StatusCreated, gin.H{
-// 		"status":  201,
-// 		"message": "pet created successfully",
-// 		"booking": pet,
-// 	})
+// 	c.JSON(http.StatusCreated, gin.H{"message": "Pet created successfully", "pet": payload})
 // }
+

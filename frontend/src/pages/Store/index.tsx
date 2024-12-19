@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { StoreInterface } from "../../interfaces/Store";
 import { DeleteStoreById, GetAllStores, UpdateStoreStatus, GetUserProfile } from "../../services/https";
+import "./StorePage.css";
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;
