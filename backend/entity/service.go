@@ -9,9 +9,11 @@ type Service struct {
 
     StoreID     uint   `json:"store_id"`
     Store       Store  `gorm:"foreignKey:StoreID;references:ID" json:"store"`
+    
     NameService string `json:"name_service"` // ชื่อของบริการ
     CategoryPet string `json:"category_pet"` // หมวดหมู่ของสัตว์
     Duration    int    `json:"duration"`
+
     Price       int    `json:"price"`
 }
 

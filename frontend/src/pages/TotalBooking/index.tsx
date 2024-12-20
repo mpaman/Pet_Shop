@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Table, Typography, message, Spin, Avatar } from "antd";
+import { Table, Typography, message, Spin, Avatar, Popconfirm, Button } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { BookingInterface } from "../../interfaces/Bookingstore";
-import { GetAllBookings, GetUserProfile, GetStoreByID } from "../../services/https";
+import { GetAllBookings, GetUserProfile, GetStoreByID, DeleteBooking } from "../../services/https";
 import { Link } from "react-router-dom";
 import moment from "moment";
 
@@ -66,6 +66,24 @@ function TotalBooking() {
             fetchBookings();
         }
     }, [userId]);
+    
+    const handleDeleteBooking = async (bookingId: number) => {
+        try {
+            const response = await DeleteBooking(bookingId); // เรียก API ลบการจอง
+            if (response.status === 200) {
+                message.success("Booking canceled successfully.");
+                // อัปเดตข้อมูลตารางหลังลบ
+                setBookings((prevBookings) =>
+                    prevBookings.filter((booking) => booking.ID !== bookingId)
+                );
+            } else {
+                message.error("Failed to cancel booking.");
+            }
+        } catch (error) {
+            console.error("Error canceling booking:", error);
+            message.error("Error canceling booking.");
+        }
+    };
 
     // คอลัมน์ของตาราง
     const columns: ColumnsType<BookingInterface> = [
@@ -120,8 +138,25 @@ function TotalBooking() {
                 <Link to={`/stores/${record.store_id}`}>View Store Details</Link>
             ),
         },
+        {
+            title: "Actions", // คอลัมน์สำหรับปุ่มยกเลิก
+            key: "actions",
+            render: (record) => (
+                <Popconfirm
+                    title="Are you sure you want to cancel this booking?"
+                    onConfirm={() => handleDeleteBooking(record.ID)}
+                    okText="Yes"
+                    cancelText="No"
+                >
+                    <Button type="primary" danger>
+                        Cancel
+                    </Button>
+                </Popconfirm>
+            ),
+        },
     ];
 
+    
     return (
         <div style={{ padding: "20px", display: "flex", justifyContent: "center" }}>
             <div style={{ width: "100%", maxWidth: "1000px" }}>
