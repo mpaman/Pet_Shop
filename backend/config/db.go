@@ -44,6 +44,7 @@ func SetupDatabase() {
 		&entity.Store{},
 		&entity.StoreImage{},
 		&entity.Pet{},
+		&entity.PetStoreApplication{},
 	)
 
 	hashedPassword, _ := HashPassword("1")

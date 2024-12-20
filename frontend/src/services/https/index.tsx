@@ -5,6 +5,7 @@ import { BookingInterface } from '../../interfaces/Bookingstore';
 import { ServiceInterface } from '../../interfaces/Service';
 import { StoreInterface } from '../../interfaces/Store';
 import { StoreImageInterface } from '../../interfaces/Storeimage';
+import { PetStoreApplicationInterface } from '../../interfaces/Petstoreapp';
 import { PetInterface } from "../../interfaces/Pet";
 const apiUrl = "http://localhost:8000";
 const token = localStorage.getItem("token");
@@ -221,6 +222,40 @@ async function GetAllPets() {
         .then((res) => res)
         .catch((e) => e.response);
 }
+
+// PetStoreApplication
+async function CreatePetStoreApplication(data: PetStoreApplicationInterface) {
+    return await axios.post(`${apiUrl}/applications`, data, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+async function GetAllApplications() {
+    return await axios.get(`${apiUrl}/applications`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+async function GetApplicationByID(id: string) {
+    return await axios.get(`${apiUrl}/application/${id}`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+async function UpdatePetStoreApplicationStatus(id: string, data: { status: string }) {
+    return await axios.put(`${apiUrl}/application/${id}/status`, data, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+async function DeletePetStoreApplication(id: string) {
+    return await axios.delete(`${apiUrl}/application/${id}`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+
+
 // Export all functions
 export {
     SignIn,
@@ -230,7 +265,7 @@ export {
     DeleteUsersById,
     CreateUser,
 
-
+    CreatePetStoreApplication,GetAllApplications,GetApplicationByID,UpdatePetStoreApplicationStatus,DeletePetStoreApplication,
     CreatePet,UpdatePet,DeletePet,GetAllPets,
     CreateStore, UpdateStore, DeleteStoreById, GetAllStores, GetStoreByID,
     CreateService, DeleteService, UpdateService, GetAllService, GetServiceByStoreID,

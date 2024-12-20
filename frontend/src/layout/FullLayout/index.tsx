@@ -13,6 +13,8 @@ import BookingStore from "../../pages/BookingStore";
 import TotalBooking from "../../pages/TotalBooking";
 import Booking from "../../pages/Store/booking";
 import SearchStore from "../../pages/SearchStore";
+import Admin from "../../pages/Admin";
+import AppStore from "../../pages/AppStore";
 
 const { Header, Content, Footer } = Layout;
 
@@ -113,6 +115,29 @@ const FullLayout: React.FC = () => {
                             Booking
                         </Link>
                     </Button>
+                    <Button type="text" style={{ color: "white", margin: "0 10px" }}>
+                        <Link to="/admin">
+                            <BookOutlined
+                                style={{
+                                    fontSize: "16px",
+                                    marginRight: 8,
+                                }}
+                            />
+                            Admin
+                        </Link>
+                    </Button>
+                    <Button type="text" style={{ color: "white", margin: "0 10px" }}>
+                        <Link to="/appstore">
+                            <BookOutlined
+                                style={{
+                                    fontSize: "16px",
+                                    marginRight: 8,
+                                }}
+                            />
+                            
+                            Appstore
+                        </Link>
+                    </Button>
                 </div>
 
                 {/* ส่วนที่ 3: ปุ่ม Logout */}
@@ -163,6 +188,8 @@ const FullLayout: React.FC = () => {
                         <Route path="/stores/:storeId" element={<Instore />} />
                         <Route path="/stores/:storeId/booking" element={<BookingStore />} />
                         <Route path="/totalbooking" element={<TotalBooking />} />
+                        <Route path="/admin" element={<Admin />} />
+                        <Route path="/appstore" element={<AppStore />} />
                     </Routes>
                 </div>
             </Content>
