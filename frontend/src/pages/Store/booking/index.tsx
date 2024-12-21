@@ -153,12 +153,26 @@ function Booking() {
                     {record.status === "confirmed" && (
                         <>
                             <Button
+                                style={{
+                                    marginTop: "10px",
+                                    background: "#E63946",
+                                    color: "white",
+                                    borderRadius: "20px",
+                                    fontWeight: "bold",
+                                }}
                                 onClick={() => handleCompleteBooking(record.ID)}
                                 type="primary"
                             >
                                 Complete
                             </Button>
                             <Button
+                                style={{
+                                    marginTop: "10px",
+                                    background: "#E63946",
+                                    color: "white",
+                                    borderRadius: "20px",
+                                    fontWeight: "bold",
+                                }}  
                                 onClick={() => handleCancelBooking(record.ID)}
                                 danger
                             >

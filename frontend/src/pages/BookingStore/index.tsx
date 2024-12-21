@@ -382,7 +382,13 @@ const BookingForm: React.FC = () => {
                             </div>
 
                             <div>
-                                <Button type="primary" block onClick={handleSubmit}>
+                                <Button
+                                    style={{
+                                        marginTop: "10px",
+                                        borderRadius: "20px",
+                                        fontWeight: "bold",
+                                    }}
+                                    type="primary" block onClick={handleSubmit}>
                                     Book Now
                                 </Button>
                             </div>

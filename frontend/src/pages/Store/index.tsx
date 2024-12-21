@@ -162,7 +162,7 @@ function Store() {
                                             color: "white",
                                             backgroundColor: statusColor(item.status),
                                             padding: "4px 8px",
-                                            borderRadius: "4px",
+                                            borderRadius: "10px",
                                         }}
                                     >
                                         {item.status || "ไม่มีข้อมูล"}
@@ -180,7 +180,7 @@ function Store() {
                                         background: "#E63946",
                                         color: "white",
                                         width: "150px", /* ความกว้าง */
-
+                                        borderRadius: "20px",
                                     }}
                                     icon={<EditOutlined />}
                                     onClick={() => navigate(`/store/edit/${item.ID}`)}
@@ -191,6 +191,7 @@ function Store() {
                                     style={{
                                         background: "#F4A261",
                                         color: "white",
+                                        borderRadius: "20px",
                                         width: "150px", /* ความกว้าง */
 
                                     }}
@@ -203,6 +204,7 @@ function Store() {
                                     style={{
                                         background: "#2A9D8F",
                                         color: "white",
+                                        borderRadius: "20px",
                                         width: "150px", /* ความกว้าง */
 
                                     }}
@@ -215,6 +217,7 @@ function Store() {
                                     style={{
                                         background: "#2A9D8F",
                                         color: "white",
+                                        borderRadius: "20px",
                                         fontWeight: "bold",
                                         width: "150px", /* ความกว้าง */
 
@@ -229,6 +232,7 @@ function Store() {
                                         background: "#8D99AE",
                                         color: "white",
                                         fontWeight: "bold",
+                                        borderRadius: "20px",
 
                                     }}
                                     icon={<DeleteOutlined />}

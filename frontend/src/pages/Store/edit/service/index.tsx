@@ -202,8 +202,9 @@ function ServiceEdit() {
                     <Divider />
                     <Form.Item>
                         <Button
-                            style={{ background: "#954435", color: "white" }}
+                            style={{borderRadius: "20px",background: "#954435", color: "white" }}
                             htmlType="submit"
+                            
                             block
                         >
                             Save Changes

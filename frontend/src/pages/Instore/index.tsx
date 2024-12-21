@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import {
     Typography,
-    Divider,
     Row,
     Col,
-    Image,
     Button,
     Space,
     Avatar,
@@ -12,7 +10,6 @@ import {
     message,
 } from "antd";
 import {
-    UserOutlined,
     PhoneOutlined,
     HomeOutlined,
     ClockCircleOutlined,
@@ -26,7 +23,7 @@ import {
 import { StoreInterface } from "../../interfaces/Store";
 import { ServiceInterface } from "../../interfaces/Service";
 import { StoreImageInterface } from "../../interfaces/Storeimage";
-import "../../App.css";
+import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -42,11 +39,9 @@ const StorePage: React.FC = () => {
             try {
                 setLoading(true);
 
-                // Fetch store details
                 const storeResponse = await GetStoreByID(storeId);
                 setStore(storeResponse.data);
 
-                // Fetch services related to the store
                 const serviceResponse = await GetAllService();
                 const filteredServices = serviceResponse.data?.data.filter(
                     (service: { store_id: number }) =>
@@ -54,7 +49,6 @@ const StorePage: React.FC = () => {
                 );
                 setServices(filteredServices || []);
 
-                // Fetch images related to the store
                 const imageResponse = await GetAllStoreImage();
                 const filteredStoreImages = imageResponse.data?.data.filter(
                     (image: { store_id: number }) =>
@@ -71,16 +65,17 @@ const StorePage: React.FC = () => {
 
         if (storeId) fetchData();
     }, [storeId]);
+
     const statusColor = (status: string) => {
         switch (status) {
             case "open":
-                return "#2A9D8F"; // Green
+                return "#2A9D8F";
             case "close":
-                return "#F4A261"; // Orange
+                return "#F4A261";
             case "full":
-                return "#E63946"; // Red
+                return "#E63946";
             default:
-                return "#8D99AE"; // Gray
+                return "#8D99AE";
         }
     };
 
@@ -92,7 +87,6 @@ const StorePage: React.FC = () => {
                 minHeight: "100vh",
             }}
         >
-            {/* Store Name */}
             {store && (
                 <div style={{ textAlign: "center", marginBottom: "30px" }}>
                     <Title level={2} style={{ color: "#1D3557" }}>
@@ -106,39 +100,7 @@ const StorePage: React.FC = () => {
                 justify="center"
                 style={{ maxWidth: "1200px", margin: "0 auto" }}
             >
-                {/* Left Section */}
                 <Col xs={24} md={16}>
-                    {/* Description */}
-                    <div>
-                        {store && (
-                            <div style={{ marginBottom: "30px" }}>
-                                <Title level={3} style={{ color: "#457B9D" }}>
-                                    About
-                                </Title>
-                                {/* Option 1: Using CSS */}
-                                <Paragraph
-                                    className="preformatted-text"
-                                    style={{
-                                        textAlign: "justify",
-                                        lineHeight: 1.8,
-                                        padding: "0 15px",
-                                    }}
-                                >
-                                    {store.description ? (
-                                        <span
-                                            dangerouslySetInnerHTML={{
-                                                __html: store.description,
-                                            }}
-                                        />
-                                    ) : (
-                                        "ไม่มีคำอธิบาย"
-                                    )}
-                                </Paragraph>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Store Images */}
                     <div style={{ marginBottom: "30px" }}>
                         <Title level={3} style={{ color: "#457B9D" }}>
                             Gallery
@@ -146,16 +108,32 @@ const StorePage: React.FC = () => {
                         {storeImages.length > 0 ? (
                             <Row gutter={[16, 16]}>
                                 {storeImages.map((image) => (
-                                    <Col xs={24} sm={12} lg={8} key={image.ID}>
-                                        <Image
-                                            src={image.image_url}
+                                    <Col
+                                        xs={24}
+                                        sm={12}
+                                        lg={8}
+                                        key={image.ID}
+                                    >
+                                        <div
                                             style={{
                                                 width: "100%",
+                                                height: "500px",
+                                                overflow: "hidden",
                                                 borderRadius: "8px",
                                                 boxShadow:
                                                     "0px 4px 8px rgba(0, 0, 0, 0.1)",
                                             }}
-                                        />
+                                        >
+                                            <img
+                                                src={image.image_url}
+                                                alt="Gallery"
+                                                style={{
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    objectFit: "cover",
+                                                }}
+                                            />
+                                        </div>
                                     </Col>
                                 ))}
                             </Row>
@@ -166,15 +144,30 @@ const StorePage: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Services */}
                     <div>
+                        <Title level={3} style={{ color: "#457B9D" }}>
+                            About
+                        </Title>
+                        <Paragraph
+                            style={{ textAlign: "justify", lineHeight: 1.8 }}
+                        >
+                            {store?.description || "No description available."}
+                        </Paragraph>
+                    </div>
+
+                    <div style={{ marginBottom: "30px" }}>
                         <Title level={3} style={{ color: "#457B9D" }}>
                             Services
                         </Title>
                         {services.length > 0 ? (
                             <Row gutter={[16, 16]}>
                                 {services.map((service) => (
-                                    <Col xs={24} sm={12} lg={12} key={service.ID}>
+                                    <Col
+                                        xs={24}
+                                        sm={12}
+                                        lg={12}
+                                        key={service.ID}
+                                    >
                                         <Card
                                             hoverable
                                             style={{
@@ -184,7 +177,10 @@ const StorePage: React.FC = () => {
                                                 padding: "16px",
                                             }}
                                         >
-                                            <Title level={4} style={{ color: "#1D3557" }}>
+                                            <Title
+                                                level={4}
+                                                style={{ color: "#1D3557" }}
+                                            >
                                                 {service.name_service}
                                             </Title>
                                             <Paragraph>
@@ -221,72 +217,81 @@ const StorePage: React.FC = () => {
                             </Paragraph>
                         )}
                     </div>
+
+                    {store && (
+                        <div style={{ height: "400px", borderRadius: "8px" }}>
+                            <MapContainer
+                                center={[store.latitude, store.longitude]}
+                                zoom={13}
+                                style={{ height: "100%", width: "100%" }}
+                            >
+                                <TileLayer
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                />
+                                <Marker
+                                    position={[
+                                        store.latitude,
+                                        store.longitude,
+                                    ]}
+                                >
+                                    <Popup>{store.name}</Popup>
+                                </Marker>
+                            </MapContainer>
+                        </div>
+                    )}
                 </Col>
 
-                {/* Right Section */}
                 <Col xs={24} md={8}>
                     {store && (
                         <div style={{ position: "sticky", top: "10px" }}>
-                            {/* User Info */}
                             <Card
-                                style={{
-                                    marginBottom: "20px",
-                                    textAlign: "center",
-                                    padding: "20px",
-                                }}
+                                style={{ textAlign: "center", padding: "20px" }}
                             >
                                 <Space direction="vertical" align="center">
                                     <Avatar
                                         size={120}
                                         src={store.profile_image || undefined}
-                                        icon={<UserOutlined />}
                                         shape="square"
-                                        style={{
-                                            borderRadius: "8px",
-                                            boxShadow:
-                                                "0px 4px 8px rgba(0, 0, 0, 0.1)",
-                                        }}
+                                        style={{ borderRadius: "8px" }}
                                     />
                                 </Space>
                             </Card>
 
-                            {/* Contact Info */}
-                            <Card>
+                            <Card style={{ marginTop: "20px" }}>
                                 <Title level={4}>
                                     <PhoneOutlined /> Contact
                                 </Title>
                                 <Paragraph>
                                     <strong>Province:</strong>{" "}
-                                    {store.province || "No location provided"}
+                                    {store.province || "N/A"}
                                 </Paragraph>
                                 <Paragraph>
                                     <strong>District:</strong>{" "}
-                                    {store.district || "No location provided"}
+                                    {store.district || "N/A"}
                                 </Paragraph>
                                 <Paragraph>
                                     <strong>Opening:</strong>{" "}
-                                    {store.time_open || "No time provided"}
+                                    {store.time_open || "N/A"}
                                 </Paragraph>
                                 <Paragraph>
                                     <strong>Closing:</strong>{" "}
-                                    {store.time_close || "No time provided"}
+                                    {store.time_close || "N/A"}
                                 </Paragraph>
                                 <Paragraph>
-                                    <b>Status:</b>{" "}
+                                    <b>Status:</b>
                                     <span
                                         style={{
                                             color: "white",
-                                            backgroundColor: statusColor(store.status),
+                                            backgroundColor: statusColor(
+                                                store.status
+                                            ),
                                             padding: "2px 8px",
                                             borderRadius: "4px",
                                         }}
                                     >
                                         {store.status || "N/A"}
                                     </span>
-                                </Paragraph>
-                                <Paragraph>
-                                    <strong>Contact:</strong>{" "}
-                                    {store.contact_info || "No contact info"}
                                 </Paragraph>
                                 <Link to={`/stores/${storeId}/booking`}>
                                     <Button
@@ -295,6 +300,8 @@ const StorePage: React.FC = () => {
                                             marginTop: "10px",
                                             background: "#E63946",
                                             color: "white",
+                                            borderRadius: "20px",
+                                            fontWeight: "bold",
                                         }}
                                     >
                                         Book Now

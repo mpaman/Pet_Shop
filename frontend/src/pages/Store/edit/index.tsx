@@ -287,7 +287,7 @@ function StoreEdit() {
 
                 <Divider />
                 <Form.Item>
-                    <Button style={{ background: "#954435", color: "white" }} htmlType="submit" block>
+                    <Button style={{borderRadius: "20px",background: "#954435", color: "white" }} htmlType="submit" block>
                         Save Changes
                     </Button>
                 </Form.Item>
