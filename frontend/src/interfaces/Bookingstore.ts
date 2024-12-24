@@ -1,26 +1,26 @@
-import { UsersInterface } from "./IUser";
-import { StoreInterface } from "./Store";
+import { PetInterface } from "./Pet";
+
 
 export interface BookingInterface {
-    pets(pets: any): unknown;
-    BookerUser: any;
-    ID?: number;
-    booker_user_id: number; // เชื่อมกับ UsersInterface
-    store_id: number;       // เชื่อมกับ StoreInterface
+    pets: PetInterface[];       // รองรับเป็นอาร์เรย์ของ PetInterface
+    BookerUser: any;            // ข้อมูลผู้จอง
+    ID?: number;                // ID ของการจอง (ถ้ามี)
+    booker_user_id: number;     // ID ของผู้จอง
+    store_id: number;           // ID ของร้าน
     service_id: number;
-    date: string;           // ISO format (required)
-    booking_time: string;
-    status?: string;        // Optional
-    notes?: string;         // Optional
-    total_cost: number;     // Required
-    contact_number: string; // Required
-    count_pet: number;      // Required
+    date: string;               // วันที่จอง (ในรูปแบบ ISO)
+    booking_time: string;       // เวลาในการจอง
+    status?: string;            // สถานะ (ถ้ามี)
+    notes?: string;             // หมายเหตุ (ถ้ามี)
+    total_cost: number;         // ค่าใช้จ่ายทั้งหมด
+    contact_number: string;     // หมายเลขโทรศัพท์ของผู้จอง
+    count_pet: number;          // จำนวนสัตว์เลี้ยงที่จอง
 
-    User?: UsersInterface;   // ข้อมูลของผู้จอง
-    Store?: StoreInterface;  // ข้อมูลร้าน
-    Service?: {              // Optional Service information
-        name_service: string; // Service's name (required)
-        price: number;        // Service's price (required)
-        duration: number;     // Service's duration (required)
+    User?: any;                 // ข้อมูลผู้ใช้ (ถ้ามี)
+    Store?: any;                // ข้อมูลร้าน (ถ้ามี)
+    Service?: {                 // ข้อมูลบริการ (ถ้ามี)
+        name_service: string;   // ชื่อบริการ
+        price: number;          // ราคา
+        duration: number;       // ระยะเวลา
     };
 }

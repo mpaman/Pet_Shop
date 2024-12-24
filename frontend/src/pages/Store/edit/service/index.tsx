@@ -28,7 +28,6 @@ function ServiceEdit() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [services, setServices] = useState<ServiceInterface[]>([]);
-    const [deletedServiceIDs, setDeletedServiceIDs] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
     const [messageApi, contextHolder] = message.useMessage();
 
@@ -57,24 +56,28 @@ function ServiceEdit() {
         setServices([
             ...services,
             {
-                id: undefined,
+                ID: undefined,  // Use 'ID' instead of 'id' here
                 name_service: "",
                 price: 0,
                 duration: 0,
                 store_id: parseInt(id!),
+                category_pet: "",  // Assuming default value for category_pet
             },
         ]);
     };
-
+    
     const removeService = (index: number) => {
         const serviceToRemove = services[index];
-        if (serviceToRemove.ID) {
+    
+        // ใช้ non-null assertion (serviceToRemove.ID!) เพื่อบอก TypeScript ว่า ID จะมีค่าเสมอ
+        if (serviceToRemove.ID != null) {
             Modal.confirm({
                 title: "Are you sure you want to delete this service?",
                 content: `This will also delete any related bookings.`,
                 onOk: async () => {
                     try {
-                        await DeleteService(serviceToRemove.ID);
+                        // ใช้ serviceToRemove.ID! เพื่อหลีกเลี่ยงการตรวจสอบ null/undefined
+                        await DeleteService(serviceToRemove.ID!.toString());
                         messageApi.success("Service and related bookings deleted successfully!");
                     } catch (error) {
                         messageApi.error("Failed to delete service and related bookings");
@@ -82,14 +85,18 @@ function ServiceEdit() {
                     setServices(services.filter((_, i) => i !== index));
                 },
             });
+        } else {
+            messageApi.error("Service ID is not available for deletion.");
         }
     };
+    
 
     const onFinish = async () => {
         try {
             for (const service of services) {
                 if (service.ID) {
-                    await UpdateService(service.ID, service);
+                    // แปลง ID เป็น string ก่อนส่งไปยัง UpdateService
+                    await UpdateService(service.ID.toString(), service); 
                 } else {
                     await CreateService({ ...service, store_id: parseInt(id!) });
                 }
@@ -100,6 +107,7 @@ function ServiceEdit() {
             messageApi.error("Failed to update services");
         }
     };
+    
 
     if (loading) {
         return (

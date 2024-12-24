@@ -85,7 +85,7 @@ const Admin: React.FC = () => {
             title: "ชื่อผู้สมัคร",
             dataIndex: "User.first_name",
             key: "first_name",
-            render: (text: string, record: any) => (
+            render: (_text: string, record: any) => (
                 <span>{record.User?.first_name} {record.User?.last_name}</span>
             ),
         },
@@ -93,7 +93,7 @@ const Admin: React.FC = () => {
             title: "อีเมล",
             dataIndex: "User.email",
             key: "email",
-            render: (text: string, record: any) => (
+            render: (_text: string, record: any) => (
                 <span>{record.User?.email}</span>
             ),
         },
@@ -110,7 +110,7 @@ const Admin: React.FC = () => {
         {
             title: "การดำเนินการ",
             key: "action",
-            render: (text: string, record: any) => (
+            render: (_text: string, record: any) => (
                 <div>
                     <Button
                         type="primary"
@@ -120,7 +120,7 @@ const Admin: React.FC = () => {
                         ยอมรับ
                     </Button>
                     <Button
-                        type="danger"
+                        style={{ backgroundColor: 'red', color: 'white' }}
                         onClick={() => handleUpdateStatus(record.ID, "rejected")}
                     >
                         ปฏิเสธ

@@ -9,7 +9,7 @@ export interface ServiceInterface {
         time_open: string;
         status: string;
     };
-    name_service: string; // ชื่อของบริการ
+    name_service: string;
     price: number;
     duration: number; 
     category_pet: string;

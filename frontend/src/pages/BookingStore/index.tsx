@@ -16,9 +16,9 @@ import {
 import { CreateBooking, GetAllService, GetStoreByID, GetUserProfile, CreatePet } from "../../services/https";
 import { StoreInterface } from "../../interfaces/Store";
 import { ServiceInterface } from "../../interfaces/Service";
-import { PetInterface } from "../../interfaces/Pet";
 import { useParams } from "react-router-dom";
 import moment from "moment";
+import dayjs from "dayjs";
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -54,8 +54,8 @@ const BookingForm: React.FC = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const storeResponse = await GetStoreByID(storeId);
-                if (storeResponse.status === 200) {
+                const storeResponse = storeId ? await GetStoreByID(storeId) : null;
+                if (storeResponse?.status === 200) {
                     setStores([storeResponse.data]);
                 }
 
@@ -100,60 +100,68 @@ const BookingForm: React.FC = () => {
         };
         reader.readAsDataURL(file);
     };
-
-    const addPetField = () => {
-        setPets([...pets, { name: "", breed: "", age: 0, gender: "", weight: 0, vaccinated: "yes" }]);
-    };
-
     const handleSubmit = async () => {
         if (!selectedService || !selectedStore || !date || !contactNumber || !countPet || !time) {
             message.error("Please fill all required fields!");
             return;
         }
 
-        const formattedDateTime = moment(`${date} ${time}`, "YYYY-MM-DD HH:mm");
-        const now = moment();
+        // Default time to "00:00" if not selected
+        const bookingTime = `${date} ${time || "00:00"}`;
 
+        // Use moment() or dayjs() to correctly format the date and time
+        const formattedDateTime = moment(bookingTime, "YYYY-MM-DD HH:mm");
+
+        // Check if the selected date-time is in the future
+        const now = moment();
         if (formattedDateTime.isBefore(now)) {
             message.error("The selected date and time must be in the future.");
             return;
         }
 
         const bookingData = {
-            booker_user_id: bookerUserId,
+            booker_user_id: bookerUserId !== null ? Number(bookerUserId) : 0,  // Convert to number if not null
             store_id: selectedStore,
             service_id: selectedService,
             date: formattedDateTime.toISOString(),
-            notes,
+            notes: notes,
             total_cost: totalCost,
             contact_number: contactNumber,
-            count_pet: countPet,
+            count_pet: pets.length,  // Number of pets
             booking_time: time,
+            pets: pets.map((pet) => ({
+                name: pet.name,
+                breed: pet.breed || "",
+                age: pet.age ?? 0,
+                weight: pet.weight,
+                gender: pet.gender,
+                vaccinated: pet.vaccinated,
+                owner_id: Number(bookerUserId), // Ensure owner_id is a number
+                picture_pet: pet.picturePet || "",
+            })),
+            BookerUser: { /* Add Booker user data if needed */ },
         };
 
         try {
-            // Create Booking first
             const response = await CreateBooking(bookingData);
             if (response.status === 201) {
-                const bookingID = response.data.booking_id;  // Get the booking ID from the response
+                const bookingID = response.data.booking_id;
 
-                // Send pet data with the correct bookingID
                 const petPromises = pets.map((pet) =>
                     CreatePet({
-                        booking_id: bookingID,  // Use the booking_id from the response
+                        booking_id: bookingID,
                         name: pet.name,
-                        breed: pet.breed,
-                        age: pet.age,
+                        breed: pet.breed || "",
+                        age: pet.age ?? 0,
                         weight: pet.weight,
                         gender: pet.gender,
                         vaccinated: pet.vaccinated,
-                        owner_id: bookerUserId,
-                        picture_pet: pet.picturePet,  // Include the pet picture as base64 string
+                        owner_id: Number(bookerUserId) || 0,  // Convert to number if needed
+                        picture_pet: pet.picturePet,
                     })
                 );
 
                 await Promise.all(petPromises);
-
                 message.success("Booking and pets created successfully!");
             } else {
                 message.error("Failed to create booking.");
@@ -164,6 +172,8 @@ const BookingForm: React.FC = () => {
         }
     };
 
+
+
     const handleServiceChange = (serviceID: number) => {
         setSelectedService(serviceID);
         const selected = services.find((service) => service.ID === serviceID);
@@ -173,12 +183,11 @@ const BookingForm: React.FC = () => {
     };
 
     const handleCountPetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newCountPet = Math.max(1, Number(e.target.value)); // Ensure it stays at least 1 pet
+        const newCountPet = Math.max(1, Number(e.target.value)); // Ensure at least 1 pet
         setCountPet(newCountPet);
 
         const updatedPets = [...pets];
         if (newCountPet > pets.length) {
-            // Add new pets if countPet is greater than current length
             const additionalPets = Array(newCountPet - pets.length).fill({
                 name: "",
                 breed: "",
@@ -189,7 +198,6 @@ const BookingForm: React.FC = () => {
             });
             setPets([...updatedPets, ...additionalPets]);
         } else if (newCountPet < pets.length) {
-            // Remove pets if countPet is less than current length
             setPets(updatedPets.slice(0, newCountPet));
         }
     };
@@ -240,11 +248,11 @@ const BookingForm: React.FC = () => {
                                 <DatePicker
                                     style={{ width: "100%" }}
                                     onChange={(date, dateString) => {
-                                        if (date && date.isBefore(moment(), "day")) {
+                                        if (date && dayjs(date).isBefore(dayjs(), "day")) {
                                             message.error("You cannot select a past date.");
                                             return;
                                         }
-                                        setDate(dateString);
+                                        setDate(Array.isArray(dateString) ? dateString[0] : dateString);
                                     }}
                                 />
                             </div>
@@ -253,15 +261,19 @@ const BookingForm: React.FC = () => {
                                 <TimePicker
                                     format="HH:mm"
                                     style={{ width: "100%" }}
-                                    onChange={(time, timeString) => {
-                                        const selectedDateTime = moment(`${date} ${timeString}`, "YYYY-MM-DD HH:mm");
-                                        if (date && selectedDateTime.isBefore(moment())) {
-                                            message.error("You cannot select a past time.");
-                                            return;
+                                    onChange={(_time, timeString) => {
+                                        // ตรวจสอบว่า timeString เป็น string หรือไม่ ถ้าใช่ให้ setTime
+                                        if (typeof timeString === 'string') {
+                                            const selectedDateTime = moment(`${date} ${timeString}`, "YYYY-MM-DD HH:mm");
+                                            if (date && selectedDateTime.isBefore(moment())) {
+                                                message.error("You cannot select a past time.");
+                                                return;
+                                            }
+                                            setTime(timeString);
                                         }
-                                        setTime(timeString);
                                     }}
                                 />
+
                             </div>
                             <div>
                                 <Text strong>Notes:</Text>
@@ -357,14 +369,13 @@ const BookingForm: React.FC = () => {
                                                     <Option value="Female">Female</Option>
                                                 </Select>
                                             </div>
-
                                             <div>
                                                 <Text type="secondary">Pet Picture (optional)</Text>
                                                 <input
                                                     type="file"
                                                     accept="image/*"
                                                     onChange={(e) => {
-                                                        if (e.target.files[0]) {
+                                                        if (e.target.files && e.target.files[0]) { // Check if files is not null
                                                             handleFileUpload(index, e.target.files[0]);
                                                         }
                                                     }}

@@ -27,11 +27,11 @@ const AppStore: React.FC = () => {
     });
 
     const [user, setUser] = useState<Partial<UsersInterface>>({
-        FirstName: "",
-        LastName: "",
+        first_name: "",
+        last_name: "",
         ID: 0,
         Profile: "",
-        Role: "",
+        role: "",
     });
 
     // ดึงข้อมูลผู้ใช้จาก API และเก็บ user_id
@@ -61,24 +61,25 @@ const AppStore: React.FC = () => {
             message.error("กรุณากรอกข้อมูลให้ครบถ้วน");
             return;
         }
-
+    
         if (!UserId) {
             message.error("ไม่พบข้อมูลผู้ใช้");
             return;
         }
-
-        const appstoreData = {
-            user_id: UserId, // ใช้ userId จากการดึงข้อมูลผู้ใช้
-            store_name: application.store_name,
-            email: user.email, // ใช้ email ของผู้ใช้
-            phone: application.phone,
-            location: application.location,
-            license_document_url: application.license_document_url,
-            status: application.status,
+    
+        // ตรวจสอบค่า email ให้เป็น string ก่อนส่ง
+        const appstoreData: PetStoreApplicationInterface = {
+            user_id: UserId, // ใช้ string แทน UsersInterface
+            store_name: application.store_name!,
+            email: user.email || "", // ถ้า user.email เป็น undefined ให้ใช้ค่า "" แทน
+            phone: application.phone!,
+            location: application.location!,
+            license_document_url: application.license_document_url!,
+            status: application.status!,
         };
-
+    
         console.log("Store Data:", appstoreData);
-
+    
         try {
             const response = await CreatePetStoreApplication(appstoreData); // เรียก API ที่ใช้สร้างคำขอสมัคร
             if (response.status === 201) {
@@ -92,7 +93,7 @@ const AppStore: React.FC = () => {
             message.error("ไม่สามารถส่งคำขอได้");
         }
     };
-
+    
     return (
         <Card style={{ maxWidth: 600, margin: "20px auto", padding: 20 }}>
             <Title level={3}>สมัครร้าน</Title>
@@ -102,7 +103,7 @@ const AppStore: React.FC = () => {
                 <Space direction="vertical" size="middle" style={{ width: "100%" }}>
                     <Typography.Text>
                         <strong>ชื่อผู้สมัคร: </strong>
-                        {user.FirstName} {user.LastName}
+                        {user.first_name} {user.last_name}
                     </Typography.Text>
                 </Space>
             )}

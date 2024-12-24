@@ -8,11 +8,10 @@ import {
     Avatar,
     Card,
     message,
+    Spin, // Import the Spin component for loading state
 } from "antd";
 import {
     PhoneOutlined,
-    HomeOutlined,
-    ClockCircleOutlined,
 } from "@ant-design/icons";
 import { useParams, Link } from "react-router-dom";
 import {
@@ -37,6 +36,11 @@ const StorePage: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                if (!storeId) {
+                    message.error("Store ID is missing.");
+                    return;
+                }
+
                 setLoading(true);
 
                 const storeResponse = await GetStoreByID(storeId);
@@ -63,7 +67,7 @@ const StorePage: React.FC = () => {
             }
         };
 
-        if (storeId) fetchData();
+        fetchData();
     }, [storeId]);
 
     const statusColor = (status: string) => {
@@ -87,12 +91,18 @@ const StorePage: React.FC = () => {
                 minHeight: "100vh",
             }}
         >
-            {store && (
-                <div style={{ textAlign: "center", marginBottom: "30px" }}>
-                    <Title level={2} style={{ color: "#1D3557" }}>
-                        {store.name || "No Store Name"}
-                    </Title>
+            {loading ? ( // Show loading spinner while data is being fetched
+                <div style={{ textAlign: "center", marginTop: "100px" }}>
+                    <Spin size="large" />
                 </div>
+            ) : (
+                store && (
+                    <div style={{ textAlign: "center", marginBottom: "30px" }}>
+                        <Title level={2} style={{ color: "#1D3557" }}>
+                            {store.name || "No Store Name"}
+                        </Title>
+                    </div>
+                )
             )}
 
             <Row
@@ -243,10 +253,7 @@ const StorePage: React.FC = () => {
                                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                 />
                                 <Marker
-                                    position={[
-                                        store.latitude,
-                                        store.longitude,
-                                    ]}
+                                    position={[store.latitude, store.longitude]}
                                 >
                                     <Popup>{store.name}</Popup>
                                 </Marker>
@@ -321,7 +328,6 @@ const StorePage: React.FC = () => {
                                         {store?.status === "open" ? "Book Now" : "ไม่สามารถจองได้"}
                                     </Button>
                                 </Link>
-
                             </Card>
                         </div>
                     )}

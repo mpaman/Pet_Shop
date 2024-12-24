@@ -24,7 +24,6 @@ import {
     DeleteStoreImage,
 } from "../../../services/https";
 import ImgCrop from "antd-img-crop";
-import "leaflet/dist/leaflet.css";
 import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
 
 const { Option } = Select;
@@ -41,21 +40,22 @@ function StoreEdit() {
     const [storeImages, setStoreImages] = useState<any[]>([]);
     const [deletedImageIDs, setDeletedImageIDs] = useState<number[]>([]);
     const [storeData, setStoreData] = useState<any | null>(null);
-    const [profile, setProfile] = useState<any | null>(null);
     const [latitude, setLatitude] = useState<number>(0);
     const [longitude, setLongitude] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
-    const [fileList, setFileList] = useState([]);
+    const [fileList, setFileList] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const storeResponse = await GetStoreByID(id);
+        
+                // Use non-null assertion if you're sure id will be defined
+                const storeResponse = await GetStoreByID(id!); // id is guaranteed to be a string here
                 const storeImagesResponse = await GetAllStoreImage();
-
+        
                 if (storeResponse?.data) {
                     setStoreData(storeResponse.data);
                     setLatitude(storeResponse.data.latitude);
@@ -66,7 +66,7 @@ function StoreEdit() {
                         time_close: moment(storeResponse.data.time_close, "HH:mm"),
                     });
                 }
-
+        
                 if (storeImagesResponse?.data?.data) {
                     const filteredImages = storeImagesResponse.data.data.filter(
                         (img: any) => img.store_id === parseInt(id!)
@@ -78,7 +78,7 @@ function StoreEdit() {
             } finally {
                 setLoading(false);
             }
-        };
+        };        
 
         fetchData();
     }, [id, form, messageApi]);
@@ -92,7 +92,7 @@ function StoreEdit() {
     };
 
     const handleChangeImage = ({ fileList }: any) => {
-        const newImageList = fileList.map((file: any) => {
+        fileList.forEach((file: any) => {
             if (file.originFileObj) {
                 const reader = new FileReader();
                 reader.readAsDataURL(file.originFileObj);
@@ -103,9 +103,10 @@ function StoreEdit() {
                     ]);
                 };
             }
-            return file;
         });
+        setFileList(fileList);  // Just update fileList
     };
+    
 
     const onRemoveImage = (file: any) => {
         if (file.uid && !file.uid.startsWith("rc-upload-")) {
@@ -116,6 +117,12 @@ function StoreEdit() {
 
     const onFinish = async (values: any) => {
         try {
+            // Ensure id is a string and not undefined
+            if (!id) {
+                messageApi.error("Store ID is missing");
+                return;
+            }
+
             const updatedStore = {
                 ...values,
                 latitude,
@@ -125,17 +132,20 @@ function StoreEdit() {
                 time_close: values.time_close.format("HH:mm"),
             };
 
+            // Update store
             await UpdateStore(id, updatedStore);
 
+            // Delete images
             for (const imgID of deletedImageIDs) {
-                await DeleteStoreImage(imgID);
+                await DeleteStoreImage(imgID.toString()); // Cast imgID to string
             }
 
+            // Upload new images
             for (const image of storeImages) {
                 if (!image.ID) {
                     await CreateStoreImage({
                         image_url: image.image_url,
-                        store_id: parseInt(id!),
+                        store_id: parseInt(id), // Ensure id is treated as a string
                     });
                 }
             }
@@ -146,6 +156,7 @@ function StoreEdit() {
             messageApi.error("Failed to update store");
         }
     };
+
 
     const MapClickHandler = () => {
         useMapEvents({
@@ -269,9 +280,10 @@ function StoreEdit() {
                     <Upload
                         listType="picture-card"
                         fileList={storeImages.map((image) => ({
-                            uid: image.ID?.toString() || String(Math.random()),
+                            uid: image.ID?.toString() || String(Math.random()),  // Ensure uid is a unique identifier
                             url: image.image_url,
-                        }))}
+                            name: `Image-${image.ID || Math.random()}`,  // Add a name field for UploadFile
+                        }))}                        
                         onChange={handleChangeImage}
                         onRemove={onRemoveImage}
                         beforeUpload={handleBeforeUpload}
@@ -287,7 +299,7 @@ function StoreEdit() {
 
                 <Divider />
                 <Form.Item>
-                    <Button style={{borderRadius: "20px",background: "#954435", color: "white" }} htmlType="submit" block>
+                    <Button style={{ borderRadius: "20px", background: "#954435", color: "white" }} htmlType="submit" block>
                         Save Changes
                     </Button>
                 </Form.Item>

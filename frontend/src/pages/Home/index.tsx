@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+
 import {
-    Col, Row, Divider, message, Input, Typography, Select, Avatar, Pagination, Card, Space, Button, Tooltip
+    Button,
 } from "antd";
 
-import { Link, useNavigate } from "react-router-dom";
-import { EnvironmentOutlined, SearchOutlined } from "@ant-design/icons"; // เพิ่ม นอกจาก ant
+import { Link, } from "react-router-dom";
 
-const { Search } = Input;
-const { Option } = Select;
+
 
 function Home() {
 

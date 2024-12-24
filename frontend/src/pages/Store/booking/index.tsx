@@ -1,5 +1,5 @@
-import { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode } from "react";
-import { Table, Typography, message, Spin, Button, Tabs, Modal, Input, Row, Col, Avatar, Descriptions, Divider } from "antd";
+import { useState, useEffect, useMemo } from "react";
+import { Table, Typography, message, Spin, Button, Tabs, Modal, Input, Row, Col, Descriptions, Divider } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { useParams } from "react-router-dom";
 import { BookingInterface } from "../../../interfaces/Bookingstore";
@@ -9,15 +9,22 @@ import moment from "moment";
 const { Title } = Typography;
 const { TabPane } = Tabs;
 
+interface PetDetails {
+    booking_id: number;
+    picture_pet: string;
+    name: string;
+    breed: string;
+    age: number;
+    weight: number;
+    vaccinated: string;
+    gender: string;
+}
+
 function Booking() {
     const { id: storeId } = useParams<{ id: string }>(); // store id
     const [bookings, setBookings] = useState<BookingInterface[]>([]); // All bookings
-    const [pendingBookings, setPendingBookings] = useState<BookingInterface[]>([]); // For pending bookings
-    const [confirmedBookings, setConfirmedBookings] = useState<BookingInterface[]>([]); // For confirmed bookings
-    const [completedBookings, setCompletedBookings] = useState<BookingInterface[]>([]); // For completed bookings
-    const [cancelledBookings, setCancelledBookings] = useState<BookingInterface[]>([]); // For cancelled bookings
     const [loading, setLoading] = useState<boolean>(true);
-    const [petDetails, setPetDetails] = useState<any>(null); // State to store pet details for a specific booking
+    const [petDetails, setPetDetails] = useState<PetDetails[]>([]); // State to store pet details for a specific booking
     const [isModalVisible, setIsModalVisible] = useState(false); // To control modal visibility
     const [searchText, setSearchText] = useState(""); // State for search input
 
@@ -31,10 +38,6 @@ function Booking() {
                         (booking: BookingInterface) => booking.store_id.toString() === storeId
                     );
                     setBookings(filteredBookings);
-                    setPendingBookings(filteredBookings.filter((booking) => booking.status === "pending"));
-                    setConfirmedBookings(filteredBookings.filter((booking) => booking.status === "confirmed"));
-                    setCompletedBookings(filteredBookings.filter((booking) => booking.status === "completed"));
-                    setCancelledBookings(filteredBookings.filter((booking) => booking.status === "cancelled"));
                 } else {
                     message.error("Failed to load bookings.");
                 }
@@ -50,7 +53,23 @@ function Booking() {
 
     const handleUpdateStatus = async (bookingId: number, status: string) => {
         try {
-            const response = await UpdateBookingStatus(bookingId, { status });
+            // Prepare the pets data (you can fetch or pass an empty array if no pets are associated)
+            const petsData: never[] = []; // Use the actual pet data, for example from `petDetails`, or leave it empty if not needed
+    
+            const response = await UpdateBookingStatus(bookingId.toString(), {
+                status,
+                pets: petsData, // Pass an array of pet data
+                BookerUser: undefined,
+                booker_user_id: 0,
+                store_id: 0,
+                service_id: 0,
+                date: "",
+                booking_time: "",
+                total_cost: 0,
+                contact_number: "",
+                count_pet: 0,
+            });
+    
             if (response.status === 200) {
                 message.success("Booking status updated successfully.");
                 setBookings((prevBookings) =>
@@ -58,7 +77,6 @@ function Booking() {
                         booking.ID === bookingId ? { ...booking, status } : booking
                     )
                 );
-                setPendingBookings((prev) => prev.filter((booking) => booking.ID !== bookingId));
             } else {
                 message.error("Failed to update booking status.");
             }
@@ -67,6 +85,8 @@ function Booking() {
             message.error("Error updating status.");
         }
     };
+    
+    
 
     const handleCancelBooking = async (bookingId: number) => {
         await handleUpdateStatus(bookingId, "cancelled");
@@ -79,20 +99,16 @@ function Booking() {
     const handleShowPetDetails = async (bookingId: number) => {
         try {
             const petResponse = await GetAllPets();
-            console.log("Pet Response Data:", petResponse.data); // Log to inspect the response
-
             if (Array.isArray(petResponse.data.data)) {
-                const pets = petResponse.data.data.filter((pet: any) => pet.booking_id === bookingId);
+                const pets = petResponse.data.data.filter((pet: PetDetails) => pet.booking_id === bookingId);
 
                 if (pets.length > 0) {
                     setPetDetails(pets);
                     setIsModalVisible(true);
                 } else {
-                    console.error("No pets found for this booking.");
                     message.error("No pets found for this booking.");
                 }
             } else {
-                console.error("Pet response data is not an array:", petResponse.data);
                 message.error("Pet details are not in the expected format.");
             }
         } catch (error) {
@@ -105,10 +121,12 @@ function Booking() {
         setSearchText(value);
     };
 
-    const filteredBookings = bookings.filter((booking) =>
-        booking.BookerUser?.first_name.toLowerCase().includes(searchText.toLowerCase()) ||
-        booking.BookerUser?.last_name.toLowerCase().includes(searchText.toLowerCase())
-    );
+    const filteredBookings = useMemo(() => {
+        return bookings.filter((booking) =>
+            booking.BookerUser?.first_name.toLowerCase().includes(searchText.toLowerCase()) ||
+            booking.BookerUser?.last_name.toLowerCase().includes(searchText.toLowerCase())
+        );
+    }, [bookings, searchText]);
 
     const columns: ColumnsType<BookingInterface> = [
         {
@@ -137,13 +155,13 @@ function Booking() {
                     {record.status === "pending" && (
                         <>
                             <Button
-                                onClick={() => handleUpdateStatus(record.ID, "confirmed")}
+                                onClick={() => record.ID && handleUpdateStatus(record.ID, "confirmed")}
                                 type="primary"
                             >
                                 Confirm
                             </Button>
                             <Button
-                                onClick={() => handleCancelBooking(record.ID)}
+                                onClick={() => record.ID && handleCancelBooking(record.ID)}
                                 danger
                             >
                                 Cancel
@@ -160,7 +178,7 @@ function Booking() {
                                     borderRadius: "20px",
                                     fontWeight: "bold",
                                 }}
-                                onClick={() => handleCompleteBooking(record.ID)}
+                                onClick={() => record.ID && handleCompleteBooking(record.ID)}
                                 type="primary"
                             >
                                 Complete
@@ -172,8 +190,8 @@ function Booking() {
                                     color: "white",
                                     borderRadius: "20px",
                                     fontWeight: "bold",
-                                }}  
-                                onClick={() => handleCancelBooking(record.ID)}
+                                }}
+                                onClick={() => record.ID && handleCancelBooking(record.ID)}
                                 danger
                             >
                                 Cancel
@@ -181,7 +199,7 @@ function Booking() {
                         </>
                     )}
                     {record.status !== "completed" && record.status !== "cancelled" && (
-                        <Button onClick={() => handleShowPetDetails(record.ID)}>Show Pet Details</Button>
+                        <Button onClick={() => record.ID && handleShowPetDetails(record.ID)}>Show Pet Details</Button>
                     )}
                 </div>
             ),
@@ -233,25 +251,22 @@ function Booking() {
                 footer={null}
                 width={600}
             >
-                {petDetails && petDetails.length > 0 ? (
+                {petDetails.length > 0 ? (
                     <div>
-                        {petDetails.map((pet: { picture_pet: any; name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined; breed: any; age: any; weight: any; vaccinated: any; gender: any; }, index: Key | null | undefined) => (
+                        {petDetails.map((pet: PetDetails, index) => (
                             <div key={index} style={{ marginBottom: "20px" }}>
                                 <Row gutter={16} align="middle">
-                                    {/* Pet image */}
                                     <Col span={6}>
                                         <img
                                             src={pet.picture_pet || "https://via.placeholder.com/100"}
                                             alt={pet.name}
                                             style={{
-                                                width: '100%',  // ขยายให้เต็มความกว้างของคอลัมน์
-                                                height: 'auto', // คงอัตราส่วนความสูง
-                                                borderRadius: '8px' // ถ้าต้องการมุมโค้งเล็กน้อย
+                                                width: "100%",
+                                                height: "auto",
+                                                borderRadius: "8px"
                                             }}
                                         />
                                     </Col>
-
-                                    {/* Pet details */}
                                     <Col span={18}>
                                         <Descriptions bordered column={1} style={{ marginLeft: 20 }}>
                                             <Descriptions.Item label="Pet Name">{pet.name}</Descriptions.Item>

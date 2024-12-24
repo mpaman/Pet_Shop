@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { StoreInterface } from "../../interfaces/Store";
 import { DeleteStoreById, GetAllStores, UpdateStoreStatus, GetUserProfile } from "../../services/https";
 import "./StorePage.css";
+import { BookingInterface } from "../../interfaces/Bookingstore";
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;
@@ -13,7 +14,7 @@ const { Option } = Select;
 function Store() {
     const navigate = useNavigate();
     const [store, setStore] = useState<StoreInterface[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [, setLoading] = useState<boolean>(false);
     const [userId, setUserId] = useState<number | null>(null);
 
     const getUserProfile = async () => {
@@ -30,7 +31,7 @@ function Store() {
         try {
             const res = await GetAllStores();
             const allStores = res.data.data || [];
-            const filteredStores = allStores.filter((store) => store.user_id === userId);
+            const filteredStores = allStores.filter((store: { user_id: number | null; }) => store.user_id === userId);
             setStore(filteredStores);
         } catch (error) {
             console.error("Error fetching stores:", error);
@@ -65,8 +66,22 @@ function Store() {
 
     const handleStatusChange = async (storeId: string, status: string) => {
         try {
-            const payload = { status: status };
-            await UpdateStoreStatus(storeId, payload); // Passing payload to UpdateStoreStatus
+            // Convert storeId to a number before passing it to the payload
+            const payload: BookingInterface = {
+                status: status,
+                store_id: parseInt(storeId), // Convert the string to a number
+                booker_user_id: 0, // Optional or set to a default value
+                service_id: 0, // Optional or set to a default value
+                total_cost: 0, // Optional or set to a default value
+                contact_number: "", // Optional or set to a default value
+                count_pet: 0, // Optional or set to a default value
+                date: "", // Optional or set to a default value
+                booking_time: "",
+                BookerUser: undefined,
+                pets: [] 
+            };
+
+            await UpdateStoreStatus(storeId, payload); // Now this should work
             message.success("อัพเดตสถานะร้านสำเร็จ");
             getStores(); // Refresh store list
         } catch (error) {
@@ -74,6 +89,8 @@ function Store() {
             message.error("เกิดข้อผิดพลาดในการอัพเดตสถานะร้าน");
         }
     };
+
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -234,16 +251,15 @@ function Store() {
                                         color: "white",
                                         fontWeight: "bold",
                                         borderRadius: "20px",
-
                                     }}
                                     icon={<DeleteOutlined />}
-                                    onClick={() => confirmDelete(item.ID)}
+                                    onClick={() => confirmDelete(item.ID?.toString() || '')} // Convert to string or fallback to empty string
                                 >
                                     ลบร้าน
                                 </Button>
                                 <Select
                                     value={item.status}
-                                    onChange={(value) => handleStatusChange(item.ID, value)}
+                                    onChange={(value) => handleStatusChange(item.ID?.toString() || '', value)} // Convert to string or fallback to empty string
                                     style={{ width: 120 }}
                                 >
                                     <Option value="open">เปิด</Option>

@@ -1,5 +1,4 @@
 import { BookingInterface } from "./Bookingstore";
-import { UsersInterface } from "./IUser";
 
 export interface PetInterface {
     id?: number;             // ID ของสัตว์เลี้ยง (optional เพราะอาจยังไม่ได้สร้างใน backend)
@@ -12,6 +11,6 @@ export interface PetInterface {
     weight: number;          // น้ำหนักสัตว์เลี้ยง (kg)
     vaccinated: string;     // สถานะการฉีดวัคซีน
 
-    owner_id: UsersInterface;        // ID ของเจ้าของสัตว์เลี้ยง
-    picture_pet?: string;    // รูปภาพของสัตว์เลี้ยง (base64 หรือ URL)
+    owner_id: number;        // ID ของเจ้าของสัตว์เลี้ยง
+    picture_pet?: string;    
 }

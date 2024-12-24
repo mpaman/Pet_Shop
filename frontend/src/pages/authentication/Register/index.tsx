@@ -25,20 +25,22 @@ function SignUpPages() {
     const onFinish = async (values: UsersInterface) => {
         // Convert image to base64
         const file = fileList[0]?.originFileObj;
-        let base64Image = '';
+        let base64Image: string | null = null;
         if (file) {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onloadend = async () => {
-                base64Image = reader.result;
-                const payload = { ...values, profile: base64Image };
-                const res = await CreateUser(payload);
-    
-                if (res.status === 201) {
-                    messageApi.success("สมัครสมาชิกสำเร็จ!");
-                    setTimeout(() => navigate("/"), 2000);
-                } else {
-                    messageApi.error(res.data.error || "เกิดข้อผิดพลาด!");
+                if (reader.result && typeof reader.result === "string") {
+                    base64Image = reader.result;
+                    const payload = { ...values, profile: base64Image };
+                    const res = await CreateUser(payload);
+
+                    if (res.status === 201) {
+                        messageApi.success("สมัครสมาชิกสำเร็จ!");
+                        setTimeout(() => navigate("/"), 2000);
+                    } else {
+                        messageApi.error(res.data.error || "เกิดข้อผิดพลาด!");
+                    }
                 }
             };
         }

@@ -5,6 +5,7 @@ import { BookingInterface } from "../../interfaces/Bookingstore";
 import { GetAllBookings, GetUserProfile, GetStoreByID, DeleteBooking } from "../../services/https";
 import { Link } from "react-router-dom";
 import moment from "moment";
+import { UserOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
@@ -13,13 +14,12 @@ function TotalBooking() {
     const [loading, setLoading] = useState<boolean>(true);
     const [userId, setUserId] = useState<number | null>(null);
 
-    // ดึงข้อมูลโปรไฟล์ผู้ใช้
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
                 const response = await GetUserProfile();
                 if (response?.ID) {
-                    setUserId(response.ID); // บันทึก User ID
+                    setUserId(response.ID); // Save User ID
                 } else {
                     message.error("User profile not found.");
                 }
@@ -31,7 +31,6 @@ function TotalBooking() {
         fetchUserProfile();
     }, []);
 
-    // ดึงข้อมูลการจอง
     useEffect(() => {
         const fetchBookings = async () => {
             setLoading(true);
@@ -43,10 +42,11 @@ function TotalBooking() {
                     );
                     const bookingsWithStoreData = await Promise.all(
                         filteredBookings.map(async (booking: BookingInterface) => {
-                            const storeResponse = await GetStoreByID(booking.store_id);
+                            // Convert store_id to string
+                            const storeResponse = await GetStoreByID(booking.store_id.toString());
                             return {
                                 ...booking,
-                                Store: storeResponse.data, // เพิ่มข้อมูลร้านค้า
+                                Store: storeResponse.data, // Add store data
                             };
                         })
                     );
@@ -66,13 +66,13 @@ function TotalBooking() {
             fetchBookings();
         }
     }, [userId]);
-    
+
     const handleDeleteBooking = async (bookingId: number) => {
         try {
-            const response = await DeleteBooking(bookingId); // เรียก API ลบการจอง
+            // Convert bookingId to string
+            const response = await DeleteBooking(bookingId.toString());
             if (response.status === 200) {
                 message.success("Booking canceled successfully.");
-                // อัปเดตข้อมูลตารางหลังลบ
                 setBookings((prevBookings) =>
                     prevBookings.filter((booking) => booking.ID !== bookingId)
                 );
@@ -85,7 +85,6 @@ function TotalBooking() {
         }
     };
 
-    // คอลัมน์ของตาราง
     const columns: ColumnsType<BookingInterface> = [
         {
             title: "Profile Image",
@@ -93,13 +92,10 @@ function TotalBooking() {
             key: "profile_image",
             render: (_, record) => {
                 const profileImage = record.Store?.profile_image;
-                return (
-                    <Avatar
-                        src={profileImage || null} // ใช้ profile_image หากมีค่า
-                        alt="Profile"
-                        size={64} // ขนาด Avatar
-                        style={{ marginRight: "8px" }}
-                    />
+                return profileImage ? (
+                    <Avatar src={profileImage} alt="Profile" size={64} style={{ marginRight: "8px" }} />
+                ) : (
+                    <Avatar icon={<UserOutlined />} size={64} style={{ marginRight: "8px" }} />
                 );
             },
         },
@@ -139,7 +135,7 @@ function TotalBooking() {
             ),
         },
         {
-            title: "Actions", // คอลัมน์สำหรับปุ่มยกเลิก
+            title: "Actions",
             key: "actions",
             render: (record) => (
                 <Popconfirm
@@ -156,7 +152,6 @@ function TotalBooking() {
         },
     ];
 
-    
     return (
         <div style={{ padding: "20px", display: "flex", justifyContent: "center" }}>
             <div style={{ width: "100%", maxWidth: "1000px" }}>
@@ -168,7 +163,7 @@ function TotalBooking() {
                         columns={columns}
                         dataSource={bookings}
                         rowKey="ID"
-                        pagination={{ pageSize: 5 }} // เพิ่ม Pagination
+                        pagination={{ pageSize: 5 }}
                     />
                 )}
             </div>

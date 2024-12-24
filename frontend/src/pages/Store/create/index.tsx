@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Form, Input, Button, Select, TimePicker, Upload, message, InputNumber, Divider, Row, Col } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from "react-router-dom";
 import { CreateStore as CreateNewStore, CreateStoreImage, CreateService } from '../../../services/https';
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
-import "./createstore.css";
 import ImgCrop from 'antd-img-crop';
+import "./createstore.css";
+
+import { ServiceInterface } from "../../../interfaces/Service";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -18,63 +20,56 @@ const provinces = [
 ];
 
 function CreateStore() {
-    const [storeImages, setStoreImages] = useState([]);
-    const [services, setServices] = useState([]);
+    const [storeImages, setStoreImages] = useState<any[]>([]); // Add appropriate type
+    const [services, setServices] = useState<ServiceInterface[]>([]); // Use ServiceInterface[]
     const navigate = useNavigate();
-    const [fileList, setFileList] = useState([]);
+    const [fileList, setFileList] = useState<any[]>([]); // Add appropriate type
     const [latitude, setLatitude] = useState(13.736717); // Default: กรุงเทพฯ
     const [longitude, setLongitude] = useState(100.523186);
 
     const addService = () => {
-        setServices([
-            ...services,
-            {
-                price: 0,
-                duration: 0,
-                name_service: '',
-                category_pet: '',
-                description: '',
-            },
-        ]);
+        setServices([...services, {
+            price: 0,
+            duration: 0,
+            name_service: '',
+            category_pet: '',
+            store_id: 0
+        }]);
     };
-
+    // Add default services
     const addDefaultServices = () => {
-        const defaultServices = [
+        const defaultServices: ServiceInterface[] = [
             {
+                store_id: 1, // Example store_id
                 name_service: "บริการกรูมมิ่ง",
                 category_pet: "dog",
                 duration: 60,
                 price: 500,
-                description: "บริการตัดแต่งขนและดูแลความสะอาดสำหรับสัตว์เลี้ยง",
             },
             {
+                store_id: 1, // Example store_id
                 name_service: "อาบน้ำสัตว์เลี้ยง",
                 category_pet: "dog",
                 duration: 30,
                 price: 300,
-                description: "อาบน้ำสัตว์เลี้ยงด้วยแชมพูและผลิตภัณฑ์พิเศษ",
             },
             {
+                store_id: 1, // Example store_id
                 name_service: "ฝากสัตว์เลี้ยง",
                 category_pet: "dog",
                 duration: 1440, // 1 วัน
                 price: 800,
-                description: "บริการฝากเลี้ยงสัตว์ในสถานที่ปลอดภัย",
             },
         ];
 
         setServices([...services, ...defaultServices]);
     };
 
-    const handleRemoveImage = (file) => {
-        setStoreImages(storeImages.filter((image) => image.uid !== file.uid));
-        message.success("Image removed successfully");
-    };
-
-    const handleRemoveService = (index) => {
+    const handleRemoveService = (index: number) => {
         setServices(services.filter((_, i) => i !== index));
     };
-    const onFinish = async (values) => {
+
+    const onFinish = async (values: any) => {
         try {
             if (fileList.length === 0) {
                 message.error("Please upload a profile image");
@@ -82,23 +77,24 @@ function CreateStore() {
             }
 
             const profileImageFile = fileList[0].originFileObj;
-            const profileImageBase64 = await new Promise((resolve, reject) => {
+            const profileImageBase64 = await new Promise<string>((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(profileImageFile);
-                reader.onload = () => resolve(reader.result);
+                reader.onload = () => resolve(reader.result as string);  // Ensure the result is treated as a string
                 reader.onerror = (error) => reject(error);
             });
 
+
             const storeData = {
-                user_id: 1, // ตัวอย่างการใส่ User ID
+                user_id: 1, // Example user_id
                 name: values.name,
                 profile_image: profileImageBase64,
                 district: values.district,
                 province: values.province,
+                description: values.description,
                 latitude,
                 longitude,
                 contact_info: values.contact_info,
-                description: values.description.replace(/\n/g, "<br/>"),
                 time_open: values.time_open.format("HH:mm"),
                 time_close: values.time_close.format("HH:mm"),
                 status: values.status,
@@ -145,10 +141,8 @@ function CreateStore() {
         }
     };
 
-
-
-    const handleChangeImage = ({ fileList }) => {
-        const processedFiles = fileList.map((file) => {
+    const handleChangeImage = ({ fileList }: any) => {
+        const processedFiles = fileList.map((file: any) => {
             if (file.originFileObj) {
                 const reader = new FileReader();
                 reader.readAsDataURL(file.originFileObj);
@@ -162,9 +156,9 @@ function CreateStore() {
         Promise.all(processedFiles).then((results) => setStoreImages(results));
     };
 
-    const onChange = ({ fileList: newFileList }) => setFileList(newFileList);
+    const onChange = ({ fileList: newFileList }: any) => setFileList(newFileList);
 
-    const handleMapClick = (e) => {
+    const handleMapClick = (e: any) => {
         setLatitude(e.latlng.lat);
         setLongitude(e.latlng.lng);
         message.success(`Updated location: Lat ${e.latlng.lat}, Lng ${e.latlng.lng}`);
@@ -201,7 +195,6 @@ function CreateStore() {
                         </Upload>
                     </ImgCrop>
                 </Form.Item>
-
 
                 <Row gutter={16}>
                     <Col span={12}>
@@ -257,6 +250,7 @@ function CreateStore() {
                 <Form.Item label="Description" name="description">
                     <TextArea rows={4} placeholder="Describe the store" />
                 </Form.Item>
+
                 <Row gutter={16}>
                     <Col span={12}>
                         <Form.Item label="Opening Time" name="time_open" rules={[{ required: true, message: 'Please select opening time!' }]}>
@@ -281,13 +275,11 @@ function CreateStore() {
 
                 <Divider />
                 <h3>Upload Images</h3>
-                <Upload listType="picture-card" fileList={storeImages} onChange={handleChangeImage} onRemove={handleRemoveImage}>
-                    {storeImages.length < 5 && (
-                        <div>
-                            <PlusOutlined />
-                            <div style={{ marginTop: 8 }}>Upload</div>
-                        </div>
-                    )}
+                <Upload listType="picture-card" fileList={storeImages} onChange={handleChangeImage} beforeUpload={() => false} maxCount={5}>
+                    <div>
+                        <PlusOutlined />
+                        <div style={{ marginTop: 8 }}>อัพโหลด</div>
+                    </div>
                 </Upload>
 
                 <Divider />
@@ -322,11 +314,16 @@ function CreateStore() {
                         </Col>
                         <Col span={4}>
                             <Form.Item label="Price">
-                                <InputNumber min={0} value={service.price} onChange={(value) => setServices(services.map((s, i) => i === index ? { ...s, price: value } : s))} />
+                                <InputNumber
+                                    min={0}
+                                    value={service.price ?? 0}
+                                    onChange={(value) => setServices(services.map((s, i) => i === index ? { ...s, price: value || 0 } : s))}
+                                />
+
                             </Form.Item>
                         </Col>
                         <Col span={2}>
-                            <Button type="danger" icon={<DeleteOutlined />} onClick={() => handleRemoveService(index)} />
+                            <Button style={{ backgroundColor: 'red', color: 'white' }} icon={<DeleteOutlined />} onClick={() => handleRemoveService(index)} />
                         </Col>
                     </Row>
                 ))}
@@ -335,9 +332,13 @@ function CreateStore() {
                     Add Service
                 </Button>
 
-                <Button type="primary" htmlType="submit" style={{ marginTop: "20px" }}>
-                    Create Store
-                </Button>
+
+
+                <Form.Item>
+                    <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+                        Create Store
+                    </Button>
+                </Form.Item>
             </Form>
         </div>
     );
