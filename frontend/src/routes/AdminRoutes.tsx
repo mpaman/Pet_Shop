@@ -14,11 +14,11 @@ const EditStore = Loadable(lazy(() => import("../pages/Store/edit")));
 const EditService = Loadable(lazy(() => import("../pages/Store/edit/service/index")));
 const CreateStore = Loadable(lazy(() => import("../pages/Store/create")));
 const Booking = Loadable(lazy(() => import("../pages/Store/booking")));
-const  Instore = Loadable(lazy(() => import("../pages/Instore")));
-const  BookingStore = Loadable(lazy(() => import("../pages/BookingStore")));
-const  TotalBooking = Loadable(lazy(() => import("../pages/TotalBooking")));
-const  AppStore = Loadable(lazy(() => import("../pages/AppStore")));
-const  Admin = Loadable(lazy(() => import("../pages/Admin")));
+const Instore = Loadable(lazy(() => import("../pages/Instore")));
+const BookingStore = Loadable(lazy(() => import("../pages/BookingStore")));
+const TotalBooking = Loadable(lazy(() => import("../pages/TotalBooking")));
+const AppStore = Loadable(lazy(() => import("../pages/AppStore")));
+const Admin = Loadable(lazy(() => import("../pages/Admin")));
 
 const AdminRoutes = (isLoggedIn: boolean): RouteObject => {
     return {
@@ -64,18 +64,19 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject => {
                 element: <SearchStore />
             },
             {
-                path: "totalbooking",
-                element: <TotalBooking />
-            },
-            {
                 path: "stores/:storeId",
                 element: <Instore />
             },
             {
+                path: "totalbooking",
+                element: <TotalBooking />
+            },
+
+            {
                 path: "stores/:storeId/booking",
                 element: <BookingStore />
             }
-            
+
         ],
     };
 };

@@ -107,7 +107,7 @@ function Store() {
                 <Col>
                     <Title level={2} style={{ color: "#1D3557" }}>จัดการร้านค้า</Title>
                 </Col>
-                <Col>
+                <Col style={{ textAlign: "left" }}>
                     {store.length === 0 && (
                         <Button
                             style={{
@@ -123,6 +123,7 @@ function Store() {
                     )}
                 </Col>
             </Row>
+
             <Row gutter={[24, 24]} justify="center">
                 {store.map((item) => (
                     <Col key={item.ID} xs={24} sm={12} md={8} lg={6}>

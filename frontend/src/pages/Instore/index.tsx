@@ -149,9 +149,22 @@ const StorePage: React.FC = () => {
                             About
                         </Title>
                         <Paragraph
-                            style={{ textAlign: "justify", lineHeight: 1.8 }}
+                            className="preformatted-text"
+                            style={{
+                                textAlign: "justify",
+                                lineHeight: 1.8,
+                                padding: "0 15px",
+                            }}
                         >
-                            {store?.description || "No description available."}
+                            {store?.description ? (
+                                <span
+                                    dangerouslySetInnerHTML={{
+                                        __html: store?.description,
+                                    }}
+                                />
+                            ) : (
+                                "ไม่มีคำอธิบาย"
+                            )}
                         </Paragraph>
                     </div>
 
@@ -296,17 +309,19 @@ const StorePage: React.FC = () => {
                                 <Link to={`/stores/${storeId}/booking`}>
                                     <Button
                                         block
+                                        disabled={store?.status !== "open"} 
                                         style={{
                                             marginTop: "10px",
-                                            background: "#E63946",
+                                            background: store?.status === "open" ? "#E63946" : "#8D99AE",
                                             color: "white",
                                             borderRadius: "20px",
                                             fontWeight: "bold",
                                         }}
                                     >
-                                        Book Now
+                                        {store?.status === "open" ? "Book Now" : "ไม่สามารถจองได้"}
                                     </Button>
                                 </Link>
+
                             </Card>
                         </div>
                     )}

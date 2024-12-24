@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Layout, Button, message, Breadcrumb, Avatar } from "antd";
-import { UserOutlined, HomeOutlined, BookOutlined, ShopOutlined } from "@ant-design/icons";
+import { Layout, Button, message, Breadcrumb} from "antd";
+import {  HomeOutlined, BookOutlined, ShopOutlined } from "@ant-design/icons";
 import { Link, Routes, Route, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import Store from "../../pages/Store/index";
@@ -20,7 +20,6 @@ const { Header, Content, Footer } = Layout;
 
 const FullLayout: React.FC = () => {
     const [messageApi, contextHolder] = message.useMessage();
-    const [profile, setProfile] = useState<any>(null);
     const navigate = useNavigate();
 
     const Logout = () => {
@@ -134,7 +133,7 @@ const FullLayout: React.FC = () => {
                                     marginRight: 8,
                                 }}
                             />
-                            
+
                             Appstore
                         </Link>
                     </Button>
@@ -156,7 +155,7 @@ const FullLayout: React.FC = () => {
                             border: "none",
                             color: "#775342",
                             fontWeight: "bold",
-                            borderRadius: "4px",
+                            borderRadius: "20px",
                             padding: "8px 16px",
                         }}
                     >

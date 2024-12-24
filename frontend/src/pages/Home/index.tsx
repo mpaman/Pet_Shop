@@ -13,12 +13,12 @@ function Home() {
 
     return (
         <>
-                                            <Link to={`/stores`}>
-                                                <Button
-                                                >
-                                                    Book Now
-                                                </Button>
-                                            </Link>
+            <Link to={`/stores`}>
+                <Button
+                >
+                    Book Now
+                </Button>
+            </Link>
         </>
     );
 }

@@ -55,34 +55,6 @@ async function CreateUser(data: UsersInterface) {
         .then((res) => res)
         .catch((e) => e.response);
 }
-
-// Store API calls
-async function GetAllStores() {
-    return await axios.get(`${apiUrl}/stores`, requestOptions)
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-
-
-async function DeleteStoreById(id: string) {
-    return await axios.delete(`${apiUrl}/store/${id}`, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-
-
-async function DeleteService(id: string) {
-    return await axios.delete(`${apiUrl}/service/${id}`, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-async function DeleteStoreImage(id: string) {
-    return await axios.delete(`${apiUrl}/storeimage/${id}`, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-
-
 export const GetUserProfile = async (): Promise<any> => {
     if (!token) throw new Error("No token found");
 
@@ -106,8 +78,64 @@ export const GetUserProfile = async (): Promise<any> => {
 };
 
 
+//Store
+async function GetAllStores() {
+    return await axios.get(`${apiUrl}/stores`, requestOptions)
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function DeleteStoreById(id: string) {
+    return await axios.delete(`${apiUrl}/store/${id}`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
 async function CreateStore(data: StoreInterface) {
     return await axios.post(`${apiUrl}/store`, data, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function GetStoreByID(id: string) {
+    return await axios.get(`${apiUrl}/store/${id}`, requestOptions)
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function UpdateStore(id: string, data: StoreInterface) {
+    return await axios.put(`${apiUrl}/store/${id}`, data, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+
+//storeimage
+async function CreateStoreImage(data: StoreImageInterface) {
+    return await axios.post(`${apiUrl}/storeimage`, data, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function GetStoreImages(id: string) {
+    return await axios.get(`${apiUrl}/storeimages/${id}`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function GetAllStoreImage() {
+    return await axios.get(`${apiUrl}/storeimagess`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function DeleteStoreImage(id: string) {
+    return await axios.delete(`${apiUrl}/storeimage/${id}`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+//service
+async function UpdateService(id: string, data: ServiceInterface) {
+    return await axios.put(`${apiUrl}/service/${id}`, data, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function GetServiceByStoreID(id: string) {
+    return await axios.get(`${apiUrl}/service/${id}`, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
@@ -116,60 +144,21 @@ async function CreateService(data: ServiceInterface) {
         .then((res) => res)
         .catch((e) => e.response);
 }
-async function CreateStoreImage(data: StoreImageInterface) {
-    return await axios.post(`${apiUrl}/storeimage`, data, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-
-
-async function UpdateStore(id: string, data: StoreInterface) {
-    return await axios.put(`${apiUrl}/store/${id}`, data, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-
-async function UpdateService(id: string, data: ServiceInterface) {
-    return await axios.put(`${apiUrl}/service/${id}`, data, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-
-
-async function GetStoreImages(id: string) {
-    return await axios.get(`${apiUrl}/storeimages/${id}`, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-
-async function GetServiceByStoreID(id: string) {
-    return await axios.get(`${apiUrl}/service/${id}`, { headers: requestOptions.headers })
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-
-async function GetStoreByID(id: string) {
-    return await axios.get(`${apiUrl}/store/${id}`, requestOptions)
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-
-
 async function GetAllService() {
     return await axios.get(`${apiUrl}/services`, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
-
-
-async function GetAllStoreImage() {
-    return await axios.get(`${apiUrl}/storeimagess`, { headers: requestOptions.headers })
+async function DeleteService(id: string) {
+    return await axios.delete(`${apiUrl}/service/${id}`, { headers: requestOptions.headers })
         .then((res) => res)
         .catch((e) => e.response);
 }
 
 
 
+
+//BookingStore
 async function CreateBooking(data: BookingInterface) {
     return await axios.post(`${apiUrl}/booking`, data, { headers: requestOptions.headers })
         .then((res) => res)
@@ -247,7 +236,6 @@ async function UpdatePetStoreApplicationStatus(id: string, data: { status: strin
         .then((res) => res)
         .catch((e) => e.response);
 }
-
 async function DeletePetStoreApplication(id: string) {
     return await axios.delete(`${apiUrl}/application/${id}`, { headers: requestOptions.headers })
         .then((res) => res)
