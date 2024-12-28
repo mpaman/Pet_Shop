@@ -66,31 +66,28 @@ function Store() {
 
     const handleStatusChange = async (storeId: string, status: string) => {
         try {
-            // Convert storeId to a number before passing it to the payload
             const payload: BookingInterface = {
                 status: status,
-                store_id: parseInt(storeId), // Convert the string to a number
-                booker_user_id: 0, // Optional or set to a default value
-                service_id: 0, // Optional or set to a default value
-                total_cost: 0, // Optional or set to a default value
-                contact_number: "", // Optional or set to a default value
-                count_pet: 0, // Optional or set to a default value
-                date: "", // Optional or set to a default value
+                store_id: parseInt(storeId),
+                booker_user_id: 0,
+                service_id: 0,
+                total_cost: 0,
+                contact_number: "",
+                count_pet: 0,
+                date: "",
                 booking_time: "",
                 BookerUser: undefined,
                 pets: [] 
             };
 
-            await UpdateStoreStatus(storeId, payload); // Now this should work
+            await UpdateStoreStatus(storeId, payload); 
             message.success("อัพเดตสถานะร้านสำเร็จ");
-            getStores(); // Refresh store list
+            getStores(); 
         } catch (error) {
             console.error("Error updating status:", error);
             message.error("เกิดข้อผิดพลาดในการอัพเดตสถานะร้าน");
         }
     };
-
-
 
     useEffect(() => {
         const fetchData = async () => {
@@ -108,13 +105,13 @@ function Store() {
     const statusColor = (status: string) => {
         switch (status) {
             case "open":
-                return "#2A9D8F"; // Green
+                return "#2A9D8F"; 
             case "close":
-                return "#F4A261"; // Orange
+                return "#F4A261"; 
             case "full":
-                return "#E63946"; // Red
+                return "#E63946"; 
             default:
-                return "#8D99AE"; // Gray
+                return "#8D99AE"; 
         }
     };
 
@@ -124,21 +121,22 @@ function Store() {
                 <Col>
                     <Title level={2} style={{ color: "#1D3557" }}>จัดการร้านค้า</Title>
                 </Col>
-                <Col style={{ textAlign: "left" }}>
-                    {store.length === 0 && (
-                        <Button
-                            style={{
-                                background: "#2A9D8F",
-                                color: "white",
-                                fontWeight: "bold",
-                            }}
-                            icon={<PlusOutlined />}
-                            onClick={() => navigate("/store/create")}
-                        >
-                            เพิ่มร้านค้า
-                        </Button>
-                    )}
-                </Col>
+            </Row>
+
+            <Row justify="center" style={{ marginBottom: 20 }}>
+                {store.length === 0 && (
+                    <Button
+                        style={{
+                            background: "#2A9D8F",
+                            color: "white",
+                            fontWeight: "bold",
+                        }}
+                        icon={<PlusOutlined />}
+                        onClick={() => navigate("/store/create")}
+                    >
+                        เพิ่มร้านค้า
+                    </Button>
+                )}
             </Row>
 
             <Row gutter={[24, 24]} justify="center">
@@ -197,7 +195,7 @@ function Store() {
                                     style={{
                                         background: "#E63946",
                                         color: "white",
-                                        width: "150px", /* ความกว้าง */
+                                        width: "150px", 
                                         borderRadius: "20px",
                                     }}
                                     icon={<EditOutlined />}
@@ -210,8 +208,7 @@ function Store() {
                                         background: "#F4A261",
                                         color: "white",
                                         borderRadius: "20px",
-                                        width: "150px", /* ความกว้าง */
-
+                                        width: "150px", 
                                     }}
                                     icon={<EditOutlined />}
                                     onClick={() => navigate(`/store/edit/service/${item.ID}`)}
@@ -223,8 +220,7 @@ function Store() {
                                         background: "#2A9D8F",
                                         color: "white",
                                         borderRadius: "20px",
-                                        width: "150px", /* ความกว้าง */
-
+                                        width: "150px", 
                                     }}
                                     icon={<EyeOutlined />}
                                     onClick={() => navigate(`/store/booking/${item.ID}`)}
@@ -237,8 +233,7 @@ function Store() {
                                         color: "white",
                                         borderRadius: "20px",
                                         fontWeight: "bold",
-                                        width: "150px", /* ความกว้าง */
-
+                                        width: "150px", 
                                     }}
                                     icon={<AppstoreAddOutlined />}
                                     onClick={() => navigate(`/stores/${item.ID}`)}
@@ -253,13 +248,13 @@ function Store() {
                                         borderRadius: "20px",
                                     }}
                                     icon={<DeleteOutlined />}
-                                    onClick={() => confirmDelete(item.ID?.toString() || '')} // Convert to string or fallback to empty string
+                                    onClick={() => confirmDelete(item.ID?.toString() || '')} 
                                 >
                                     ลบร้าน
                                 </Button>
                                 <Select
                                     value={item.status}
-                                    onChange={(value) => handleStatusChange(item.ID?.toString() || '', value)} // Convert to string or fallback to empty string
+                                    onChange={(value) => handleStatusChange(item.ID?.toString() || '', value)} 
                                     style={{ width: 120 }}
                                 >
                                     <Option value="open">เปิด</Option>

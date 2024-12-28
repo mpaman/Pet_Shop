@@ -42,14 +42,14 @@ function TotalBooking() {
                     );
                     const bookingsWithStoreData = await Promise.all(
                         filteredBookings.map(async (booking: BookingInterface) => {
-                            // Convert store_id to string
                             const storeResponse = await GetStoreByID(booking.store_id.toString());
                             return {
                                 ...booking,
-                                Store: storeResponse.data, // Add store data
+                                Store: storeResponse.data, // ดึงแค่ Store แต่ไม่ดึง Service
                             };
                         })
                     );
+
                     setBookings(bookingsWithStoreData);
                 } else {
                     message.error("Failed to load bookings.");
@@ -110,7 +110,7 @@ function TotalBooking() {
             dataIndex: "Service",
             key: "service",
             render: (_, record) => record.Service?.name_service || "N/A",
-        },
+        },        
         {
             title: "Date",
             dataIndex: "date",

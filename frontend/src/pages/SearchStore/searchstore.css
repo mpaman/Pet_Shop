@@ -1,0 +1,37 @@
+.container {
+    margin-top: 20px;
+}
+
+.select-service, .input-search {
+    width: 100%;
+}
+
+.search-section {
+    margin-top: 10px;
+}
+
+.card-container {
+    margin-top: 20px;
+}
+
+.card-item {
+    margin-bottom: 20px;
+    transition: box-shadow 0.3s ease;
+}
+
+.card-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-image {
+    margin-right: 10px;
+}
+
+.map-container {
+    height: 80vh;
+    width: 100%;
+}
+
+.pagination {
+    margin-top: 20px;
+}

@@ -12,6 +12,7 @@ import { ServiceInterface } from "../../../interfaces/Service";
 const { TextArea } = Input;
 const { Option } = Select;
 
+// ต้องแก้ เป็นเก็บ แบบ entity
 const provinces = [
     "กรุงเทพมหานคร", "เชียงใหม่", "เชียงราย", "ชลบุรี", "กระบี่", "ภูเก็ต",
     "นนทบุรี", "ปทุมธานี", "สมุทรปราการ", "ขอนแก่น", "สุราษฎร์ธานี",
@@ -26,6 +27,7 @@ function CreateStore() {
     const [fileList, setFileList] = useState<any[]>([]); // Add appropriate type
     const [latitude, setLatitude] = useState(13.736717); // Default: กรุงเทพฯ
     const [longitude, setLongitude] = useState(100.523186);
+    const [messageApi, contextHolder] = message.useMessage();
 
     const addService = () => {
         setServices([...services, {
@@ -40,21 +42,21 @@ function CreateStore() {
     const addDefaultServices = () => {
         const defaultServices: ServiceInterface[] = [
             {
-                store_id: 1, // Example store_id
+                store_id: 1, 
                 name_service: "บริการกรูมมิ่ง",
                 category_pet: "dog",
                 duration: 60,
                 price: 500,
             },
             {
-                store_id: 1, // Example store_id
+                store_id: 1, 
                 name_service: "อาบน้ำสัตว์เลี้ยง",
                 category_pet: "dog",
                 duration: 30,
                 price: 300,
             },
             {
-                store_id: 1, // Example store_id
+                store_id: 1, 
                 name_service: "ฝากสัตว์เลี้ยง",
                 category_pet: "dog",
                 duration: 1440, // 1 วัน
@@ -72,9 +74,24 @@ function CreateStore() {
     const onFinish = async (values: any) => {
         try {
             if (fileList.length === 0) {
-                message.error("Please upload a profile image");
+                await messageApi.open({
+                    className: "error-message", 
+                    type: "error", 
+                    content: "Please upload a profile image",
+                    duration: 3, 
+                });
                 return;
             }
+            if (services.length === 0) {
+                await messageApi.open({
+                    className: "error-message",
+                    type: "error",
+                    content: "Please add at least 1 service.",
+                    duration: 3,
+                });
+                return;
+            }
+            
 
             const profileImageFile = fileList[0].originFileObj;
             const profileImageBase64 = await new Promise<string>((resolve, reject) => {
@@ -83,7 +100,6 @@ function CreateStore() {
                 reader.onload = () => resolve(reader.result as string);  // Ensure the result is treated as a string
                 reader.onerror = (error) => reject(error);
             });
-
 
             const storeData = {
                 user_id: 1, // Example user_id
@@ -106,7 +122,6 @@ function CreateStore() {
             if (response.status === 201) {
                 const storeId = response.data.store_id;
 
-                // Upload images
                 if (storeImages.length > 0) {
                     await Promise.all(
                         storeImages.map((file) =>
@@ -115,7 +130,6 @@ function CreateStore() {
                     );
                 }
 
-                // Upload services
                 if (services.length > 0) {
                     await Promise.all(
                         services.map((service) =>
@@ -130,7 +144,13 @@ function CreateStore() {
                     );
                 }
 
-                message.success("Store created successfully!");
+
+                await messageApi.open({
+                    className: "success-message",
+                    type: "success",
+                    content: "สร้าง-Store-สำเร็จ",
+                    duration: 3,
+                });
                 navigate(`/store`);
             } else {
                 throw new Error("Failed to create store");
@@ -140,6 +160,7 @@ function CreateStore() {
             message.error("Failed to create store");
         }
     };
+
 
     const handleChangeImage = ({ fileList }: any) => {
         const processedFiles = fileList.map((file: any) => {
@@ -173,17 +194,18 @@ function CreateStore() {
 
     return (
         <div className="create-store-container" style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+            {contextHolder}
             <Form layout="vertical" onFinish={onFinish} style={{ width: '100%', maxWidth: '800px' }}>
                 <h2>Create Store</h2>
                 <Divider />
 
-                <Form.Item label="Profile Image" name="profile_image">
+                <Form.Item label="Profile Image" name="profile_image" >
                     <ImgCrop rotationSlider>
                         <Upload
                             listType="picture-card"
                             fileList={fileList}
                             onChange={onChange}
-                            beforeUpload={() => false} // Prevent direct upload
+                            beforeUpload={() => false}
                             maxCount={1}
                         >
                             {fileList.length < 1 && (
@@ -247,7 +269,7 @@ function CreateStore() {
                     <Input placeholder="Enter contact information" />
                 </Form.Item>
 
-                <Form.Item label="Description" name="description">
+                <Form.Item label="Description" name="description" rules={[{ required: true, message: 'Please input the store description!' }]}>
                     <TextArea rows={4} placeholder="Describe the store" />
                 </Form.Item>
 
@@ -290,12 +312,12 @@ function CreateStore() {
                 {services.map((service, index) => (
                     <Row key={index} gutter={16}>
                         <Col span={6}>
-                            <Form.Item label={`Service Name ${index + 1}`}>
+                            <Form.Item label={`Service Name ${index + 1}`} rules={[{ required: true, message: 'Please input Service Name!' }]}>
                                 <Input value={service.name_service} onChange={(e) => setServices(services.map((s, i) => i === index ? { ...s, name_service: e.target.value } : s))} />
                             </Form.Item>
                         </Col>
                         <Col span={5}>
-                            <Form.Item label="Pet Category">
+                            <Form.Item label="Pet Category" rules={[{ required: true, message: 'Please input store Pet Category!' }]}>
                                 <Select value={service.category_pet} onChange={(value) => setServices(services.map((s, i) => i === index ? { ...s, category_pet: value } : s))}>
                                     <Option value="dog">Dog</Option>
                                     <Option value="cat">Cat</Option>
@@ -304,7 +326,7 @@ function CreateStore() {
                         </Col>
 
                         <Col span={5}>
-                            <Form.Item label="Duration (minutes)">
+                            <Form.Item label="Duration (minutes)" rules={[{ required: true, message: 'Please input store Duration!' }]}>
                                 <InputNumber placeholder="Duration" min={1} style={{ width: '100%' }} value={service.duration} onChange={(value) => {
                                     const updatedServices = [...services];
                                     updatedServices[index].duration = value || 0;
@@ -313,7 +335,7 @@ function CreateStore() {
                             </Form.Item>
                         </Col>
                         <Col span={4}>
-                            <Form.Item label="Price">
+                            <Form.Item label="Price" rules={[{ required: true, message: 'Please input store Price!' }]}>
                                 <InputNumber
                                     min={0}
                                     value={service.price ?? 0}

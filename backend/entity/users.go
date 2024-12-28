@@ -15,4 +15,6 @@ type Users struct {
 	Role      string `json:"role"`      
 	Address   string `json:"address"`
 	Profile   string `gorm:"type:longtext"`
+
+	//phone
 }
