@@ -102,6 +102,8 @@ function StoreList() {
         setCurrentPage(1);
     }, [searchTerm, selectedService, stores]);
 
+    
+
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     const currentStores = filteredStores.slice(startIndex, endIndex);
@@ -215,6 +217,8 @@ function StoreList() {
                         center={[13.736717, 100.523186]} // เริ่มต้นที่กรุงเทพ
                         zoom={6}
                         style={{ height: "80vh", width: "100%" }}
+                        className="map-container"
+
                     >
                         <TileLayer
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

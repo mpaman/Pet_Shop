@@ -7,6 +7,7 @@ import { StoreInterface } from '../../interfaces/Store';
 import { StoreImageInterface } from '../../interfaces/Storeimage';
 import { PetStoreApplicationInterface } from '../../interfaces/Petstoreapp';
 import { PetInterface } from "../../interfaces/Pet";
+import { ServiceareaInterface } from "../../interfaces/servicearea";
 const apiUrl = "http://localhost:8000";
 const token = localStorage.getItem("token");
 const tokenType = localStorage.getItem("token_type");
@@ -77,10 +78,15 @@ export const GetUserProfile = async (): Promise<any> => {
     }
 };
 
-
-//Store
 async function GetAllStores() {
     return await axios.get(`${apiUrl}/stores`, requestOptions)
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
+//Store
+async function GetAllservicearea() {
+    return await axios.get(`${apiUrl}/serviceareas`, requestOptions)
         .then((res) => res)
         .catch((e) => e.response);
 }
@@ -252,6 +258,8 @@ export {
     UpdateUsersById,
     DeleteUsersById,
     CreateUser,
+
+    GetAllservicearea,
 
     CreatePetStoreApplication,GetAllApplications,GetApplicationByID,UpdatePetStoreApplicationStatus,DeletePetStoreApplication,
     CreatePet,UpdatePet,DeletePet,GetAllPets,

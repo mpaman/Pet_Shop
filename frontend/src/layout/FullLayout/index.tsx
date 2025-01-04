@@ -1,7 +1,8 @@
-import React from "react";
-import { Layout, Button, message, Breadcrumb} from "antd";
-import {  HomeOutlined, BookOutlined, ShopOutlined } from "@ant-design/icons";
+import React, { useEffect, useState } from "react";
+import { Layout, Button, message, Breadcrumb, Avatar } from "antd";
+import { HomeOutlined, BookOutlined, ShopOutlined, UserOutlined } from "@ant-design/icons";
 import { Link, Routes, Route, useNavigate } from "react-router-dom";
+import { GetUserProfile } from "../../services/https";
 import logo from "../../assets/logo.jpg";
 import Store from "../../pages/Store/index";
 import EditStore from "../../pages/Store/edit";
@@ -15,12 +16,26 @@ import Booking from "../../pages/Store/booking";
 import SearchStore from "../../pages/SearchStore";
 import Admin from "../../pages/Admin";
 import AppStore from "../../pages/AppStore";
-
+import { UsersInterface } from "../../interfaces/IUser";
+import './FullLayout.css';
 const { Header, Content, Footer } = Layout;
 
 const FullLayout: React.FC = () => {
     const [messageApi, contextHolder] = message.useMessage();
+    const [user, setUser] = useState<UsersInterface | null>(null);
     const navigate = useNavigate();
+
+    const getUserProfile = async () => {
+        try {
+            const res = await GetUserProfile();
+            setUser(res);
+        } catch (error) {
+            console.error("Error fetching user profile:", error);
+        }
+    };
+    useEffect(() => {
+        getUserProfile();
+    }, []);
 
     const Logout = () => {
         localStorage.clear();
@@ -34,136 +49,90 @@ const FullLayout: React.FC = () => {
         <Layout style={{ minHeight: "100vh" }}>
             {contextHolder}
 
-            <Header
-                style={{
-                    background: "#775342",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "0 20px",
-                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                }}
-            >
-                {/* ส่วนที่ 1: โลโก้ */}
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        flex: 1,
-                    }}
-                >
-                    <img
-                        src={logo}
-                        alt="Logo"
-                        style={{
-                            width: 50,
-                            borderRadius: "50%",
-                            marginRight: 10,
-                        }}
-                    />
-                    <h1
-                        style={{
-                            color: "white",
-                            margin: 0,
-                            fontWeight: "bold",
-                            fontSize: "20px",
-                        }}
-                    >
-                        PETSHOP
-                    </h1>
+            <Header className="header">
+                {/* Logo Section */}
+                <div className="header-logo">
+                    <img src={logo} alt="Logo" />
+                    <h1>PETSHOP</h1>
                 </div>
 
                 {/* ส่วนที่ 2: เมนูนำทาง */}
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        flex: 2,
-                    }}
-                >
-                    <Button type="text" style={{ color: "white", margin: "0 10px" }}>
+                <div className="header-menu">
+                    <Button type="text">
                         <Link to="/">
-                            <HomeOutlined
-                                style={{
-                                    fontSize: "16px",
-                                    marginRight: 8,
-                                }}
-                            />
+                            <HomeOutlined style={{ fontSize: "14px", marginRight: 8 }} />
                             หน้าหลัก
                         </Link>
                     </Button>
-                    <Button type="text" style={{ color: "white", margin: "0 10px" }}>
-                        <Link to="/store">
-                            <ShopOutlined
-                                style={{
-                                    fontSize: "16px",
-                                    marginRight: 8,
-                                }}
-                            />
-                            ข้อมูลร้านค้า
-                        </Link>
-                    </Button>
-                    <Button type="text" style={{ color: "white", margin: "0 10px" }}>
-                        <Link to="/totalbooking">
-                            <BookOutlined
-                                style={{
-                                    fontSize: "16px",
-                                    marginRight: 8,
-                                }}
-                            />
-                            Booking
-                        </Link>
-                    </Button>
-                    <Button type="text" style={{ color: "white", margin: "0 10px" }}>
-                        <Link to="/admin">
-                            <BookOutlined
-                                style={{
-                                    fontSize: "16px",
-                                    marginRight: 8,
-                                }}
-                            />
-                            Admin
-                        </Link>
-                    </Button>
-                    <Button type="text" style={{ color: "white", margin: "0 10px" }}>
-                        <Link to="/appstore">
-                            <BookOutlined
-                                style={{
-                                    fontSize: "16px",
-                                    marginRight: 8,
-                                }}
-                            />
 
-                            Appstore
-                        </Link>
-                    </Button>
+                    {user?.role === "store" && (
+                        <Button type="text">
+                            <Link to="/store">
+                                <ShopOutlined style={{ fontSize: "14px", marginRight: 8 }} />
+                                ข้อมูลร้านค้า
+                            </Link>
+                        </Button>
+                    )}
+
+                    {user?.role === "user" && (
+                        <Button type="text">
+                            <Link to="/totalbooking">
+                                <BookOutlined style={{ fontSize: "14px", marginRight: 8 }} />
+                                Booking
+                            </Link>
+                        </Button>
+                    )}
+
+                    {user?.role === "admin" && (
+                        <Button type="text">
+                            <Link to="/admin">
+                                <BookOutlined style={{ fontSize: "14px", marginRight: 8 }} />
+                                Admin
+                            </Link>
+                        </Button>
+                    )}
+
+                    {user?.role === "user" && (
+                        <Button type="text">
+                            <Link to="/appstore">
+                                <BookOutlined style={{ fontSize: "14px", marginRight: 8 }} />
+                                Appstore
+                            </Link>
+                        </Button>
+                    )}
                 </div>
+
 
                 {/* ส่วนที่ 3: ปุ่ม Logout */}
                 <div
                     style={{
                         display: "flex",
-                        justifyContent: "flex-end",
                         alignItems: "center",
-                        flex: 1,
+                        marginRight: 20,
                     }}
                 >
-                    <Button
-                        onClick={Logout}
-                        style={{
-                            background: "#EDC8AE",
-                            border: "none",
-                            color: "#775342",
-                            fontWeight: "bold",
-                            borderRadius: "20px",
-                            padding: "8px 16px",
-                        }}
-                    >
-                        ออกจากระบบ
-                    </Button>
+                    {user && (
+                        <>
+                            <Avatar
+                                src={user.Profile || "https://via.placeholder.com/150"}
+                                icon={!user.Profile ? <UserOutlined /> : undefined}
+                                style={{ marginRight: 10 }}
+                            />
+                            <span style={{ color: "white" }}>
+                                {user.first_name || "ไม่พบข้อมูล"} {user.last_name || ""}
+                            </span>
+                        </>
+                    )}
                 </div>
-            </Header>
 
+                <Button
+                    onClick={Logout}
+                    className="logout-button"
+                >
+                    ออกจากระบบ
+                </Button>
+
+            </Header>
 
             <Content style={{ margin: 0, padding: "20px", background: "#FFFFFF" }}>
                 <Breadcrumb style={{ margin: "16px 0", fontSize: "14px", color: "#8c8c8c" }}>
@@ -193,14 +162,7 @@ const FullLayout: React.FC = () => {
                 </div>
             </Content>
 
-            <Footer
-                style={{
-                    textAlign: "center",
-                    background: "#775342",
-                    color: "white",
-                    padding: "10px 20px",
-                }}
-            >
+            <Footer className="footer">
                 © 2024 PETSHOP. All Rights Reserved.
             </Footer>
         </Layout>

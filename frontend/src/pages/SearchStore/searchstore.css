@@ -1,37 +1,72 @@
-.container {
-    margin-top: 20px;
-}
-
-.select-service, .input-search {
-    width: 100%;
-}
-
-.search-section {
-    margin-top: 10px;
-}
+/* searchstore.css */
 
 .card-container {
-    margin-top: 20px;
-}
-
-.card-item {
-    margin-bottom: 20px;
-    transition: box-shadow 0.3s ease;
-}
-
-.card-item:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-.avatar-image {
-    margin-right: 10px;
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-avatar {
+    border: 2px solid #1890ff;
+    background-color: #f0f2f5;
+}
+
+.select-service .ant-select-selector {
+    border-radius: 8px;
+    border-color: #d9d9d9;
+    transition: border-color 0.3s;
+}
+
+.select-service .ant-select-selector:hover,
+.select-service .ant-select-selector:focus {
+    border-color: #40a9ff;
+}
+
+.input-search {
+    border-radius: 8px;
+}
+
+.input-search:hover,
+.input-search:focus {
+    border-color: #40a9ff;
+    box-shadow: 0 0 5px rgba(24, 144, 255, 0.5);
+}
+
+.pagination .ant-pagination-item-active {
+    background-color: #1890ff;
+    border-color: #1890ff;
+}
+
+.pagination .ant-pagination-item-active a {
+    color: white;
 }
 
 .map-container {
-    height: 80vh;
-    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.pagination {
-    margin-top: 20px;
+@media (max-width: 768px) {
+    .map-container {
+        height: 60vh !important;
+    }
+
+    .card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .card-avatar {
+        margin-bottom: 10px;
+    }
 }

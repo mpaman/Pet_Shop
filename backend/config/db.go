@@ -64,7 +64,9 @@ func SetupDatabase() {
 
 		Password: hashedPassword,
 
-		Profile: "data:image/jpeg;base64,/9j/4AAQSkZJRgA",
+		Role: "user",
+
+		Profile: images.EncodeImageToBase64("images/profile/1.png"),
 	}
 
 	db.FirstOrCreate(User, &entity.Users{

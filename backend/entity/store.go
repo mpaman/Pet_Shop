@@ -17,6 +17,8 @@ type Store struct {
 	Latitude  float64 `json:"latitude" valid:"required~Latitude is required"`
 
 	District    string `json:"district" valid:"required~District is required"`
+	// ProvinceID	uint	`json:"province_id" gorm:"not null" valid:"required~Store ID is required"`
+	// Province	Servicearea `gorm:"foreignKey:StoreID`
 	Province    string `json:"province" valid:"required~Province is required"`
 	ContactInfo string `json:"contact_info" valid:"required~Contact information is required"`
 	Description string `json:"description" valid:"required~Description is required"`

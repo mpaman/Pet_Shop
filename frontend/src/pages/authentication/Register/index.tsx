@@ -8,6 +8,7 @@ import {
     Col,
     InputNumber,
     Upload,
+    Select,
 } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -150,6 +151,30 @@ function SignUpPages() {
                                         ]}
                                     >
                                         <Input placeholder="กรุณากรอกที่อยู่" />
+                                    </Form.Item>
+                                </Col>
+                                <Col xs={12}>
+                                    <Form.Item
+                                        label="Role"
+                                        name="role"
+                                        rules={[
+                                            {
+                                                required: true,
+                                                message: "Please select your role!",
+                                            },
+                                        ]}
+                                    >
+                                        <Select
+                                            defaultValue=""
+                                            style={{ width: "100%" }}
+                                            options={[
+                                                { value: "", label: "Select Role", disabled: true },
+                                                { value: "keeper" },
+                                                { value: "user" },
+                                                { value: "admin" },
+                                                { value: "store" },
+                                            ]}
+                                        />
                                     </Form.Item>
                                 </Col>
                                 <Col span={24}>

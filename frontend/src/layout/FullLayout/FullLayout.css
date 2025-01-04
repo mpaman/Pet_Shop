@@ -1,0 +1,100 @@
+/* FullLayout.css */
+
+/* Header Styles */
+.header {
+    background: linear-gradient(90deg, #775342, #A67C68);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-bottom: 2px solid #EDC8AE;
+}
+
+/* Logo Styles */
+.header-logo {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.header-logo img {
+    width: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+    transition: transform 0.3s;
+}
+
+.header-logo img:hover {
+    transform: scale(1.1);
+}
+
+.header-logo h1 {
+    color: white;
+    margin: 0;
+    font-weight: bold;
+    font-size: 20px;
+    letter-spacing: 1px;
+}
+
+/* Navigation Menu Styles */
+.header-menu {
+    display: flex;
+    justify-content: center;
+    flex: 4;
+}
+
+.header-menu button {
+    color: white;
+    margin: 0 10px;
+    font-size: 14px;
+}
+
+.header-menu button:hover {
+    color: #EDC8AE;
+}
+
+/* Logout Button Styles */
+.logout-button {
+    background: white;
+    border: 2px solid #EDC8AE;
+    color: #775342;
+    font-weight: bold;
+    border-radius: 20px;
+    padding: 8px 16px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.logout-button:hover {
+    background: #EDC8AE;
+    color: white;
+}
+
+
+/* Content Styles */
+.content {
+    margin: 0;
+    padding: 20px;
+    background: #FFFFFF;
+}
+
+.content-breadcrumb {
+    margin: 16px 0;
+    font-size: 14px;
+    color: #8c8c8c;
+}
+
+.content-container {
+    padding: 24px;
+    min-height: calc(100vh - 140px);
+    background: rgba(240, 242, 245, 0.8);
+    border-radius: 8px;
+}
+
+/* Footer Styles */
+.footer {
+    text-align: center;
+    background: #775342;
+    color: white;
+    padding: 10px 20px;
+}

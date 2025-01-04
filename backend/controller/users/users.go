@@ -118,9 +118,7 @@ func Delete(c *gin.Context) {
 
 }
 
-//ADD
 func GetUserProfile(c *gin.Context) {
-	// Extract user email from the context
 	email, exists := c.Get("userEmail")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User email not found in context"})
@@ -128,30 +126,22 @@ func GetUserProfile(c *gin.Context) {
 	}
 
 	var user entity.Users
-	db := config.DB()//ฟังก์ชันจะเชื่อมต่อกับฐานข้อมูลผ่านคำสั่ง config.DB() แล้วทำการค้นหาข้อมูลในตาราง Users โดยใช้เงื่อนไขค้นหาจากอีเมลของผู้ใช้ที่ดึงได้จาก context
-
-	// Fetch user details from the database
+	db := config.DB() 
 	result := db.Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": result.Error.Error()})
 		return
 	}
-	//ฟังก์ชันจะใช้คำสั่ง db.Preload("Gender").Where("email = ?", email).First(&user) 
-	//เพื่อค้นหาข้อมูลผู้ใช้ในตาราง Users โดยใช้เงื่อนไขค้นหาจาก อีเมล ที่ดึงได้จาก context และ preload ความสัมพันธ์กับตาราง Gender เพื่อดึงข้อมูลเพศของผู้ใช้มาด้วย
 
-	// Return user profile details
 	c.JSON(http.StatusOK, gin.H{
-		"ID":        user.ID,
-		"Profile":   user.Profile,
-		"FirstName": user.FirstName,
-		"LastName":  user.LastName,
-		"Role":  user.Role,
+		"ID":         user.ID,
+		"Profile":    user.Profile,
+		"first_name": user.FirstName,
+		"last_name":  user.LastName,
+		"role":       user.Role,
 	})
 }
 
-// Mock function to extract user ID from the token
 func extractUserIDFromToken(token string) (uint, error) {
-	// Implement your token parsing and validation logic here
-	// This is a placeholder function
-	return 1, nil // Replace with actual implementation
-}//เป็นฟังก์ชันใน Go ที่ใช้สำหรับการดึง UserID จาก JWT (JSON Web Token) ที่ได้รับจาก client
+	return 1, nil
+} 
