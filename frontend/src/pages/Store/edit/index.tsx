@@ -22,17 +22,14 @@ import {
     UpdateStore,
     CreateStoreImage,
     DeleteStoreImage,
+    GetAllservicearea
 } from "../../../services/https";
 import ImgCrop from "antd-img-crop";
 import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
 
 const { Option } = Select;
 const { TextArea } = Input;
-const provinces = [
-    "กรุงเทพมหานคร", "เชียงใหม่", "ชลบุรี", "กระบี่", "ภูเก็ต",
-    "นนทบุรี", "ปทุมธานี", "สมุทรปราการ", "ขอนแก่น", "นครราชสีมา",
-    "พระนครศรีอยุธยา", "อุดรธานี", "สงขลา", "ตรัง", "ลำปาง",
-];
+
 
 function StoreEdit() {
     const { id } = useParams<{ id: string }>();
@@ -46,16 +43,36 @@ function StoreEdit() {
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
     const [fileList, setFileList] = useState<any[]>([]);
+    const [provinces, setProvinces] = useState<any[]>([]);
+
+
+    useEffect(() => {
+        const fetchProvinces = async () => {
+            try {
+                const response = await GetAllservicearea();
+                if (response.status === 200) {
+                    setProvinces(response.data); // อัพเดต state
+                } else {
+                    throw new Error("Failed to fetch provinces.");
+                }
+            } catch (error) {
+                console.error("Error fetching provinces:", error);
+                message.error("Failed to load provinces.");
+            }
+        };
+        fetchProvinces();
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-        
-                // Use non-null assertion if you're sure id will be defined
-                const storeResponse = await GetStoreByID(id!); // id is guaranteed to be a string here
-                const storeImagesResponse = await GetAllStoreImage();
-        
+
+                const [storeResponse, storeImagesResponse] = await Promise.all([
+                    GetStoreByID(id!),
+                    GetAllStoreImage(),
+                ]);
+
                 if (storeResponse?.data) {
                     setStoreData(storeResponse.data);
                     setLatitude(storeResponse.data.latitude);
@@ -64,9 +81,10 @@ function StoreEdit() {
                         ...storeResponse.data,
                         time_open: moment(storeResponse.data.time_open, "HH:mm"),
                         time_close: moment(storeResponse.data.time_close, "HH:mm"),
+                        provinceID: storeResponse.data.province.ID, // Ensure correct field name
                     });
                 }
-        
+
                 if (storeImagesResponse?.data?.data) {
                     const filteredImages = storeImagesResponse.data.data.filter(
                         (img: any) => img.store_id === parseInt(id!)
@@ -78,10 +96,11 @@ function StoreEdit() {
             } finally {
                 setLoading(false);
             }
-        };        
+        };
 
         fetchData();
     }, [id, form, messageApi]);
+
 
     const handleBeforeUpload = (file: File) => {
         if (!file.type.startsWith("image/")) {
@@ -106,7 +125,6 @@ function StoreEdit() {
         });
         setFileList(fileList);  // Just update fileList
     };
-    
 
     const onRemoveImage = (file: any) => {
         if (file.uid && !file.uid.startsWith("rc-upload-")) {
@@ -116,6 +134,7 @@ function StoreEdit() {
     };
 
     const onFinish = async (values: any) => {
+        console.log("Submitting values:", values);
         try {
             // Ensure id is a string and not undefined
             if (!id) {
@@ -130,8 +149,9 @@ function StoreEdit() {
                 profile_image: fileList[0]?.thumbUrl || storeData.profile_image,
                 time_open: values.time_open.format("HH:mm"),
                 time_close: values.time_close.format("HH:mm"),
+                
             };
-
+            console.log("Updated Store Data:", updatedStore);
             // Update store
             await UpdateStore(id, updatedStore);
 
@@ -213,15 +233,16 @@ function StoreEdit() {
                     <Input placeholder="Enter store name" />
                 </Form.Item>
 
-                <Form.Item label="Province" name="province" rules={[{ required: true }]}>
-                    <Select showSearch placeholder="Select a province">
+                <Form.Item label="Province" name="province_id" rules={[{ required: true, message: "Please select a province!" }]}>
+                    <Select placeholder="Select a province">
                         {provinces.map((province) => (
-                            <Option key={province} value={province}>
-                                {province}
+                            <Option key={province.ID} value={province.ID}>
+                                {province.saname}
                             </Option>
                         ))}
                     </Select>
                 </Form.Item>
+
 
                 <Form.Item label="District" name="district" rules={[{ required: true }]}>
                     <Input placeholder="Enter detailed district" />
@@ -280,10 +301,10 @@ function StoreEdit() {
                     <Upload
                         listType="picture-card"
                         fileList={storeImages.map((image) => ({
-                            uid: image.ID?.toString() || String(Math.random()),  // Ensure uid is a unique identifier
+                            uid: image.ID?.toString() || String(Math.random()),  
                             url: image.image_url,
-                            name: `Image-${image.ID || Math.random()}`,  // Add a name field for UploadFile
-                        }))}                        
+                            name: `Image-${image.ID || Math.random()}`, 
+                        }))}
                         onChange={handleChangeImage}
                         onRemove={onRemoveImage}
                         beforeUpload={handleBeforeUpload}

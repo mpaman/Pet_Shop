@@ -3,7 +3,7 @@ import { EditOutlined, DeleteOutlined, PlusOutlined, EyeOutlined, AppstoreAddOut
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { StoreInterface } from "../../interfaces/Store";
-import { DeleteStoreById, GetAllStores, UpdateStoreStatus, GetUserProfile } from "../../services/https";
+import { DeleteStoreById, GetAllStores, UpdateStoreStatus, GetUserProfile} from "../../services/https";
 import "./StorePage.css";
 import { BookingInterface } from "../../interfaces/Bookingstore";
 
@@ -77,12 +77,12 @@ function Store() {
                 date: "",
                 booking_time: "",
                 BookerUser: undefined,
-                pets: [] 
+                pets: []
             };
 
-            await UpdateStoreStatus(storeId, payload); 
+            await UpdateStoreStatus(storeId, payload);
             message.success("อัพเดตสถานะร้านสำเร็จ");
-            getStores(); 
+            getStores();
         } catch (error) {
             console.error("Error updating status:", error);
             message.error("เกิดข้อผิดพลาดในการอัพเดตสถานะร้าน");
@@ -105,13 +105,13 @@ function Store() {
     const statusColor = (status: string) => {
         switch (status) {
             case "open":
-                return "#2A9D8F"; 
+                return "#2A9D8F";
             case "close":
-                return "#F4A261"; 
+                return "#F4A261";
             case "full":
-                return "#E63946"; 
+                return "#E63946";
             default:
-                return "#8D99AE"; 
+                return "#8D99AE";
         }
     };
 
@@ -167,9 +167,9 @@ function Store() {
                                 <Title level={4} style={{ textAlign: "center", color: "#264653" }}>
                                     {item.name}
                                 </Title>
-                                <Text  >
+                                <Text>
                                     <strong>จังหวัด: </strong>
-                                    {item.province}
+                                    {item.province?.saname || "ไม่พบข้อมูล"} {/* ใช้ชื่อจังหวัด */}
                                 </Text>
                                 <Text>
                                     <strong>สถานะ: </strong>
@@ -195,7 +195,7 @@ function Store() {
                                     style={{
                                         background: "#E63946",
                                         color: "white",
-                                        width: "150px", 
+                                        width: "150px",
                                         borderRadius: "20px",
                                     }}
                                     icon={<EditOutlined />}
@@ -208,7 +208,7 @@ function Store() {
                                         background: "#F4A261",
                                         color: "white",
                                         borderRadius: "20px",
-                                        width: "150px", 
+                                        width: "150px",
                                     }}
                                     icon={<EditOutlined />}
                                     onClick={() => navigate(`/store/edit/service/${item.ID}`)}
@@ -220,7 +220,7 @@ function Store() {
                                         background: "#2A9D8F",
                                         color: "white",
                                         borderRadius: "20px",
-                                        width: "150px", 
+                                        width: "150px",
                                     }}
                                     icon={<EyeOutlined />}
                                     onClick={() => navigate(`/store/booking/${item.ID}`)}
@@ -233,7 +233,7 @@ function Store() {
                                         color: "white",
                                         borderRadius: "20px",
                                         fontWeight: "bold",
-                                        width: "150px", 
+                                        width: "150px",
                                     }}
                                     icon={<AppstoreAddOutlined />}
                                     onClick={() => navigate(`/stores/${item.ID}`)}
@@ -248,13 +248,13 @@ function Store() {
                                         borderRadius: "20px",
                                     }}
                                     icon={<DeleteOutlined />}
-                                    onClick={() => confirmDelete(item.ID?.toString() || '')} 
+                                    onClick={() => confirmDelete(item.ID?.toString() || '')}
                                 >
                                     ลบร้าน
                                 </Button>
                                 <Select
                                     value={item.status}
-                                    onChange={(value) => handleStatusChange(item.ID?.toString() || '', value)} 
+                                    onChange={(value) => handleStatusChange(item.ID?.toString() || '', value)}
                                     style={{ width: 120 }}
                                 >
                                     <Option value="open">เปิด</Option>

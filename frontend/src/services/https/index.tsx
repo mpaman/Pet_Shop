@@ -7,7 +7,6 @@ import { StoreInterface } from '../../interfaces/Store';
 import { StoreImageInterface } from '../../interfaces/Storeimage';
 import { PetStoreApplicationInterface } from '../../interfaces/Petstoreapp';
 import { PetInterface } from "../../interfaces/Pet";
-import { ServiceareaInterface } from "../../interfaces/servicearea";
 const apiUrl = "http://localhost:8000";
 const token = localStorage.getItem("token");
 const tokenType = localStorage.getItem("token_type");

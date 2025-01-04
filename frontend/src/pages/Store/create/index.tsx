@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Form, Input, Button, Select, TimePicker, Upload, message, InputNumber, Divider, Row, Col } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from "react-router-dom";
-import { CreateStore as CreateNewStore, CreateStoreImage, CreateService,GetAllservicearea } from '../../../services/https';
+import { CreateStore as CreateNewStore, CreateStoreImage, CreateService, GetAllservicearea } from '../../../services/https';
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import ImgCrop from 'antd-img-crop';
 import "./createstore.css";
@@ -12,13 +12,6 @@ import { ServiceInterface } from "../../../interfaces/Service";
 const { TextArea } = Input;
 const { Option } = Select;
 
-// ต้องแก้ เป็นเก็บ แบบ entity
-const provinces = [
-    "กรุงเทพมหานคร", "เชียงใหม่", "เชียงราย", "ชลบุรี", "กระบี่", "ภูเก็ต",
-    "นนทบุรี", "ปทุมธานี", "สมุทรปราการ", "ขอนแก่น", "สุราษฎร์ธานี",
-    "ระยอง", "นครราชสีมา", "พระนครศรีอยุธยา", "อุดรธานี", "สงขลา",
-    "ตรัง", "ลำปาง", "ราชบุรี", "ประจวบคีรีขันธ์", "นราธิวาส"
-];
 
 function CreateStore() {
     const [storeImages, setStoreImages] = useState<any[]>([]); // Add appropriate type
@@ -28,6 +21,25 @@ function CreateStore() {
     const [latitude, setLatitude] = useState(13.736717); // Default: กรุงเทพฯ
     const [longitude, setLongitude] = useState(100.523186);
     const [messageApi, contextHolder] = message.useMessage();
+    const [provinces, setProvinces] = useState<any[]>([]);
+
+
+    useEffect(() => {
+        const fetchProvinces = async () => {
+            try {
+                const response = await GetAllservicearea();
+                if (response.status === 200) {
+                    setProvinces(response.data); // อัพเดต state
+                } else {
+                    throw new Error("Failed to fetch provinces.");
+                }
+            } catch (error) {
+                console.error("Error fetching provinces:", error);
+                message.error("Failed to load provinces.");
+            }
+        };
+        fetchProvinces();
+    }, []);
 
     const addService = () => {
         setServices([...services, {
@@ -42,21 +54,21 @@ function CreateStore() {
     const addDefaultServices = () => {
         const defaultServices: ServiceInterface[] = [
             {
-                store_id: 1, 
+                store_id: 1,
                 name_service: "บริการกรูมมิ่ง",
                 category_pet: "dog",
                 duration: 60,
                 price: 500,
             },
             {
-                store_id: 1, 
+                store_id: 1,
                 name_service: "อาบน้ำสัตว์เลี้ยง",
                 category_pet: "dog",
                 duration: 30,
                 price: 300,
             },
             {
-                store_id: 1, 
+                store_id: 1,
                 name_service: "ฝากสัตว์เลี้ยง",
                 category_pet: "dog",
                 duration: 1440, // 1 วัน
@@ -75,10 +87,10 @@ function CreateStore() {
         try {
             if (fileList.length === 0) {
                 await messageApi.open({
-                    className: "error-message", 
-                    type: "error", 
+                    className: "error-message",
+                    type: "error",
                     content: "Please upload a profile image",
-                    duration: 3, 
+                    duration: 3,
                 });
                 return;
             }
@@ -91,7 +103,7 @@ function CreateStore() {
                 });
                 return;
             }
-            
+
 
             const profileImageFile = fileList[0].originFileObj;
             const profileImageBase64 = await new Promise<string>((resolve, reject) => {
@@ -106,7 +118,7 @@ function CreateStore() {
                 name: values.name,
                 profile_image: profileImageBase64,
                 district: values.district,
-                province: values.province,
+                province_id: values.provinceID,
                 description: values.description,
                 latitude,
                 longitude,
@@ -225,11 +237,17 @@ function CreateStore() {
                         </Form.Item>
                     </Col>
                     <Col span={12}>
-                        <Form.Item label="Province" name="province" rules={[{ required: true, message: 'Please select a province!' }]}>
-                            <Select placeholder="Select a province">
-                                {provinces.map(province => <Option key={province} value={province}>{province}</Option>)}
-                            </Select>
-                        </Form.Item>
+                        <Col span={12}>
+                            <Form.Item label="Province" name="provinceID" rules={[{ required: true, message: "Please select a province!" }]}>
+                                <Select placeholder="Select a province">
+                                    {provinces.map((province) => (
+                                        <Option key={province.ID} value={province.ID}>
+                                            {province.saname}
+                                        </Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+                        </Col>
                     </Col>
                 </Row>
 

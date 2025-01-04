@@ -92,7 +92,7 @@ function StoreList() {
         const filtered = stores.filter((store) => {
             const matchesSearchTerm =
                 store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                store.province.toLowerCase().includes(searchTerm.toLowerCase());
+                store.province?.saname.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesService =
                 !selectedService || store.services?.some((service: { name_service: string }) => service.name_service === selectedService);
 
@@ -175,7 +175,7 @@ function StoreList() {
                                         <Col flex="auto">
                                             <Typography.Title level={4}>{store.name}</Typography.Title>
                                             <Typography.Text type="secondary">
-                                                <EnvironmentOutlined /> {store.district}, {store.province}
+                                                <EnvironmentOutlined /> {store.district}, {store.province?.saname}
                                             </Typography.Text>
                                             {selectedService && (
                                                 <div style={{ marginTop: 10 }}>
@@ -243,7 +243,7 @@ function StoreList() {
                                         <Popup>
                                             <strong>{store.name}</strong>
                                             <br />
-                                            {store.district}, {store.province}
+                                            {store.district}, {store.province?.saname}
                                         </Popup>
                                     </Marker>
                                 ) : null;

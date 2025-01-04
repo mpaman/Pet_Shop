@@ -1,6 +1,8 @@
 import { UsersInterface } from "./IUser";
+import { ServiceareaInterface } from "./servicearea";
 
 export interface StoreInterface {
+
     ID?: number;
     user?: UsersInterface;
     name: string;
@@ -9,7 +11,8 @@ export interface StoreInterface {
     longitude: number; 
     latitude: number;
     district: string;// อำเภอ
-    province: string; // จังหวัด
+    province?: ServiceareaInterface;
+
 
     contact_info: string;
     description: string;

@@ -16,8 +16,7 @@ type StorePayload struct {
 	Latitude     string `json:"latitude"`
 	Longitude    string `json:"longitude"`
 	District     string `json:"district"`
-	Province     string `json:"province"`
-	Country      string `json:"country"`
+	ProvinceID   uint   `json:"province_id"`
 	Description  string `json:"description"`
 	TimeOpen     string `json:"time_open"`
 	TimeClose    string `json:"time_close"`

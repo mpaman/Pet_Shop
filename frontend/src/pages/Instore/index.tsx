@@ -284,7 +284,7 @@ const StorePage: React.FC = () => {
                                 </Title>
                                 <Paragraph>
                                     <strong>Province:</strong>{" "}
-                                    {store.province || "N/A"}
+                                    {store.province?.saname|| "N/A"}
                                 </Paragraph>
                                 <Paragraph>
                                     <strong>District:</strong>{" "}
