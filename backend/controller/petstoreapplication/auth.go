@@ -17,12 +17,9 @@ type AddPetStoreApplication struct {
 	StoreName           string `json:"store_name"`
 	LicenseDocumentURL  string `json:"license_document_url"`
 }
-
-// สร้างคำขอสมัครเป็นร้านค้า
 func CreatePetStoreApplication(c *gin.Context) {
 	var payload AddPetStoreApplication
 
-	// Bind JSON payload to the struct
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -42,7 +39,6 @@ func CreatePetStoreApplication(c *gin.Context) {
 		return
 	}
 
-	// สร้างคำขอสมัคร
 	application := entity.PetStoreApplication{
 		UserID:             payload.UserID,
 		Email:              payload.Email,
@@ -50,16 +46,14 @@ func CreatePetStoreApplication(c *gin.Context) {
 		Location:           payload.Location,
 		StoreName:          payload.StoreName,
 		LicenseDocumentURL: payload.LicenseDocumentURL,
-		Status:             "pending", // ตั้งค่าเริ่มต้นเป็น pending
+		Status:             "pending", // ว่าจะแก้
 	}
 
-	// บันทึกคำขอในฐานข้อมูล
 	if err := config.DB().Create(&application).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// ส่งข้อมูลกลับ
 	c.JSON(http.StatusCreated, gin.H{
 		"status":       201,
 		"message":      "Pet store application created successfully",

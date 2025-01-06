@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Button, message, Breadcrumb, Avatar } from "antd";
-import { HomeOutlined, BookOutlined, ShopOutlined, UserOutlined } from "@ant-design/icons";
+import { Layout, Button, message, Breadcrumb, Avatar, Dropdown, Menu } from "antd";
+import { HomeOutlined, BookOutlined, ShopOutlined, UserOutlined, DownOutlined } from "@ant-design/icons";
 import { Link, Routes, Route, useNavigate } from "react-router-dom";
 import { GetUserProfile } from "../../services/https";
 import logo from "../../assets/logo.jpg";
@@ -24,6 +24,50 @@ const FullLayout: React.FC = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const [user, setUser] = useState<UsersInterface | null>(null);
     const navigate = useNavigate();
+    const StoreMenu = (
+        <Menu
+            items={[
+                {
+                    key: "group1",
+                    label: "ระบบของผู้ให้บริการ",
+                    children: [
+                        {
+                            key: "1",
+                            label: <Link to="/store">หน้าจัดการร้านค้า</Link>,
+                        },
+                        {
+                            key: "2",
+                            label: <Link to="/store/create">สร้างร้านค้า</Link>,
+                        },
+                        {
+                            key: "3",
+                            label: <Link to="/appstore">ขออณุญาติการเป็น ร้านดูแล</Link>,
+                        },
+                        {
+                            key: "6",
+                            label: <Link to="/admin">admin ยืนยัน</Link>,
+                        },
+
+
+                    ],
+                },
+                {
+                    key: "group2",
+                    label: "ระบบของลูกค้า",
+                    children: [
+                        {
+                            key: "4",
+                            label: <Link to="/stores">หน้าแรก</Link>,
+                        },
+                        {
+                            key: "5",
+                            label: <Link to="/totalbooking">ประวัติการจองการบริการ</Link>,
+                        },
+                    ],
+                },
+            ]}
+        />
+    );
 
     const getUserProfile = async () => {
         try {
@@ -65,42 +109,55 @@ const FullLayout: React.FC = () => {
                         </Link>
                     </Button>
 
-                    {user?.role === "store" && (
-                        <Button type="text">
-                            <Link to="/store">
-                                <ShopOutlined style={{ fontSize: "14px", marginRight: 8 }} />
-                                ข้อมูลร้านค้า
-                            </Link>
-                        </Button>
-                    )}
 
-                    {user?.role === "user" && (
-                        <Button type="text">
-                            <Link to="/totalbooking">
-                                <BookOutlined style={{ fontSize: "14px", marginRight: 8 }} />
-                                Booking
-                            </Link>
-                        </Button>
-                    )}
+                    <Button type="text">
+                        <Link to="/store">
+                            <ShopOutlined style={{ fontSize: "14px", marginRight: 8 }} />
+                            ข้อมูลร้านค้า
+                        </Link>
+                    </Button>
 
-                    {user?.role === "admin" && (
-                        <Button type="text">
-                            <Link to="/admin">
-                                <BookOutlined style={{ fontSize: "14px", marginRight: 8 }} />
-                                Admin
-                            </Link>
-                        </Button>
-                    )}
 
-                    {user?.role === "user" && (
-                        <Button type="text">
-                            <Link to="/appstore">
-                                <BookOutlined style={{ fontSize: "14px", marginRight: 8 }} />
-                                Appstore
-                            </Link>
-                        </Button>
-                    )}
+
+                    <Button type="text">
+                        <Link to="/totalbooking">
+                            <BookOutlined style={{ fontSize: "14px", marginRight: 8 }} />
+                            Booking
+                        </Link>
+                    </Button>
+
+
+
+                    <Button type="text">
+                        <Link to="/admin">
+                            <BookOutlined style={{ fontSize: "14px", marginRight: 8 }} />
+                            Admin
+                        </Link>
+                    </Button>
+
+
+                    <Button type="text">
+                        <Link to="/appstore">
+                            <BookOutlined style={{ fontSize: "14px", marginRight: 8 }} />
+                            Appstore
+                        </Link>
+                    </Button>
                 </div>
+                <Dropdown overlay={StoreMenu} trigger={["click"]}>
+                    <Button
+                        type="text"
+                        style={{
+                            fontFamily: "Mitr",
+                            fontWeight: 400,
+                            fontSize: 14,
+                            color: "white",
+                            margin: "0 10px",
+                        }}
+                    >
+                        ร้านดูแล <DownOutlined />
+                    </Button>
+                </Dropdown>
+
 
 
                 {/* ส่วนที่ 3: ปุ่ม Logout */}

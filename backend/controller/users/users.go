@@ -138,7 +138,8 @@ func GetUserProfile(c *gin.Context) {
 		"Profile":    user.Profile,
 		"first_name": user.FirstName,
 		"last_name":  user.LastName,
-		"role":       user.Role,
+		"roleID":       user.RoleID,
+		// "role":       user.Role,
 	})
 }
 

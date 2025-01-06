@@ -1,25 +1,30 @@
 import { useState, useEffect } from "react";
-import { Table, Typography, message, Spin, Avatar, Popconfirm, Button } from "antd";
+import { Table, Typography, message, Spin, Avatar, Popconfirm, Button, Input, Modal, Descriptions } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { BookingInterface } from "../../interfaces/Bookingstore";
 import { GetAllBookings, GetUserProfile, GetStoreByID, DeleteBooking } from "../../services/https";
-import { Link } from "react-router-dom";
 import moment from "moment";
 import { UserOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
+const { Search } = Input;
 
 function TotalBooking() {
     const [bookings, setBookings] = useState<BookingInterface[]>([]);
+    const [filteredBookings, setFilteredBookings] = useState<BookingInterface[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [userId, setUserId] = useState<number | null>(null);
+    const [, setSearchText] = useState<string>("");
+
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedBooking, setSelectedBooking] = useState<BookingInterface | null>(null);
 
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
                 const response = await GetUserProfile();
                 if (response?.ID) {
-                    setUserId(response.ID); // Save User ID
+                    setUserId(response.ID);
                 } else {
                     message.error("User profile not found.");
                 }
@@ -45,12 +50,12 @@ function TotalBooking() {
                             const storeResponse = await GetStoreByID(booking.store_id.toString());
                             return {
                                 ...booking,
-                                Store: storeResponse.data, // ดึงแค่ Store แต่ไม่ดึง Service
+                                Store: storeResponse.data,
                             };
                         })
                     );
-
                     setBookings(bookingsWithStoreData);
+                    setFilteredBookings(bookingsWithStoreData);
                 } else {
                     message.error("Failed to load bookings.");
                 }
@@ -69,11 +74,13 @@ function TotalBooking() {
 
     const handleDeleteBooking = async (bookingId: number) => {
         try {
-            // Convert bookingId to string
             const response = await DeleteBooking(bookingId.toString());
             if (response.status === 200) {
                 message.success("Booking canceled successfully.");
                 setBookings((prevBookings) =>
+                    prevBookings.filter((booking) => booking.ID !== bookingId)
+                );
+                setFilteredBookings((prevBookings) =>
                     prevBookings.filter((booking) => booking.ID !== bookingId)
                 );
             } else {
@@ -83,6 +90,20 @@ function TotalBooking() {
             console.error("Error canceling booking:", error);
             message.error("Error canceling booking.");
         }
+    };
+
+    const handleSearch = (value: string) => {
+        setSearchText(value);
+        const filteredData = bookings.filter((booking) =>
+            booking.Store?.name?.toLowerCase().includes(value.toLowerCase()) ||
+            booking.Service?.name_service?.toLowerCase().includes(value.toLowerCase())
+        );
+        setFilteredBookings(filteredData);
+    };
+
+    const handleShowDetails = (booking: BookingInterface) => {
+        setSelectedBooking(booking);
+        setIsModalVisible(true);
     };
 
     const columns: ColumnsType<BookingInterface> = [
@@ -103,18 +124,21 @@ function TotalBooking() {
             title: "Store Name",
             dataIndex: "Store",
             key: "store",
+            sorter: (a, b) => a.Store?.name.localeCompare(b.Store?.name),
             render: (_, record) => record.Store?.name || "N/A",
         },
         {
             title: "Service",
             dataIndex: "Service",
             key: "service",
+            sorter: (a, b) => (a.Service?.name_service || '').localeCompare(b.Service?.name_service || ''),
             render: (_, record) => record.Service?.name_service || "N/A",
-        },        
+        },
         {
             title: "Date",
             dataIndex: "date",
             key: "date",
+            sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
             render: (date) => (date ? moment(date).format("DD/MM/YYYY") : "N/A"),
         },
         {
@@ -131,7 +155,7 @@ function TotalBooking() {
             title: "Details",
             key: "store_id",
             render: (record) => (
-                <Link to={`/stores/${record.store_id}`}>View Store Details</Link>
+                <Button onClick={() => handleShowDetails(record)}>View Details</Button>
             ),
         },
         {
@@ -152,21 +176,55 @@ function TotalBooking() {
         },
     ];
 
+    const modalContent = selectedBooking ? (
+        <Descriptions title="Booking Details" bordered>
+            <Descriptions.Item label="Store Name">{selectedBooking.Store?.name}</Descriptions.Item>
+            <Descriptions.Item label="Service">{selectedBooking.Service?.name_service}</Descriptions.Item>
+            <Descriptions.Item label="Date">{moment(selectedBooking.date).format("DD/MM/YYYY")}</Descriptions.Item>
+            <Descriptions.Item label="Time">{selectedBooking.booking_time}</Descriptions.Item>
+            <Descriptions.Item label="Status">{selectedBooking.status}</Descriptions.Item>
+        </Descriptions>
+    ) : null;
+
     return (
         <div style={{ padding: "20px", display: "flex", justifyContent: "center" }}>
             <div style={{ width: "100%", maxWidth: "1000px" }}>
                 <Title level={2} style={{ textAlign: "center" }}>Your Bookings</Title>
+                <Search
+                    placeholder="Search by Store or Service"
+                    allowClear
+                    enterButton="Search"
+                    size="large"
+                    onSearch={handleSearch}
+                    style={{ marginBottom: 20 }}
+                />
                 {loading ? (
                     <Spin size="large" style={{ display: "block", margin: "0 auto" }} />
                 ) : (
                     <Table
                         columns={columns}
-                        dataSource={bookings}
+                        dataSource={filteredBookings}
                         rowKey="ID"
                         pagination={{ pageSize: 5 }}
                     />
                 )}
             </div>
+
+            {/* Modal for booking details */}
+            <Modal
+                visible={isModalVisible}
+                onCancel={() => setIsModalVisible(false)}
+                footer={[
+                    <Button key="back" onClick={() => setIsModalVisible(false)}>
+                        Close
+                    </Button>
+                ]}
+                width={1000}
+                style={{ top: 20 }} 
+            >
+                {modalContent}
+            </Modal>
+
         </div>
     );
 }

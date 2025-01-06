@@ -10,11 +10,11 @@ import {
     Upload,
     Select,
 } from "antd";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ImgCrop from "antd-img-crop";
 import { PlusOutlined } from "@ant-design/icons";
-import { CreateUser } from "../../../services/https";
+import { CreateUser, GetAllRoles } from "../../../services/https";
 import { UsersInterface } from "../../../interfaces/IUser";
 import logo from "../../../assets/logo.jpg";
 
@@ -22,9 +22,33 @@ function SignUpPages() {
     const navigate = useNavigate();
     const [messageApi, contextHolder] = message.useMessage();
     const [fileList, setFileList] = useState<any[]>([]);
+    const [roles, setRoles] = useState<{ value: string; label: string }[]>([]);
+
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const res = await GetAllRoles();
+                if (res.status === 200) {
+                    // ปรับการสร้าง options ให้ตรงกับโครงสร้าง JSON
+                    const roleOptions = res.data.roles.map((role: any) => ({
+                        value: role.ID, // ใช้ `ID` แทน `id`
+                        label: role.role_name, // ใช้ `role_name` แทน `name`
+                    }));
+                    setRoles(roleOptions);
+                } else {
+                    messageApi.error("ไม่สามารถดึงข้อมูล Role ได้");
+                }
+            } catch (error) {
+                messageApi.error("เกิดข้อผิดพลาดในการเชื่อมต่อกับ API");
+            }
+        };
+    
+        fetchRoles();
+    }, []);
+    
+
 
     const onFinish = async (values: UsersInterface) => {
-        // Convert image to base64
         const file = fileList[0]?.originFileObj;
         let base64Image: string | null = null;
         if (file) {
@@ -153,27 +177,32 @@ function SignUpPages() {
                                         <Input placeholder="กรุณากรอกที่อยู่" />
                                     </Form.Item>
                                 </Col>
+                                <Col span={24}>
+                                    <Form.Item
+                                        label="เบอร์โทรศัพทร์"
+                                        name="phone"
+                                        rules={[
+                                            { required: true, message: "กรุณากรอกเบอร์โทรศัพทร์ !" },
+                                        ]}
+                                    >
+                                        <Input placeholder="กรุณากรอกเบอร์โทรศัพทร์" />
+                                    </Form.Item>
+                                </Col>
                                 <Col xs={12}>
                                     <Form.Item
                                         label="Role"
-                                        name="role"
+                                        name="role_id"
                                         rules={[
                                             {
                                                 required: true,
-                                                message: "Please select your role!",
+                                                message: "กรุณาเลือก Role!",
                                             },
                                         ]}
                                     >
                                         <Select
-                                            defaultValue=""
+                                            placeholder="เลือก Role"
+                                            options={roles}
                                             style={{ width: "100%" }}
-                                            options={[
-                                                { value: "", label: "Select Role", disabled: true },
-                                                { value: "keeper" },
-                                                { value: "user" },
-                                                { value: "admin" },
-                                                { value: "store" },
-                                            ]}
                                         />
                                     </Form.Item>
                                 </Col>

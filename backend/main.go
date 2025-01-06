@@ -11,6 +11,7 @@ import (
 	"github.com/mpaman/petshop/controller/users"
 	"github.com/mpaman/petshop/controller/servicearea"
 	"github.com/mpaman/petshop/controller/petstoreapplication"
+	"github.com/mpaman/petshop/controller/role"
 	"github.com/mpaman/petshop/middlewares"
 )
 
@@ -27,6 +28,7 @@ func main() {
 	// Routes for authentication
 	r.POST("/signup", users.SignUp)
 	r.POST("/signin", users.SignIn)
+	r.GET("/roles", role.GetAllRoles)
 
 	// Authenticated routes
 	router := r.Group("/")
@@ -48,6 +50,7 @@ func main() {
 		router.DELETE("/bookingstore/:id", bookingstore.DeleteBookingstore)
 
 		router.GET("/serviceareas", servicearea.GetAll)
+
 
 		// Routes for services
 		router.POST("/service", service.CreateService)

@@ -55,6 +55,13 @@ async function CreateUser(data: UsersInterface) {
         .then((res) => res)
         .catch((e) => e.response);
 }
+
+async function GetAllRoles() {
+    return await axios.get(`${apiUrl}/roles`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
 export const GetUserProfile = async (): Promise<any> => {
     if (!token) throw new Error("No token found");
 
@@ -76,16 +83,9 @@ export const GetUserProfile = async (): Promise<any> => {
         throw error;
     }
 };
-
+//store
 async function GetAllStores() {
     return await axios.get(`${apiUrl}/stores`, requestOptions)
-        .then((res) => res)
-        .catch((e) => e.response);
-}
-
-//Store
-async function GetAllservicearea() {
-    return await axios.get(`${apiUrl}/serviceareas`, requestOptions)
         .then((res) => res)
         .catch((e) => e.response);
 }
@@ -248,6 +248,12 @@ async function DeletePetStoreApplication(id: string) {
 }
 
 
+async function GetAllservicearea() {
+    return await axios.get(`${apiUrl}/serviceareas`, requestOptions)
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
 
 // Export all functions
 export {
@@ -258,7 +264,7 @@ export {
     DeleteUsersById,
     CreateUser,
 
-    GetAllservicearea,
+    GetAllservicearea,GetAllRoles,
 
     CreatePetStoreApplication,GetAllApplications,GetApplicationByID,UpdatePetStoreApplicationStatus,DeletePetStoreApplication,
     CreatePet,UpdatePet,DeletePet,GetAllPets,

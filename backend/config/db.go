@@ -49,7 +49,17 @@ func SetupDatabase() {
 		&entity.Pet{},
 		&entity.PetStoreApplication{},
 		&entity.Servicearea{},
+		&entity.Role{},
 	)
+		//role fix ตาม id นี้เลย
+		admin := entity.Role{Rolename: "admin"}
+		db.FirstOrCreate(&admin, &entity.Role{Rolename: "admin"})
+	
+		user := entity.Role{Rolename: "user"}
+		db.FirstOrCreate(&user, &entity.Role{Rolename: "user"})
+	
+		store := entity.Role{Rolename: "store"}
+		db.FirstOrCreate(&store, &entity.Role{Rolename: "store"})
 
 	hashedPassword, _ := HashPassword("1")
 
@@ -65,7 +75,11 @@ func SetupDatabase() {
 
 		Password: hashedPassword,
 
-		Role: "user",
+		RoleID: 1,
+
+		Address: "thailand",
+
+		Phone: "0848319377",
 
 		Profile: images.EncodeImageToBase64("images/profile/1.png"),
 	}

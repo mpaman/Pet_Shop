@@ -27,6 +27,8 @@ function Booking() {
     const [petDetails, setPetDetails] = useState<PetDetails[]>([]); // State to store pet details for a specific booking
     const [isModalVisible, setIsModalVisible] = useState(false); // To control modal visibility
     const [searchText, setSearchText] = useState(""); // State for search input
+    const [isNoteModalVisible, setIsNoteModalVisible] = useState(false);
+    const [selectedNote, setSelectedNote] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchBookings = async () => {
@@ -53,12 +55,10 @@ function Booking() {
 
     const handleUpdateStatus = async (bookingId: number, status: string) => {
         try {
-            // Prepare the pets data (you can fetch or pass an empty array if no pets are associated)
-            const petsData: never[] = []; // Use the actual pet data, for example from `petDetails`, or leave it empty if not needed
-    
+            const petsData: never[] = [];
             const response = await UpdateBookingStatus(bookingId.toString(), {
                 status,
-                pets: petsData, // Pass an array of pet data
+                pets: petsData,
                 BookerUser: undefined,
                 booker_user_id: 0,
                 store_id: 0,
@@ -69,7 +69,7 @@ function Booking() {
                 contact_number: "",
                 count_pet: 0,
             });
-    
+
             if (response.status === 200) {
                 message.success("Booking status updated successfully.");
                 setBookings((prevBookings) =>
@@ -85,8 +85,8 @@ function Booking() {
             message.error("Error updating status.");
         }
     };
-    
-    
+
+
 
     const handleCancelBooking = async (bookingId: number) => {
         await handleUpdateStatus(bookingId, "cancelled");
@@ -117,6 +117,12 @@ function Booking() {
         }
     };
 
+
+    const handleShowNote = (note: string) => {
+        setSelectedNote(note);
+        setIsNoteModalVisible(true);
+    };
+
     const handleSearch = (value: string) => {
         setSearchText(value);
     };
@@ -145,11 +151,12 @@ function Booking() {
             render: (date) => (date ? moment(date).format("DD/MM/YYYY") : "N/A"),
         },
         { title: "Time", dataIndex: "booking_time", key: "booking_time" },
+        // { title: "Note", dataIndex: "notes", key: "notes" },
         { title: "Status", dataIndex: "status", key: "status" },
         {
             title: "Actions",
             key: "actions",
-            width: 250, // Set the column width
+            width: 250,
             render: (_, record) => (
                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                     {record.status === "pending" && (
@@ -170,6 +177,7 @@ function Booking() {
                     )}
                     {record.status === "confirmed" && (
                         <>
+
                             <Button
                                 style={{
                                     marginTop: "10px",
@@ -201,6 +209,7 @@ function Booking() {
                     {record.status !== "completed" && record.status !== "cancelled" && (
                         <Button onClick={() => record.ID && handleShowPetDetails(record.ID)}>Show Pet Details</Button>
                     )}
+                    <Button onClick={() => record.notes && handleShowNote(record.notes)}>Show Note</Button>
                 </div>
             ),
         },
@@ -218,7 +227,7 @@ function Booking() {
             }}
         >
             <Title level={2} style={{ textAlign: "center", marginBottom: "20px" }}>
-                Bookings Management for Store {storeId}
+                Bookings Management for Store
             </Title>
             <Input.Search
                 placeholder="Search for customer"
@@ -243,6 +252,14 @@ function Booking() {
                     </TabPane>
                 </Tabs>
             )}
+            <Modal
+                title="Booking Note"
+                visible={isNoteModalVisible}
+                onCancel={() => setIsNoteModalVisible(false)}
+                footer={null}
+            >
+                <p>{selectedNote}</p>
+            </Modal>
 
             <Modal
                 title="Pet Details"

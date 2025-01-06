@@ -29,16 +29,17 @@ type (
 		Email     string `json:"email"`
 		Password  string `json:"password"`
 		Age       uint8  `json:"age"`
-		Role      string `json:"role"`
-		Address   string `json:"address"`
-		Profile   string `json:"profile"`
+		Phone     string `json:"phone"`
+		RoleID    uint   `json:"role_id"`
+		// Role    string `json:"role"`
+		Address string `json:"address"`
+		Profile string `json:"profile"`
 	}
 )
 
 func SignUp(c *gin.Context) {
 
 	var payload signUp
-
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
 
@@ -56,7 +57,6 @@ func SignUp(c *gin.Context) {
 
 	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 
-
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 
 		return
@@ -65,18 +65,13 @@ func SignUp(c *gin.Context) {
 
 	if userCheck.ID != 0 {
 
-
 		c.JSON(http.StatusConflict, gin.H{"error": "Email is already registered"})
 
 		return
 
 	}
 
-
-
 	hashedPassword, _ := config.HashPassword(payload.Password)
-
-
 
 	user := entity.Users{
 		FirstName: payload.FirstName,
@@ -84,12 +79,12 @@ func SignUp(c *gin.Context) {
 		Email:     payload.Email,
 		Age:       payload.Age,
 		Password:  hashedPassword,
-		Role:      payload.Role,
-		Address:   payload.Address,
-		Profile:   payload.Profile,
+		RoleID:      payload.RoleID,
+		// Role:    payload.Role,
+		Phone:   payload.Phone,
+		Address: payload.Address,
+		Profile: payload.Profile,
 	}
-
-
 
 	if err := db.Create(&user).Error; err != nil {
 
@@ -105,53 +100,53 @@ func SignUp(c *gin.Context) {
 
 func SignIn(c *gin.Context) {
 
-		var payload Authen
-	
-		var user entity.Users
-	
-		if err := c.ShouldBindJSON(&payload); err != nil {
+	var payload Authen
 
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	
-			return
-	
-		}
-	
-		if err := config.DB().Raw("SELECT * FROM users WHERE email = ?", payload.Email).Scan(&user).Error; err != nil {
-	
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	
-			return
-	
-		}
-	
-		err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password))
-	
-		if err != nil {
-	
-			c.JSON(http.StatusBadRequest, gin.H{"error": "password is incerrect"})
-	
-			return
-	
-		}
-	
-		jwtWrapper := services.JwtWrapper{
-	
-			SecretKey: "SvNQpBN8y3qlVrsGAYYWoJJk56LtzFHx",
-	
-			Issuer: "AuthService",
-	
-			ExpirationHours: 24,
-		}
-		signedToken, err := jwtWrapper.GenerateToken(user.Email)
-	
-		if err != nil {
-	
-			c.JSON(http.StatusBadRequest, gin.H{"error": "error signing token"})
-	
-			return
-	
-		}
-	
-		c.JSON(http.StatusOK, gin.H{"token_type": "Bearer", "token": signedToken, "id": user.ID})
+	var user entity.Users
+
+	if err := c.ShouldBindJSON(&payload); err != nil {
+
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+		return
+
 	}
+
+	if err := config.DB().Raw("SELECT * FROM users WHERE email = ?", payload.Email).Scan(&user).Error; err != nil {
+
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+		return
+
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password))
+
+	if err != nil {
+
+		c.JSON(http.StatusBadRequest, gin.H{"error": "password is incerrect"})
+
+		return
+
+	}
+
+	jwtWrapper := services.JwtWrapper{
+
+		SecretKey: "SvNQpBN8y3qlVrsGAYYWoJJk56LtzFHx",
+
+		Issuer: "AuthService",
+
+		ExpirationHours: 24,
+	}
+	signedToken, err := jwtWrapper.GenerateToken(user.Email)
+
+	if err != nil {
+
+		c.JSON(http.StatusBadRequest, gin.H{"error": "error signing token"})
+
+		return
+
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token_type": "Bearer", "token": signedToken, "id": user.ID})
+}

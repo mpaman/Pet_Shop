@@ -45,14 +45,13 @@ func UpdatePetStoreApplicationStatus(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found for the application"})
 			return
 		}
-		user.Role = "store"
+		user.RoleID = 3
 		if err := db.Save(&user).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user role"})
 			return
 		}
 	}
 
-	// Save the updated application
 	if err := db.Save(&application).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update application status"})
 		return
@@ -70,7 +69,6 @@ func UpdatePetStoreApplicationStatus(c *gin.Context) {
 		return
 	}
 
-	// ตอบกลับเมื่อการอัปเดตสำเร็จ
 	c.JSON(http.StatusOK, gin.H{
 		"message":     "Application status updated successfully",
 		"application": application,
@@ -82,7 +80,6 @@ func DeletePetStoreApplication(c *gin.Context) {
 	applicationID := c.Param("id") // รับ ID จาก URL
 	var application entity.PetStoreApplication
 
-	// ตรวจสอบว่ามีคำขอในฐานข้อมูลหรือไม่
 	if err := config.DB().First(&application, applicationID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Application not found"})
 		return
@@ -94,13 +91,11 @@ func DeletePetStoreApplication(c *gin.Context) {
 		return
 	}
 
-	// ลบคำขอออกจากฐานข้อมูล
 	if err := config.DB().Delete(&application).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// ส่งข้อความยืนยันการลบ
 	c.JSON(http.StatusOK, gin.H{
 		"status":  200,
 		"message": "Application deleted successfully",
@@ -110,13 +105,11 @@ func DeletePetStoreApplication(c *gin.Context) {
 func GetAllApplications(c *gin.Context) {
 	var applications []entity.PetStoreApplication
 
-	// ดึงข้อมูลคำขอทั้งหมด
 	if err := config.DB().Preload("User").Find(&applications).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch applications"})
 		return
 	}
 
-	// ส่งข้อมูลคำขอกลับ
 	c.JSON(http.StatusOK, gin.H{
 		"status":       200,
 		"message":      "Applications retrieved successfully",
@@ -127,13 +120,11 @@ func GetApplicationByID(c *gin.Context) {
 	applicationID := c.Param("id")
 	var application entity.PetStoreApplication
 
-	// ดึงคำขอด้วย ID
 	if err := config.DB().Preload("User").First(&application, applicationID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Application not found"})
 		return
 	}
 
-	// ส่งข้อมูลคำขอกลับ
 	c.JSON(http.StatusOK, gin.H{
 		"status":      200,
 		"message":     "Application retrieved successfully",

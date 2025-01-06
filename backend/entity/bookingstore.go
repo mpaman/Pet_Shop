@@ -29,7 +29,7 @@ type Bookingstore struct {
 
 	ContactNum string `json:"contact_number" binding:"-"`
 
-	CountPet int `json:"count_pet" binding:"required"` // เพิ่ม CountPet
+	CountPet int `json:"count_pet" binding:"required"`
 
 }
 // type Bookingstore struct {

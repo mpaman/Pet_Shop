@@ -105,29 +105,37 @@ const BookingForm: React.FC = () => {
             message.error("Please fill all required fields!");
             return;
         }
-
-        // Default time to "00:00" if not selected
+    
         const bookingTime = `${date} ${time || "00:00"}`;
-
-        // Use moment() or dayjs() to correctly format the date and time
         const formattedDateTime = moment(bookingTime, "YYYY-MM-DD HH:mm");
-
-        // Check if the selected date-time is in the future
-        const now = moment();
-        if (formattedDateTime.isBefore(now)) {
+    
+        // ตรวจสอบวันและเวลา
+        if (formattedDateTime.isBefore(moment())) {
             message.error("The selected date and time must be in the future.");
             return;
         }
-
+    
+        // ตรวจสอบโปรไฟล์ผู้ใช้งาน
+        if (!bookerUserId) {
+            message.error("User profile not found. Please log in.");
+            return;
+        }
+    
+        // ตรวจสอบข้อมูลสัตว์เลี้ยง
+        if (pets.some(pet => !pet.name || !pet.weight || !pet.gender)) {
+            message.error("Please fill in all required pet information.");
+            return;
+        }
+    
         const bookingData = {
-            booker_user_id: bookerUserId !== null ? Number(bookerUserId) : 0,  // Convert to number if not null
+            booker_user_id: Number(bookerUserId),
             store_id: selectedStore,
             service_id: selectedService,
             date: formattedDateTime.toISOString(),
             notes: notes,
             total_cost: totalCost,
             contact_number: contactNumber,
-            count_pet: pets.length,  // Number of pets
+            count_pet: pets.length,
             booking_time: time,
             pets: pets.map((pet) => ({
                 name: pet.name,
@@ -136,17 +144,22 @@ const BookingForm: React.FC = () => {
                 weight: pet.weight,
                 gender: pet.gender,
                 vaccinated: pet.vaccinated,
-                owner_id: Number(bookerUserId), // Ensure owner_id is a number
+                owner_id: Number(bookerUserId),
                 picture_pet: pet.picturePet || "",
             })),
-            BookerUser: { /* Add Booker user data if needed */ },
+            BookerUser: {
+                id: Number(bookerUserId),
+                name: "Default User",  // เปลี่ยนตามที่ได้จาก GetUserProfile()
+                email: "default@example.com",  // เปลี่ยนตามที่ได้จาก GetUserProfile()
+            },
         };
-
+    
         try {
             const response = await CreateBooking(bookingData);
             if (response.status === 201) {
                 const bookingID = response.data.booking_id;
-
+    
+                // บันทึกข้อมูลสัตว์เลี้ยง
                 const petPromises = pets.map((pet) =>
                     CreatePet({
                         booking_id: bookingID,
@@ -156,11 +169,11 @@ const BookingForm: React.FC = () => {
                         weight: pet.weight,
                         gender: pet.gender,
                         vaccinated: pet.vaccinated,
-                        owner_id: Number(bookerUserId) || 0,  // Convert to number if needed
+                        owner_id: Number(bookerUserId),
                         picture_pet: pet.picturePet,
                     })
                 );
-
+    
                 await Promise.all(petPromises);
                 message.success("Booking and pets created successfully!");
             } else {
@@ -168,10 +181,10 @@ const BookingForm: React.FC = () => {
             }
         } catch (error) {
             console.error("Error creating booking:", error);
-            message.error("Error creating booking.");
+            message.error("Error creating booking. Please try again later.");
         }
     };
-
+    
 
 
     const handleServiceChange = (serviceID: number) => {
@@ -262,7 +275,6 @@ const BookingForm: React.FC = () => {
                                     format="HH:mm"
                                     style={{ width: "100%" }}
                                     onChange={(_time, timeString) => {
-                                        // ตรวจสอบว่า timeString เป็น string หรือไม่ ถ้าใช่ให้ setTime
                                         if (typeof timeString === 'string') {
                                             const selectedDateTime = moment(`${date} ${timeString}`, "YYYY-MM-DD HH:mm");
                                             if (date && selectedDateTime.isBefore(moment())) {
@@ -304,7 +316,7 @@ const BookingForm: React.FC = () => {
 
                             {/* Pet Information Fields */}
                             <div>
-                                <Text strong>Pet Information:</Text>
+                                <Text strong >Pet Information:</Text>
                                 {pets.map((pet, index) => (
                                     <Card key={index} style={{ marginBottom: "10px" }}>
                                         <Space direction="vertical" style={{ width: "100%" }}>
@@ -408,7 +420,7 @@ const BookingForm: React.FC = () => {
                 </Col>
                 <Col xs={24} md={8}>
                     <Card>
-                        <Title level={4}>Booking Summary</Title>
+                        <Title level={4} >Booking Summary</Title>
                         <Paragraph>
                             <strong>Store:</strong> {stores.find((store) => store.ID === selectedStore)?.name || "N/A"}
                         </Paragraph>
