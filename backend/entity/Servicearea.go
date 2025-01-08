@@ -7,5 +7,5 @@ import (
 type Servicearea struct {
 	gorm.Model
 	
-	SaName	 string `json:"saname"`
+	SaName	 string
 }

@@ -237,7 +237,7 @@ function StoreEdit() {
                     <Select placeholder="Select a province">
                         {provinces.map((province) => (
                             <Option key={province.ID} value={province.ID}>
-                                {province.saname}
+                                {province.SaName}
                             </Option>
                         ))}
                     </Select>

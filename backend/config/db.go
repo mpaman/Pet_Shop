@@ -50,16 +50,25 @@ func SetupDatabase() {
 		&entity.PetStoreApplication{},
 		&entity.Servicearea{},
 		&entity.Role{},
+		&entity.Pettype{},
 	)
-		//role fix ตาม id นี้เลย
-		admin := entity.Role{Rolename: "admin"}
-		db.FirstOrCreate(&admin, &entity.Role{Rolename: "admin"})
-	
-		user := entity.Role{Rolename: "user"}
-		db.FirstOrCreate(&user, &entity.Role{Rolename: "user"})
-	
-		store := entity.Role{Rolename: "store"}
-		db.FirstOrCreate(&store, &entity.Role{Rolename: "store"})
+	//role fix ตาม id นี้เลย
+	admin := entity.Role{Rolename: "admin"}
+	db.FirstOrCreate(&admin, &entity.Role{Rolename: "admin"})
+
+	user := entity.Role{Rolename: "user"}
+	db.FirstOrCreate(&user, &entity.Role{Rolename: "user"})
+
+	store := entity.Role{Rolename: "store"}
+	db.FirstOrCreate(&store, &entity.Role{Rolename: "store"})
+
+	//PetType
+	Cat := entity.Pettype{PtName: "แมว"}
+	Dog := entity.Pettype{PtName: "สุนัข"}
+	Bird := entity.Pettype{PtName: "นก"}
+	db.FirstOrCreate(&Cat, &entity.Pettype{PtName: "แมว"})
+	db.FirstOrCreate(&Dog, &entity.Pettype{PtName: "สุนัข"})
+	db.FirstOrCreate(&Bird, &entity.Pettype{PtName: "นก"})
 
 	hashedPassword, _ := HashPassword("1")
 
@@ -96,7 +105,7 @@ func SetupDatabase() {
 		Latitude:     13.736717,
 		District:     "บางรัก",
 		ProvinceID:   1,
-		ContactInfo:  "081-123-4567",
+		ContactInfo:  "0811234567",
 		Description:  "ร้านอุปกรณ์สัตว์เลี้ยงที่มีสินค้าครบครัน",
 		TimeOpen:     "09:00",
 		TimeClose:    "18:00",
@@ -106,19 +115,19 @@ func SetupDatabase() {
 	db.FirstOrCreate(&store1, &entity.Store{Name: "Happy Pet Store"})
 
 	service1 := entity.Service{
-		StoreID:     store1.ID,
-		NameService: "อาบน้ำและตัดขน",
-		CategoryPet: "แมว",
-		Duration:    60,
-		Price:       300,
+		StoreID:       store1.ID,
+		NameService:   "อาบน้ำและตัดขน",
+		CategoryPetID: 1,
+		Duration:      60,
+		Price:         300,
 	}
 
 	service2 := entity.Service{
-		StoreID:     store1.ID,
-		NameService: "ตรวจสุขภาพ",
-		CategoryPet: "สุนัข",
-		Duration:    30,
-		Price:       500,
+		StoreID:       store1.ID,
+		NameService:   "ตรวจสุขภาพ",
+		CategoryPetID: 2,
+		Duration:      30,
+		Price:         500,
 	}
 
 	db.FirstOrCreate(&service1, &entity.Service{StoreID: store1.ID, NameService: "อาบน้ำและตัดขน"})
@@ -151,7 +160,7 @@ func SetupDatabase() {
 		Date:         time.Now().AddDate(0, 0, 1),
 		Status:       "pending",
 		Notes:        "กรุณาเตรียมอาหารสำหรับน้องด้วย",
-		TotalCost:    300,
+		TotalCost:    300.0,
 		ContactNum:   "081-123-4567",
 		CountPet:     1,
 	}
@@ -165,7 +174,7 @@ func SetupDatabase() {
 		Gender:     "Female",
 		Weight:     4.5,
 		Vaccinated: "Yes",
-		OwnerID:    1,
+		OwnerID:    1.0,
 		PicturePet: images.EncodeImageToBase64("images/store/pets/pet1.jpg"),
 	}
 	db.FirstOrCreate(&pet1, &entity.Pet{Name: "มะลิ", OwnerID: 1})

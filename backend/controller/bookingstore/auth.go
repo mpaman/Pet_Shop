@@ -16,7 +16,7 @@ type addBookingstore struct {
 	BookingTime  string    `json:"booking_time"` // เปลี่ยนเป็น string
 	Notes        string    `json:"notes"`
 	Date         time.Time `json:"date" binding:"required"`
-	TotalCost    int       `json:"total_cost"`
+	TotalCost    float32   `json:"total_cost"`
 	ContactNum   string    `json:"contact_number" binding:"-"`
 	CountPet     int       `json:"count_pet" binding:"required"`
 }

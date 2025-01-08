@@ -17,7 +17,7 @@ type Store struct {
 	Latitude  float64 `json:"latitude" valid:"required~Latitude is required"`
 
 	District   string      `json:"district" valid:"required~District is required"`
-	ProvinceID uint         `json:"province_id"`
+	ProvinceID uint        `json:"province_id"`
 	Province   Servicearea `gorm:"foreignKey:ProvinceID;constraint:onUpdate:CASCADE,onDelete:SET NULL" json:"province"`
 
 	ContactInfo string `json:"contact_info" valid:"required~Contact information is required"`

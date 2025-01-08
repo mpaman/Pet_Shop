@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Form, Input, Button, Select, TimePicker, Upload, message, InputNumber, Divider, Row, Col } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from "react-router-dom";
-import { CreateStore as CreateNewStore, CreateStoreImage, CreateService, GetAllservicearea } from '../../../services/https';
+import { CreateStore as CreateNewStore, CreateStoreImage, CreateService, GetAllservicearea, GetAllPettype } from '../../../services/https';
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import ImgCrop from 'antd-img-crop';
 import "./createstore.css";
@@ -14,22 +14,22 @@ const { Option } = Select;
 
 
 function CreateStore() {
-    const [storeImages, setStoreImages] = useState<any[]>([]); // Add appropriate type
-    const [services, setServices] = useState<ServiceInterface[]>([]); // Use ServiceInterface[]
+    const [storeImages, setStoreImages] = useState<any[]>([]);
+    const [services, setServices] = useState<ServiceInterface[]>([]);
     const navigate = useNavigate();
-    const [fileList, setFileList] = useState<any[]>([]); // Add appropriate type
-    const [latitude, setLatitude] = useState(13.736717); // Default: กรุงเทพฯ
+    const [fileList, setFileList] = useState<any[]>([]);
+    const [latitude, setLatitude] = useState(13.736717);
     const [longitude, setLongitude] = useState(100.523186);
     const [messageApi, contextHolder] = message.useMessage();
     const [provinces, setProvinces] = useState<any[]>([]);
-
+    const [petTypes, setPetTypes] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchProvinces = async () => {
             try {
                 const response = await GetAllservicearea();
                 if (response.status === 200) {
-                    setProvinces(response.data); // อัพเดต state
+                    setProvinces(response.data);
                 } else {
                     throw new Error("Failed to fetch provinces.");
                 }
@@ -38,7 +38,24 @@ function CreateStore() {
                 message.error("Failed to load provinces.");
             }
         };
+
+        const fetchPetTypes = async () => {
+            try {
+                const response = await GetAllPettype();
+                if (response.status === 200) {
+                    setPetTypes(response.data.Pettype || []); // ดึงเฉพาะ array ของ Pettype
+                } else {
+                    throw new Error("Failed to fetch pet types.");
+                }
+            } catch (error) {
+                console.error("Error fetching pet types:", error);
+                message.error("Failed to load pet types.");
+            }
+        };
+
+
         fetchProvinces();
+        fetchPetTypes();
     }, []);
 
     const addService = () => {
@@ -46,7 +63,7 @@ function CreateStore() {
             price: 0,
             duration: 0,
             name_service: '',
-            category_pet: '',
+            categorypet_id: 0,
             store_id: 0
         }]);
     };
@@ -56,21 +73,21 @@ function CreateStore() {
             {
                 store_id: 1,
                 name_service: "บริการกรูมมิ่ง",
-                category_pet: "dog",
+                categorypet_id: 1,
                 duration: 60,
                 price: 500,
             },
             {
                 store_id: 1,
                 name_service: "อาบน้ำสัตว์เลี้ยง",
-                category_pet: "dog",
+                categorypet_id: 1,
                 duration: 30,
                 price: 300,
             },
             {
                 store_id: 1,
                 name_service: "ฝากสัตว์เลี้ยง",
-                category_pet: "dog",
+                categorypet_id: 1,
                 duration: 1440, // 1 วัน
                 price: 800,
             },
@@ -82,7 +99,6 @@ function CreateStore() {
     const handleRemoveService = (index: number) => {
         setServices(services.filter((_, i) => i !== index));
     };
-
     const onFinish = async (values: any) => {
         try {
             if (fileList.length === 0) {
@@ -104,17 +120,16 @@ function CreateStore() {
                 return;
             }
 
-
             const profileImageFile = fileList[0].originFileObj;
             const profileImageBase64 = await new Promise<string>((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(profileImageFile);
-                reader.onload = () => resolve(reader.result as string);  // Ensure the result is treated as a string
+                reader.onload = () => resolve(reader.result as string);
                 reader.onerror = (error) => reject(error);
             });
 
             const storeData = {
-                user_id: 1, // Example user_id
+                user_id: 1,
                 name: values.name,
                 profile_image: profileImageBase64,
                 district: values.district,
@@ -125,10 +140,8 @@ function CreateStore() {
                 contact_info: values.contact_info,
                 time_open: values.time_open.format("HH:mm"),
                 time_close: values.time_close.format("HH:mm"),
-                status: values.status,
+                status: "open",
             };
-
-            console.log("Store Data:", storeData);
 
             const response = await CreateNewStore(storeData);
             if (response.status === 201) {
@@ -148,14 +161,13 @@ function CreateStore() {
                             CreateService({
                                 store_id: storeId,
                                 name_service: service.name_service,
-                                category_pet: service.category_pet,
+                                categorypet_id: service.categorypet_id,
                                 duration: service.duration,
                                 price: service.price,
                             })
                         )
                     );
                 }
-
 
                 await messageApi.open({
                     className: "success-message",
@@ -164,14 +176,13 @@ function CreateStore() {
                     duration: 3,
                 });
                 navigate(`/store`);
-            } else {
-                throw new Error("Failed to create store");
             }
         } catch (error) {
             console.error("Error:", error);
             message.error("Failed to create store");
         }
     };
+
 
 
     const handleChangeImage = ({ fileList }: any) => {
@@ -242,7 +253,7 @@ function CreateStore() {
                                 <Select placeholder="Select a province">
                                     {provinces.map((province) => (
                                         <Option key={province.ID} value={province.ID}>
-                                            {province.saname}
+                                            {province.SaName}
                                         </Option>
                                     ))}
                                 </Select>
@@ -305,13 +316,13 @@ function CreateStore() {
                     </Col>
                 </Row>
 
-                <Form.Item label="Status" name="status" rules={[{ required: true, message: 'Please select store status!' }]}>
+                {/* <Form.Item label="Status" name="status" rules={[{ required: true, message: 'Please select store status!' }]}>
                     <Select placeholder="Select status">
                         <Option value="open">Open</Option>
                         <Option value="close">Close</Option>
                         <Option value="full">Full</Option>
                     </Select>
-                </Form.Item>
+                </Form.Item> */}
 
                 <Divider />
                 <h3>Upload Images</h3>
@@ -329,18 +340,35 @@ function CreateStore() {
                 </Button>
                 {services.map((service, index) => (
                     <Row key={index} gutter={16}>
-                        <Col span={6}>
+                        <Col span={4}>
                             <Form.Item label={`Service Name ${index + 1}`} rules={[{ required: true, message: 'Please input Service Name!' }]}>
                                 <Input value={service.name_service} onChange={(e) => setServices(services.map((s, i) => i === index ? { ...s, name_service: e.target.value } : s))} />
                             </Form.Item>
                         </Col>
                         <Col span={5}>
-                            <Form.Item label="Pet Category" rules={[{ required: true, message: 'Please input store Pet Category!' }]}>
-                                <Select value={service.category_pet} onChange={(value) => setServices(services.map((s, i) => i === index ? { ...s, category_pet: value } : s))}>
-                                    <Option value="dog">Dog</Option>
-                                    <Option value="cat">Cat</Option>
+                            <Form.Item
+                                label="Pet Type"
+                                rules={[{ required: true, message: 'Please select a pet type!' }]}
+                            >
+                                <Select
+                                    placeholder="Select pet type"
+                                    value={service.categorypet_id || undefined} // ตรวจสอบว่ามีค่าหรือไม่
+                                    onChange={(value) => {
+                                        const updatedServices = [...services];
+                                        updatedServices[index].categorypet_id = value;
+                                        setServices(updatedServices);
+                                    }}
+                                >
+                                    {petTypes.map((type) => (
+                                        <Option key={type.ID} value={type.ID}>
+                                            {type.PtName}
+                                        </Option>
+                                    ))}
                                 </Select>
                             </Form.Item>
+
+
+
                         </Col>
 
                         <Col span={5}>
@@ -352,21 +380,31 @@ function CreateStore() {
                                 }} />
                             </Form.Item>
                         </Col>
-                        <Col span={4}>
-                            <Form.Item label="Price" rules={[{ required: true, message: 'Please input store Price!' }]}>
+                        <Col span={5}>
+                            <Form.Item
+                                label="Price"
+                                rules={[{ required: true, message: 'Please input store Price!' }]}
+                            >
                                 <InputNumber
                                     min={0}
+                                    step={0.01} // กำหนดให้เพิ่ม/ลดทีละ 0.01
+                                    precision={2} // กำหนดให้แสดงทศนิยม 2 ตำแหน่ง
                                     value={service.price ?? 0}
-                                    onChange={(value) => setServices(services.map((s, i) => i === index ? { ...s, price: value || 0 } : s))}
+                                    onChange={(value) =>
+                                        setServices(services.map((s, i) =>
+                                            i === index ? { ...s, price: value || 0 } : s
+                                        ))
+                                    }
+                                    style={{ width: '100%' }} // ทำให้ InputNumber กว้างเต็ม
                                 />
-
                             </Form.Item>
                         </Col>
-                        <Col span={2}>
+                        <Col span={5}>
                             <Button style={{ backgroundColor: 'red', color: 'white' }} icon={<DeleteOutlined />} onClick={() => handleRemoveService(index)} />
                         </Col>
                     </Row>
                 ))}
+
 
                 <Button type="dashed" onClick={addService} icon={<PlusOutlined />}>
                     Add Service

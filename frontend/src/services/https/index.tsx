@@ -253,6 +253,12 @@ async function GetAllservicearea() {
         .then((res) => res)
         .catch((e) => e.response);
 }
+async function GetAllPettype() {
+    return await axios.get(`${apiUrl}/pettypes`, requestOptions)
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+
 
 
 // Export all functions
@@ -264,7 +270,7 @@ export {
     DeleteUsersById,
     CreateUser,
 
-    GetAllservicearea,GetAllRoles,
+    GetAllservicearea,GetAllRoles,GetAllPettype,
 
     CreatePetStoreApplication,GetAllApplications,GetApplicationByID,UpdatePetStoreApplicationStatus,DeletePetStoreApplication,
     CreatePet,UpdatePet,DeletePet,GetAllPets,
