@@ -8,9 +8,9 @@ export interface StoreInterface {
     name: string;
     profile_image: string;
 
-    longitude: number; 
+    longitude: number;
     latitude: number;
-    district: string;// อำเภอ
+    district: string;
     province?: ServiceareaInterface;
 
 

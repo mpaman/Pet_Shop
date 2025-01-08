@@ -185,41 +185,27 @@ const StorePage: React.FC = () => {
                         {services.length > 0 ? (
                             <Row gutter={[16, 16]}>
                                 {services.map((service) => (
-                                    <Col
-                                        xs={24}
-                                        sm={12}
-                                        lg={12}
-                                        key={service.ID}
-                                    >
+                                    <Col xs={24} sm={12} lg={12} key={service.ID}>
                                         <Card
                                             hoverable
                                             style={{
                                                 borderRadius: "8px",
-                                                boxShadow:
-                                                    "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                                                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
                                                 padding: "16px",
                                             }}
                                         >
-                                            <Title
-                                                level={4}
-                                                style={{ color: "#1D3557" }}
-                                            >
-                                                {service.name_service}
+                                            <Title level={4} style={{ color: "#1D3557" }}>
+                                                {service.name_service || "N/A"}
                                             </Title>
                                             <Paragraph>
                                                 <b>Category:</b>{" "}
-                                                {service.category_pet || "N/A"}
+                                                {service.categorypet?.PtName || "N/A"}
                                             </Paragraph>
                                             <Paragraph>
                                                 <b>Duration:</b>{" "}
                                                 {service.duration} minutes
                                             </Paragraph>
-                                            <div
-                                                style={{
-                                                    textAlign: "right",
-                                                    marginTop: "10px",
-                                                }}
-                                            >
+                                            <div style={{ textAlign: "right", marginTop: "10px" }}>
                                                 <Text
                                                     style={{
                                                         fontSize: "18px",
@@ -234,6 +220,7 @@ const StorePage: React.FC = () => {
                                     </Col>
                                 ))}
                             </Row>
+
                         ) : (
                             <Paragraph>
                                 No services available for this store.
@@ -284,7 +271,7 @@ const StorePage: React.FC = () => {
                                 </Title>
                                 <Paragraph>
                                     <strong>Province:</strong>{" "}
-                                    {store.province?.saname|| "N/A"}
+                                    {store.province?.SaName || "N/A"}
                                 </Paragraph>
                                 <Paragraph>
                                     <strong>District:</strong>{" "}
@@ -316,7 +303,7 @@ const StorePage: React.FC = () => {
                                 <Link to={`/stores/${storeId}/booking`}>
                                     <Button
                                         block
-                                        disabled={store?.status !== "open"} 
+                                        disabled={store?.status !== "open"}
                                         style={{
                                             marginTop: "10px",
                                             background: store?.status === "open" ? "#E63946" : "#8D99AE",

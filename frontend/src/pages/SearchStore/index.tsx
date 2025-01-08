@@ -21,11 +21,11 @@ function StoreList() {
     const [filteredStores, setFilteredStores] = useState<StoreInterface[]>([]);
     const [services, setServices] = useState<ServiceInterface[]>([]);
     const [messageApi, contextHolder] = message.useMessage();
-    const [searchTerm, setSearchTerm] = useState<string>(""); // คำค้นหาจาก input
-    const [selectedService, setSelectedService] = useState<string | null>(null); // บริการที่เลือก
+    const [searchTerm, setSearchTerm] = useState<string>(""); 
+    const [selectedService, setSelectedService] = useState<string | null>(null); 
     const navigate = useNavigate();
 
-    const [storeLocations, setStoreLocations] = useState<any[]>([]); // เก็บพิกัดร้านค้า
+    const [storeLocations, setStoreLocations] = useState<any[]>([]);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const pageSize = 5;
 
@@ -92,7 +92,7 @@ function StoreList() {
         const filtered = stores.filter((store) => {
             const matchesSearchTerm =
                 store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                store.province?.saname.toLowerCase().includes(searchTerm.toLowerCase());
+                store.province?.SaName?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesService =
                 !selectedService || store.services?.some((service: { name_service: string }) => service.name_service === selectedService);
 
@@ -175,7 +175,7 @@ function StoreList() {
                                         <Col flex="auto">
                                             <Typography.Title level={4}>{store.name}</Typography.Title>
                                             <Typography.Text type="secondary">
-                                                <EnvironmentOutlined /> {store.district}, {store.province?.saname}
+                                                <EnvironmentOutlined /> {store.district}, {store.province?.SaName}
                                             </Typography.Text>
                                             {selectedService && (
                                                 <div style={{ marginTop: 10 }}>
@@ -243,7 +243,7 @@ function StoreList() {
                                         <Popup>
                                             <strong>{store.name}</strong>
                                             <br />
-                                            {store.district}, {store.province?.saname}
+                                            {store.district}, {store.province?.SaName}
                                         </Popup>
                                     </Marker>
                                 ) : null;

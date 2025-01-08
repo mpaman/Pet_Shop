@@ -25,13 +25,13 @@ type Bookingstore struct {
 
 	Notes string `json:"notes" gorm:"type:text"`
 
-	TotalCost int `json:"total_cost"`
+	TotalCost float32 `json:"total_cost"`
 
 	ContactNum string `json:"contact_number" binding:"-"`
 
 	CountPet int `json:"count_pet" binding:"required"`
-
 }
+
 // type Bookingstore struct {
 // 	gorm.Model
 

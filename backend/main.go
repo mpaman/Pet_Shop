@@ -5,13 +5,14 @@ import (
 	"github.com/mpaman/petshop/config"
 	"github.com/mpaman/petshop/controller/bookingstore"
 	"github.com/mpaman/petshop/controller/pet"
+	"github.com/mpaman/petshop/controller/petstoreapplication"
+	"github.com/mpaman/petshop/controller/pettype"
+	"github.com/mpaman/petshop/controller/role"
 	"github.com/mpaman/petshop/controller/service"
+	"github.com/mpaman/petshop/controller/servicearea"
 	"github.com/mpaman/petshop/controller/store"
 	"github.com/mpaman/petshop/controller/storeimage"
 	"github.com/mpaman/petshop/controller/users"
-	"github.com/mpaman/petshop/controller/servicearea"
-	"github.com/mpaman/petshop/controller/petstoreapplication"
-	"github.com/mpaman/petshop/controller/role"
 	"github.com/mpaman/petshop/middlewares"
 )
 
@@ -46,11 +47,11 @@ func main() {
 		router.POST("/booking", bookingstore.CreateBookingstore)
 		router.GET("/bookingstore/:id", bookingstore.GetBookingstoreByStoreID)
 		router.GET("/bookingstores", bookingstore.GetAllBookingstores)
-		router.PUT("/bookingstore/:id", bookingstore.UpdateBookingstore)//ไม่ได้ใช้
+		router.PUT("/bookingstore/:id", bookingstore.UpdateBookingstore) //ไม่ได้ใช้
 		router.DELETE("/bookingstore/:id", bookingstore.DeleteBookingstore)
 
 		router.GET("/serviceareas", servicearea.GetAll)
-
+		router.GET("/pettypes", pettype.GetAllPettype)
 
 		// Routes for services
 		router.POST("/service", service.CreateService)

@@ -19,6 +19,7 @@ import {
     UpdateService,
     DeleteService,
     CreateService,
+    GetAllPettype,
 } from "../../../../services/https";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -30,6 +31,7 @@ function ServiceEdit() {
     const [services, setServices] = useState<ServiceInterface[]>([]);
     const [loading, setLoading] = useState(true);
     const [messageApi, contextHolder] = message.useMessage();
+    const [petTypes, setPetTypes] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchServices = async () => {
@@ -40,7 +42,14 @@ function ServiceEdit() {
                     const filteredServices = servicesResponse.data.data.filter(
                         (svc: { store_id: number }) => svc.store_id === parseInt(id!)
                     );
-                    setServices(filteredServices.map((svc: any) => ({ ...svc })));
+
+                    const servicesWithCorrectPetType = filteredServices.map((svc: any) => ({
+                        ...svc,
+                        categorypet_id: svc.categorypet?.ID || 0,
+                    }));
+
+                    console.log("Updated services with categorypet_id:", servicesWithCorrectPetType); // ตรวจสอบค่า
+                    setServices(servicesWithCorrectPetType);
                 }
             } catch (error) {
                 messageApi.error("Failed to fetch services");
@@ -49,34 +58,48 @@ function ServiceEdit() {
             }
         };
 
+        const fetchPetTypes = async () => {
+            try {
+                const response = await GetAllPettype();
+                if (response.status === 200) {
+                    setPetTypes(response.data.Pettype || []);
+                } else {
+                    throw new Error("Failed to fetch pet types.");
+                }
+            } catch (error) {
+                console.error("Error fetching pet types:", error);
+                message.error("Failed to load pet types.");
+            }
+        };
+
         fetchServices();
+        fetchPetTypes();
     }, [id, messageApi]);
+
+
 
     const addService = () => {
         setServices([
             ...services,
             {
-                ID: undefined,  // Use 'ID' instead of 'id' here
+                ID: undefined,
                 name_service: "",
                 price: 0,
                 duration: 0,
                 store_id: parseInt(id!),
-                category_pet: "",  // Assuming default value for category_pet
+                categorypet_id: petTypes[0]?.ID || 0,  // Default to the first pet type if available
             },
         ]);
     };
-    
+
     const removeService = (index: number) => {
         const serviceToRemove = services[index];
-    
-        // ใช้ non-null assertion (serviceToRemove.ID!) เพื่อบอก TypeScript ว่า ID จะมีค่าเสมอ
         if (serviceToRemove.ID != null) {
             Modal.confirm({
                 title: "Are you sure you want to delete this service?",
                 content: `This will also delete any related bookings.`,
                 onOk: async () => {
                     try {
-                        // ใช้ serviceToRemove.ID! เพื่อหลีกเลี่ยงการตรวจสอบ null/undefined
                         await DeleteService(serviceToRemove.ID!.toString());
                         messageApi.success("Service and related bookings deleted successfully!");
                     } catch (error) {
@@ -89,14 +112,12 @@ function ServiceEdit() {
             messageApi.error("Service ID is not available for deletion.");
         }
     };
-    
 
     const onFinish = async () => {
         try {
             for (const service of services) {
                 if (service.ID) {
-                    // แปลง ID เป็น string ก่อนส่งไปยัง UpdateService
-                    await UpdateService(service.ID.toString(), service); 
+                    await UpdateService(service.ID.toString(), service);
                 } else {
                     await CreateService({ ...service, store_id: parseInt(id!) });
                 }
@@ -107,7 +128,6 @@ function ServiceEdit() {
             messageApi.error("Failed to update services");
         }
     };
-    
 
     if (loading) {
         return (
@@ -140,42 +160,51 @@ function ServiceEdit() {
                                         value={service.name_service}
                                         onChange={(e) => {
                                             const updatedServices = [...services];
-                                            updatedServices[index].name_service =
-                                                e.target.value;
+                                            updatedServices[index].name_service = e.target.value;
                                             setServices(updatedServices);
                                         }}
                                     />
                                 </Form.Item>
                             </Col>
                             <Col span={6}>
-                                <Form.Item label="Pet Category">
+                                <Form.Item
+                                    label="Pet Type"
+                                    rules={[{ required: true, message: 'Please select a pet type!' }]}
+                                >
                                     <Select
-                                        value={service.category_pet}
+                                        placeholder="Select pet type"
+                                        value={service.categorypet_id || undefined}  // ตรวจสอบค่า value ว่าถูกต้อง
                                         onChange={(value) => {
                                             const updatedServices = [...services];
-                                            updatedServices[index].category_pet = value;
+                                            updatedServices[index].categorypet_id = value;
                                             setServices(updatedServices);
                                         }}
                                     >
-                                        <Option value="dog">Dog</Option>
-                                        <Option value="cat">Cat</Option>
-                                        <Option value="bird">Bird</Option>
-                                        <Option value="other">Other</Option>
+                                        {petTypes.map((type) => (
+                                            <Option key={type.ID} value={type.ID}>{type.PtName}</Option>
+                                        ))}
                                     </Select>
                                 </Form.Item>
+
                             </Col>
                             <Col span={6}>
-                                <Form.Item label="Price">
-                                    <InputNumber
-                                        min={0}
-                                        value={service.price}
-                                        onChange={(value) => {
-                                            const updatedServices = [...services];
-                                            updatedServices[index].price = value || 0;
-                                            setServices(updatedServices);
-                                        }}
-                                    />
-                                </Form.Item>
+                            <Form.Item
+                                label="Price"
+                                rules={[{ required: true, message: 'Please input store Price!' }]}
+                            >
+                                <InputNumber
+                                    min={0}
+                                    step={0.01} // กำหนดให้เพิ่ม/ลดทีละ 0.01
+                                    precision={2} // กำหนดให้แสดงทศนิยม 2 ตำแหน่ง
+                                    value={service.price ?? 0}
+                                    onChange={(value) =>
+                                        setServices(services.map((s, i) =>
+                                            i === index ? { ...s, price: value || 0 } : s
+                                        ))
+                                    }
+                                    style={{ width: '100%' }} // ทำให้ InputNumber กว้างเต็ม
+                                />
+                            </Form.Item>
                             </Col>
                             <Col span={6}>
                                 <Form.Item label="Duration (minutes)">
@@ -210,9 +239,12 @@ function ServiceEdit() {
                     <Divider />
                     <Form.Item>
                         <Button
-                            style={{borderRadius: "20px",background: "#954435", color: "white" }}
+                            style={{
+                                borderRadius: "20px",
+                                background: "#954435",
+                                color: "white",
+                            }}
                             htmlType="submit"
-                            
                             block
                         >
                             Save Changes

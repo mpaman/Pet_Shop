@@ -169,7 +169,7 @@ function Store() {
                                 </Title>
                                 <Text>
                                     <strong>จังหวัด: </strong>
-                                    {item.province?.saname || "ไม่พบข้อมูล"} {/* ใช้ชื่อจังหวัด */}
+                                    {item.province?.SaName || "ไม่พบข้อมูล"} {/* ใช้ชื่อจังหวัด */}
                                 </Text>
                                 <Text>
                                     <strong>สถานะ: </strong>

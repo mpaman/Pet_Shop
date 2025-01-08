@@ -434,7 +434,7 @@ const BookingForm: React.FC = () => {
                             <strong>Duration:</strong> {services.find((service) => service.ID === selectedService)?.duration || "N/A"} minutes
                         </Paragraph>
                         <Paragraph>
-                            <strong>Category:</strong> {services.find((service) => service.ID === selectedService)?.category_pet || "N/A"}
+                            <strong>Category:</strong> {services.find((service) => service.ID === selectedService)?.categorypet?.PtName || "N/A"}
                         </Paragraph>
                         <Paragraph>
                             <strong>Date:</strong> {date || "N/A"}

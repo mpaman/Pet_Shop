@@ -12,7 +12,10 @@ func GetStoreByID(c *gin.Context) {
 	storeID := c.Param("id")
 	var store entity.Store
 
-	if err := config.DB().Preload("Services").Preload("User").Preload("Province").First(&store, storeID).Error; err != nil {
+	if err := config.DB().
+		Preload("User").
+		Preload("Province").
+		First(&store, storeID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
 		return
 	}
@@ -25,7 +28,6 @@ func GetAllStores(c *gin.Context) {
 	db := config.DB()
 	if err := db.
 		Preload("User").
-		Preload("Services").
 		Preload("Province").
 		Find(&stores).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve stores"})
@@ -37,7 +39,7 @@ func GetAllStores(c *gin.Context) {
 
 func UpdateStore(c *gin.Context) {
 	storeID := c.Param("id")
-	var payload entity.Store
+	var payload StorePayload
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
@@ -71,35 +73,29 @@ func UpdateStore(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Store updated successfully", "store": store})
 }
 
-// DeleteStore: ลบร้านตาม ID
 func DeleteStore(c *gin.Context) {
 	id := c.Param("id")
-
 	db := config.DB()
-
 	tx := db.Begin()
 
 	if err := tx.Where("store_id = ?", id).Delete(&entity.Bookingstore{}).Error; err != nil {
-		tx.Rollback() // ย้อนกลับการเปลี่ยนแปลงถ้ามีข้อผิดพลาด
+		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete related bookingstore data"})
 		return
 	}
 
-	// ลบข้อมูลใน Service ที่เกี่ยวข้อง
 	if err := tx.Where("store_id = ?", id).Delete(&entity.Service{}).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete related service data"})
 		return
 	}
 
-	// ลบข้อมูลใน StoreImage ที่เกี่ยวข้อง
 	if err := tx.Where("store_id = ?", id).Delete(&entity.StoreImage{}).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete related store images"})
 		return
 	}
 
-	// ลบข้อมูลของ Store
 	if err := tx.Delete(&entity.Store{}, id).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete store"})
@@ -107,15 +103,13 @@ func DeleteStore(c *gin.Context) {
 	}
 
 	tx.Commit()
-
 	c.JSON(http.StatusOK, gin.H{"message": "Store and related data deleted successfully"})
 }
 
-// UpdateStoreStatus: อัพเดตสถานะของร้านตาม ID
 func UpdateStoreStatus(c *gin.Context) {
 	storeID := c.Param("id")
 	var payload struct {
-		Status string `json:"status"` // รับสถานะใหม่
+		Status string `json:"status"`
 	}
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
