@@ -30,6 +30,9 @@ type Bookingstore struct {
 	ContactNum string `json:"contact_number" binding:"-"`
 
 	CountPet int `json:"count_pet" binding:"required"`
+
+	Pets []Pet `gorm:"many2many:booking_pets;joinForeignKey:BookingID;joinReferences:PetID;" json:"pets"`
+
 }
 
 // type Bookingstore struct {

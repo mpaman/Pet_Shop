@@ -66,7 +66,6 @@ function TotalBooking() {
                 setLoading(false);
             }
         };
-
         if (userId) {
             fetchBookings();
         }

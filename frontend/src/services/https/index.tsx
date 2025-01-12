@@ -7,6 +7,7 @@ import { StoreInterface } from '../../interfaces/Store';
 import { StoreImageInterface } from '../../interfaces/Storeimage';
 import { PetStoreApplicationInterface } from '../../interfaces/Petstoreapp';
 import { PetInterface } from "../../interfaces/Pet";
+import { BookingPetsInterface } from "../../interfaces/bookingpets";
 const apiUrl = "http://localhost:8000";
 const token = localStorage.getItem("token");
 const tokenType = localStorage.getItem("token_type");
@@ -260,6 +261,38 @@ async function GetAllPettype() {
 }
 
 
+async function CreateBookingPets(data: BookingPetsInterface) {
+    return await axios.post(`${apiUrl}/bookingpets`, data, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function ListAllBookingPets() {
+    return await axios.get(`${apiUrl}/bookingpets`, { headers: requestOptions.headers })
+        .then((res) => res)
+        .catch((e) => e.response);
+}
+async function GetPetsByBookingID(id: string) {
+    try {
+        const response = await axios.get(`${apiUrl}/bookings/${id}/pets`, {
+            headers: requestOptions.headers,
+        });
+        return response.data; // ส่งเฉพาะข้อมูลที่ต้องการ
+    } catch (e: any) {
+        return e.response.data; // กรณีเกิดข้อผิดพลาด
+    }
+}
+// async function UpdateBookingPet(id: string, data: { status: string }) {
+//     return await axios.put(`${apiUrl}/bookings/${id}/pets`, data, { headers: requestOptions.headers })
+//         .then((res) => res)
+//         .catch((e) => e.response);
+// }
+// async function DeletePetFromBooking(id: string) {
+//     return await axios.delete(`${apiUrl}/bookings/${id}`, { headers: requestOptions.headers })
+//         .then((res) => res)
+//         .catch((e) => e.response);
+// }
+
+
 
 // Export all functions
 export {
@@ -269,13 +302,13 @@ export {
     UpdateUsersById,
     DeleteUsersById,
     CreateUser,
+    ListAllBookingPets, GetPetsByBookingID,
+    GetAllservicearea, GetAllRoles, GetAllPettype,CreateBookingPets,
 
-    GetAllservicearea,GetAllRoles,GetAllPettype,
-
-    CreatePetStoreApplication,GetAllApplications,GetApplicationByID,UpdatePetStoreApplicationStatus,DeletePetStoreApplication,
-    CreatePet,UpdatePet,DeletePet,GetAllPets,
+    CreatePetStoreApplication, GetAllApplications, GetApplicationByID, UpdatePetStoreApplicationStatus, DeletePetStoreApplication,
+    CreatePet, UpdatePet, DeletePet, GetAllPets,
     CreateStore, UpdateStore, DeleteStoreById, GetAllStores, GetStoreByID,
     CreateService, DeleteService, UpdateService, GetAllService, GetServiceByStoreID,
-    CreateStoreImage, DeleteStoreImage, GetStoreImages, GetAllStoreImage,UpdateStoreStatus,
+    CreateStoreImage, DeleteStoreImage, GetStoreImages, GetAllStoreImage, UpdateStoreStatus,
     CreateBooking, GetAllBookings, GetBookingstoreByStoreID, UpdateBookingStatus, DeleteBooking
 };

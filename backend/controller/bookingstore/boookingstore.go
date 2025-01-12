@@ -13,12 +13,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 func GetAllBookingstores(c *gin.Context) {
 	var bookings []entity.Bookingstore
 
 	// Retrieve all bookings from the database
-	if err := config.DB().Preload("BookerUser").Preload("Store").Preload("Service").Find(&bookings).Error; err != nil {
+	if err := config.DB().
+		Preload("BookerUser").
+		Preload("Store").
+		Preload("Service").
+		Preload("Pets"). // Load Pets with Many-to-Many Relationship
+		Find(&bookings).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -31,35 +35,38 @@ func GetAllBookingstores(c *gin.Context) {
 	})
 }
 
+
 func GetBookingstoreByStoreID(c *gin.Context) {
-	storeID := c.Param("storeId") // รับ storeId จาก URL
+	storeID := c.Param("storeId") // Get storeId from URL
 	var bookings []entity.Bookingstore
 
-	// ตรวจสอบว่า storeID เป็นตัวเลขหรือไม่
+	// Check if storeID is a valid number
 	storeIDInt, err := strconv.Atoi(storeID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid store ID"})
 		return
 	}
 
-	// ดึงข้อมูลการจองที่เกี่ยวข้องกับ StoreID
+	// Retrieve bookings for the given storeID
 	if err := config.DB().
-		Preload("BookerUser"). // โหลดข้อมูลผู้จอง
-		Preload("Store").      // โหลดข้อมูลร้านค้า
-		Preload("Service").    // โหลดข้อมูลบริการ
-		Where("store_id = ?", storeIDInt). // กรองด้วย store_id
+		Preload("BookerUser").
+		Preload("Store").
+		Preload("Service").
+		Preload("Pets"). // Load Pets with Many-to-Many Relationship
+		Where("store_id = ?", storeIDInt).
 		Find(&bookings).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "No bookings found for this store"})
 		return
 	}
 
-	// ส่งข้อมูลกลับ
+	// Return the list of bookings
 	c.JSON(http.StatusOK, gin.H{
 		"status":   200,
 		"message":  "Bookings retrieved successfully",
 		"bookings": bookings,
 	})
 }
+
 
 // อัปเดตสถานะการจอง
 func UpdateBookingstore(c *gin.Context) {
@@ -105,7 +112,6 @@ func UpdateBookingstore(c *gin.Context) {
 		"booking": booking,
 	})
 }
-
 
 // DeleteBookingstore deletes a booking by ID
 func DeleteBookingstore(c *gin.Context) {

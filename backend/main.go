@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/mpaman/petshop/config"
+	"github.com/mpaman/petshop/controller/bookingpets"
 	"github.com/mpaman/petshop/controller/bookingstore"
 	"github.com/mpaman/petshop/controller/pet"
 	"github.com/mpaman/petshop/controller/petstoreapplication"
@@ -86,6 +87,12 @@ func main() {
 		router.GET("/application/:id", petstoreapplication.GetApplicationByID)
 		router.PUT("/application/:id/status", petstoreapplication.UpdatePetStoreApplicationStatus)
 		router.DELETE("/application/:id", petstoreapplication.DeletePetStoreApplication)
+
+		router.GET("/bookings/:booking_id/pets", bookingpets.GetPetsByBookingID)
+		router.POST("/bookingpets", bookingpets.CreateBookingPets)
+		router.PUT("/bookings/:booking_id/pets/:pet_id", bookingpets.UpdateBookingPet)
+		router.DELETE("/bookings/:booking_id/pets/:pet_id", bookingpets.DeletePetFromBooking)
+		router.GET("/bookingpets", bookingpets.ListAllBookingPets)
 
 	}
 

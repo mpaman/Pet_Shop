@@ -51,6 +51,7 @@ func SetupDatabase() {
 		&entity.Servicearea{},
 		&entity.Role{},
 		&entity.Pettype{},
+		&entity.BookingPets{},
 	)
 	//role fix ตาม id นี้เลย
 	admin := entity.Role{Rolename: "admin"}
@@ -167,7 +168,6 @@ func SetupDatabase() {
 	db.FirstOrCreate(&bookingStore1, &entity.Bookingstore{BookerUserID: 1, StoreID: store1.ID, ServiceID: service1.ID, Date: bookingStore1.Date})
 
 	pet1 := entity.Pet{
-		BookingID:  bookingStore1.ID,
 		Name:       "มะลิ",
 		Breed:      "เปอร์เซีย",
 		Age:        2,

@@ -9,8 +9,7 @@ import (
 	"github.com/mpaman/petshop/entity"
 )
 
-type addBookingstore struct {
-	BookingID   uint    `json:"booking_id" binding:"required"` // เชื่อมกับการจอง
+type addpet struct {
 	OwnerID     uint    `json:"owner_id" binding:"required"`   // เจ้าของสัตว์
 
 	Name        string  `json:"name"`                          // ชื่อสัตว์เลี้ยง
@@ -24,7 +23,7 @@ type addBookingstore struct {
 }
 
 func CreatePet(c *gin.Context) {
-	var payload addBookingstore
+	var payload addpet
 
 	// Bind JSON payload
 	if err := c.ShouldBindJSON(&payload); err != nil {
@@ -39,16 +38,9 @@ func CreatePet(c *gin.Context) {
 		return
 	}
 
-	// ตรวจสอบว่า BookingID มีอยู่ใน Bookingstore หรือไม่
-	var booking entity.Bookingstore
-	if err := config.DB().First(&booking, payload.BookingID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
-		return
-	}
 
 	// สร้าง Pet entity
 	pet := entity.Pet{
-		BookingID:  payload.BookingID,
 
 		Name:       payload.Name,
 		Breed:      payload.Breed,

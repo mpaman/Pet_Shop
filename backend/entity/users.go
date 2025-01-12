@@ -16,7 +16,7 @@ type Users struct {
 	RoleID    uint   `json:"role_id"`
 	Role      Role   `json:"role" gorm:"foreignKey:RoleID"`
 	// Role    string `json:"role"`
-
+    
 	Phone   string `json:"phone"`
 	Address string `json:"address"`
 	Profile string `gorm:"type:longtext"`
