@@ -13,12 +13,23 @@ import {
     Col,
     TimePicker,
 } from "antd";
-import { CreateBooking, GetAllService, GetStoreByID, GetUserProfile, CreatePet } from "../../services/https";
+import {
+    CreateBooking,
+    GetAllService,
+    GetStoreByID,
+    GetUserProfile,
+    CreateBookingPets,
+    GetAllPets,
+    CreatePet,
+    DeletePet,
+} from "../../services/https";
 import { StoreInterface } from "../../interfaces/Store";
 import { ServiceInterface } from "../../interfaces/Service";
+import { PetInterface } from "../../interfaces/Pet";
 import { useParams } from "react-router-dom";
 import moment from "moment";
 import dayjs from "dayjs";
+import { BookingInterface } from "../../interfaces/Bookingstore";
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -35,17 +46,8 @@ const BookingForm: React.FC = () => {
     const [totalCost, setTotalCost] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
     const [countPet, setCountPet] = useState<number>(1);
-    const [pets, setPets] = useState<{
-        name: string;
-        breed?: string;
-        age?: number;
-        gender: string;
-        weight: number;
-        vaccinated: string;
-        picturePet?: string;
-    }[]>([
-        { name: "", breed: "", age: 0, gender: "", weight: 0, vaccinated: "yes" },
-    ]);
+    const [pets, setPets] = useState<PetInterface[]>([]);
+    const [selectedPets, setSelectedPets] = useState<number[]>([]);
 
     const { storeId } = useParams<{ storeId: string }>();
     const [bookerUserId, setBookerUserId] = useState<string | null>(null);
@@ -54,21 +56,28 @@ const BookingForm: React.FC = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const storeResponse = storeId ? await GetStoreByID(storeId) : null;
-                if (storeResponse?.status === 200) {
-                    setStores([storeResponse.data]);
+                const userResponse = await GetUserProfile();
+                setBookerUserId(userResponse.ID || null);
+
+                if (storeId) {
+                    const storeResponse = await GetStoreByID(storeId);
+                    if (storeResponse?.status === 200) {
+                        setStores([storeResponse.data]);
+                    }
+
+                    const serviceResponse = await GetAllService();
+                    const allServices = Array.isArray(serviceResponse.data?.data) ? serviceResponse.data.data : [];
+                    const filteredServices = allServices.filter(
+                        (service: { store_id: number }) => service.store_id === Number(storeId)
+                    );
+                    setServices(filteredServices);
                 }
 
-                const serviceResponse = await GetAllService();
-                const allServices = Array.isArray(serviceResponse.data?.data) ? serviceResponse.data.data : [];
-                const filteredServices = allServices.filter(
-                    (service: { store_id: number }) => service.store_id === Number(storeId)
+                const petResponse = await GetAllPets();
+                const userPets = petResponse.data.data.filter(
+                    (pet: { owner_id: number }) => pet.owner_id === userResponse.ID
                 );
-
-                setServices(filteredServices);
-
-                const userResponse = await GetUserProfile();
-                setBookerUserId(userResponse.ID || "No ID");
+                setPets(userPets);
             } catch (error) {
                 console.error("Error fetching data:", error);
                 message.error("Failed to load data.");
@@ -80,102 +89,77 @@ const BookingForm: React.FC = () => {
         if (storeId) fetchData();
     }, [storeId]);
 
-    const handlePetChange = (index: number, field: string, value: any) => {
-        const updatedPets = [...pets];
-        updatedPets[index] = { ...updatedPets[index], [field]: value };
-
-        if (field === "age" || field === "weight") {
-            updatedPets[index][field] = Math.max(0, value); // Ensure no negative values
-        }
-
-        setPets(updatedPets);
-    };
-
-    const handleFileUpload = (index: number, file: File) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const updatedPets = [...pets];
-            updatedPets[index].picturePet = reader.result as string;
-            setPets(updatedPets);
-        };
-        reader.readAsDataURL(file);
-    };
     const handleSubmit = async () => {
-        if (!selectedService || !selectedStore || !date || !contactNumber || !countPet || !time) {
+        // Basic validation for required fields
+        if (!selectedService || !selectedStore || !date || !time || !contactNumber || selectedPets.length === 0) {
             message.error("Please fill all required fields!");
             return;
         }
-    
-        const bookingTime = `${date} ${time || "00:00"}`;
+
+        // Validate the date and time are in the future
+        const bookingTime = `${date} ${time}`;
         const formattedDateTime = moment(bookingTime, "YYYY-MM-DD HH:mm");
-    
-        // ตรวจสอบวันและเวลา
+
         if (formattedDateTime.isBefore(moment())) {
             message.error("The selected date and time must be in the future.");
             return;
         }
-    
-        // ตรวจสอบโปรไฟล์ผู้ใช้งาน
+
+        // Validate the contact number (basic phone number format, adjust as necessary)
+        const phoneRegex = /^[0-9]{10}$/; // Assuming a 10-digit phone number
+        if (!phoneRegex.test(contactNumber)) {
+            message.error("Please enter a valid 10-digit contact number.");
+            return;
+        }
+
+        // Ensure the user is logged in (bookerUserId should not be null)
         if (!bookerUserId) {
             message.error("User profile not found. Please log in.");
             return;
         }
-    
-        // ตรวจสอบข้อมูลสัตว์เลี้ยง
-        if (pets.some(pet => !pet.name || !pet.weight || !pet.gender)) {
-            message.error("Please fill in all required pet information.");
+
+        // Map selected pet IDs to pet objects
+        const selectedPetData: PetInterface[] = selectedPets.map((petID) => {
+            return pets.find((pet) => pet.ID === petID);
+        }).filter((pet): pet is PetInterface => Boolean(pet));  // Ensure no undefined pets are included
+
+        // Validate that selected pets exist and are correctly selected
+        if (selectedPetData.length !== selectedPets.length) {
+            message.error("Some pets are missing or invalid.");
             return;
         }
-    
-        const bookingData = {
+
+        // Prepare booking data
+        const bookingData: BookingInterface = {
             booker_user_id: Number(bookerUserId),
             store_id: selectedStore,
             service_id: selectedService,
             date: formattedDateTime.toISOString(),
-            notes: notes,
+            booking_time: time,
+            notes,
             total_cost: totalCost,
             contact_number: contactNumber,
-            count_pet: pets.length,
-            booking_time: time,
-            pets: pets.map((pet) => ({
-                name: pet.name,
-                breed: pet.breed || "",
-                age: pet.age ?? 0,
-                weight: pet.weight,
-                gender: pet.gender,
-                vaccinated: pet.vaccinated,
-                owner_id: Number(bookerUserId),
-                picture_pet: pet.picturePet || "",
-            })),
-            BookerUser: {
-                id: Number(bookerUserId),
-                name: "Default User",  // เปลี่ยนตามที่ได้จาก GetUserProfile()
-                email: "default@example.com",  // เปลี่ยนตามที่ได้จาก GetUserProfile()
-            },
+            count_pet: selectedPets.length,
+            pets: selectedPetData,
+            BookerUser: await GetUserProfile(), // Assuming this returns the user profile
         };
-    
+
         try {
-            const response = await CreateBooking(bookingData);
-            if (response.status === 201) {
-                const bookingID = response.data.booking_id;
-    
-                // บันทึกข้อมูลสัตว์เลี้ยง
-                const petPromises = pets.map((pet) =>
-                    CreatePet({
+            // Create booking
+            const bookingResponse = await CreateBooking(bookingData);
+            if (bookingResponse.status === 201) {
+                const bookingID = bookingResponse.data.booking_id;
+
+                // Create booking pets entries
+                const bookingPetsPromises = selectedPets.map((petID) => {
+                    return CreateBookingPets({
                         booking_id: bookingID,
-                        name: pet.name,
-                        breed: pet.breed || "",
-                        age: pet.age ?? 0,
-                        weight: pet.weight,
-                        gender: pet.gender,
-                        vaccinated: pet.vaccinated,
-                        owner_id: Number(bookerUserId),
-                        picture_pet: pet.picturePet,
-                    })
-                );
-    
-                await Promise.all(petPromises);
-                message.success("Booking and pets created successfully!");
+                        pet_id: petID,
+                    });
+                });
+
+                await Promise.all(bookingPetsPromises);
+                message.success("Booking and associated pets created successfully!");
             } else {
                 message.error("Failed to create booking.");
             }
@@ -184,36 +168,121 @@ const BookingForm: React.FC = () => {
             message.error("Error creating booking. Please try again later.");
         }
     };
-    
 
 
     const handleServiceChange = (serviceID: number) => {
         setSelectedService(serviceID);
-        const selected = services.find((service) => service.ID === serviceID);
-        if (selected) {
-            setTotalCost(selected.price * countPet);
+        const selectedService = services.find((service) => service.ID === serviceID);
+        if (selectedService) {
+            // Calculate the total cost based on the price of the selected service
+            setTotalCost(selectedService.price * selectedPets.length); // Multiply by the number of selected pets
         }
     };
 
     const handleCountPetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newCountPet = Math.max(1, Number(e.target.value)); // Ensure at least 1 pet
+        const newCountPet = Math.max(1, Number(e.target.value));
         setCountPet(newCountPet);
+        setSelectedPets((prevSelectedPets) => prevSelectedPets.slice(0, newCountPet));
 
-        const updatedPets = [...pets];
-        if (newCountPet > pets.length) {
-            const additionalPets = Array(newCountPet - pets.length).fill({
-                name: "",
-                breed: "",
-                age: 0,
-                gender: "",
-                weight: 0,
-                vaccinated: "yes",
-            });
-            setPets([...updatedPets, ...additionalPets]);
-        } else if (newCountPet < pets.length) {
-            setPets(updatedPets.slice(0, newCountPet));
+        if (selectedService) {
+            const service = services.find((service) => service.ID === selectedService);
+            if (service) {
+                setTotalCost(service.price * newCountPet);
+            }
         }
     };
+
+
+    const handlePetSelect = (index: number, petID: number) => {
+        setSelectedPets((prevSelectedPets) => {
+            const updatedSelectedPets = [...prevSelectedPets];
+            updatedSelectedPets[index] = petID;
+            return updatedSelectedPets;
+        });
+    };
+
+    const [newPetFormVisible, setNewPetFormVisible] = useState(false);
+    const [newPetData, setNewPetData] = useState({
+        name: "",
+        breed: "",
+        age: 0,
+        gender: "",
+        weight: 0,
+        vaccinated: "yes",
+        picturePet: "",
+    });
+
+
+    const handleFileUpload = (file: File) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            setNewPetData((prev) => ({
+                ...prev,
+                picturePet: reader.result as string,  // Correctly assign the base64 string to picturePet
+            }));
+        };
+        reader.readAsDataURL(file); // Convert the image file to base64 string
+    };
+
+    const handleNewPetChange = (field: string, value: string | number) => {
+        setNewPetData((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleAddNewPet = async () => {
+        try {
+            const response = await CreatePet({
+                name: newPetData.name,
+                breed: newPetData.breed || "",
+                age: newPetData.age ?? 0,
+                weight: newPetData.weight,
+                gender: newPetData.gender,
+                vaccinated: newPetData.vaccinated,
+                owner_id: Number(bookerUserId),
+                picture_pet: newPetData.picturePet || "", // Ensure the picturePet is passed correctly
+            });
+
+            if (response.status === 201) {
+                setPets((prev) => [...prev, response.data]);
+                setNewPetFormVisible(false);
+                setNewPetData({
+                    name: "",
+                    breed: "",
+                    age: 0,
+                    gender: "",
+                    weight: 0,
+                    vaccinated: "yes",
+                    picturePet: "", // Reset picture after successful creation
+                });
+                message.success("New pet added successfully.");
+            }
+        } catch (error) {
+            message.error("Failed to add new pet.");
+        }
+    };
+
+    const handleDeletePet = async (petID: number | undefined) => {
+        if (!petID) {
+            message.error("No pet selected to delete.");
+            return;
+        }
+    
+        try {
+            const response = await DeletePet(petID.toString());
+            if (response?.status === 200) {
+                message.success("Pet deleted successfully.");
+                // Remove the pet from the list
+                setPets((prev) => prev.filter((pet) => pet.ID !== petID));
+                // Update selectedPets to remove deleted pet
+                setSelectedPets((prevSelected) => prevSelected.filter((id) => id !== petID));
+            } else {
+                message.error("Failed to delete pet.");
+            }
+        } catch (error) {
+            console.error("Error deleting pet:", error);
+            message.error("Error deleting pet. Please try again.");
+        }
+    };
+    
 
     return (
         <div style={{ padding: "20px", display: "flex", justifyContent: "center" }}>
@@ -223,7 +292,7 @@ const BookingForm: React.FC = () => {
                         <Title level={2} style={{ textAlign: "center", color: "#1D3557" }}>Book a Service</Title>
                         <Divider />
                         <Space direction="vertical" style={{ width: "100%" }}>
-                            {/* Booking Fields */}
+                            {/* Store and Service Selections */}
                             <div>
                                 <Text strong>Store:</Text>
                                 <Select
@@ -244,7 +313,7 @@ const BookingForm: React.FC = () => {
                                 <Select
                                     placeholder="Select a service"
                                     style={{ width: "100%" }}
-                                    onChange={(value) => handleServiceChange(value)}
+                                    onChange={handleServiceChange}
                                     value={selectedService || undefined}
                                 >
                                     {services
@@ -256,6 +325,7 @@ const BookingForm: React.FC = () => {
                                         ))}
                                 </Select>
                             </div>
+                            {/* Date, Time, Notes, Contact Number, Pets */}
                             <div>
                                 <Text strong>Date:</Text>
                                 <DatePicker
@@ -275,17 +345,14 @@ const BookingForm: React.FC = () => {
                                     format="HH:mm"
                                     style={{ width: "100%" }}
                                     onChange={(_time, timeString) => {
-                                        if (typeof timeString === 'string') {
-                                            const selectedDateTime = moment(`${date} ${timeString}`, "YYYY-MM-DD HH:mm");
-                                            if (date && selectedDateTime.isBefore(moment())) {
-                                                message.error("You cannot select a past time.");
-                                                return;
-                                            }
-                                            setTime(timeString);
+                                        const selectedDateTime = moment(`${date} ${timeString}`, "YYYY-MM-DD HH:mm");
+                                        if (date && selectedDateTime.isBefore(moment())) {
+                                            message.error("You cannot select a past time.");
+                                            return;
                                         }
+                                        setTime(Array.isArray(timeString) ? timeString[0] : timeString);
                                     }}
                                 />
-
                             </div>
                             <div>
                                 <Text strong>Notes:</Text>
@@ -307,98 +374,110 @@ const BookingForm: React.FC = () => {
                                 <Text strong>Number of Pets:</Text>
                                 <Input
                                     type="number"
-                                    placeholder="Enter the number of pets"
                                     value={countPet}
                                     onChange={handleCountPetChange}
                                     min={1}
                                 />
                             </div>
+                            {Array.from({ length: countPet }).map((_, index) => (
+                                <Card key={index} style={{ marginBottom: "10px" }}>
+                                    <Text>Pet {index + 1}:</Text>
+                                    <Row align="middle" justify="space-between">
+                                        <Col flex="auto">
+                                            <Select
+                                                placeholder={`Select Pet ${index + 1}`}
+                                                onChange={(value) => handlePetSelect(index, value)}
+                                                style={{ width: "100%" }}
+                                                value={selectedPets[index] || undefined}
+                                            >
+                                                {pets.map((pet) => (
+                                                    <Option key={pet.ID} value={pet.ID}>{pet.name}</Option>
+                                                ))}
+                                            </Select>
+                                        </Col>
+                                        <Col>
+                                            <Button
+                                                type="text"
+                                                danger
+                                                onClick={() => handleDeletePet(selectedPets[index])}
+                                                disabled={!selectedPets[index]} // Disable if no pet is selected
+                                            >
+                                                Delete
+                                            </Button>
+                                        </Col>
+                                    </Row>
+                                </Card>
+                            ))}
 
-                            {/* Pet Information Fields */}
-                            <div>
-                                <Text strong >Pet Information:</Text>
-                                {pets.map((pet, index) => (
-                                    <Card key={index} style={{ marginBottom: "10px" }}>
-                                        <Space direction="vertical" style={{ width: "100%" }}>
-                                            <div>
-                                                <Text type="secondary">Pet Name (required)</Text>
-                                                <Input
-                                                    placeholder="Enter your pet's name"
-                                                    value={pet.name}
-                                                    onChange={(e) => handlePetChange(index, "name", e.target.value)}
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <Text type="secondary">Breed (optional)</Text>
-                                                <Input
-                                                    placeholder="Enter your pet's breed"
-                                                    value={pet.breed}
-                                                    onChange={(e) => handlePetChange(index, "breed", e.target.value)}
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <Text type="secondary">Age (optional)</Text>
-                                                <Input
-                                                    type="number"
-                                                    placeholder="Enter your pet's age"
-                                                    value={pet.age}
-                                                    onChange={(e) => handlePetChange(index, "age", Number(e.target.value))}
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <Text type="secondary">Weight (required)</Text>
-                                                <Input
-                                                    type="number"
-                                                    placeholder="Enter your pet's weight"
-                                                    value={pet.weight}
-                                                    onChange={(e) => handlePetChange(index, "weight", Number(e.target.value))}
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <Text type="secondary">Vaccinated (required)</Text>
-                                                <Select
-                                                    placeholder="Select vaccination status"
-                                                    value={pet.vaccinated}
-                                                    onChange={(value) => handlePetChange(index, "vaccinated", value)}
-                                                >
-                                                    <Option value="Yes">Yes</Option>
-                                                    <Option value="No">No</Option>
-                                                </Select>
-                                            </div>
-
-                                            <div>
-                                                <Text type="secondary">Gender (required)</Text>
-                                                <Select
-                                                    placeholder="Select your pet's gender"
-                                                    value={pet.gender || undefined}
-                                                    onChange={(value) => handlePetChange(index, "gender", value)}
-                                                >
-                                                    <Option value="Male">Male</Option>
-                                                    <Option value="Female">Female</Option>
-                                                </Select>
-                                            </div>
-                                            <div>
-                                                <Text type="secondary">Pet Picture (optional)</Text>
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={(e) => {
-                                                        if (e.target.files && e.target.files[0]) { // Check if files is not null
-                                                            handleFileUpload(index, e.target.files[0]);
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-                                        </Space>
-                                    </Card>
-                                ))}
+                            <div style={{ marginTop: "10px" }}>
+                                <Button
+                                    type="dashed"
+                                    onClick={() => setNewPetFormVisible(true)}
+                                    style={{ width: "100%", marginTop: "10px" }}
+                                >
+                                    Add New Pet
+                                </Button>
                             </div>
+                            {/* New Pet Form */}
+                            {newPetFormVisible && (
+                                <Card style={{ marginTop: "20px" }}>
+                                    <Title level={4}>Add New Pet</Title>
+                                    <Space direction="vertical" style={{ width: "100%" }}>
+                                        <Input
+                                            placeholder="Pet Name"
+                                            value={newPetData.name}
+                                            onChange={(e) => handleNewPetChange("name", e.target.value)}
+                                        />
+                                        <Input
+                                            placeholder="Breed"
+                                            value={newPetData.breed}
+                                            onChange={(e) => handleNewPetChange("breed", e.target.value)}
+                                        />
+                                        <Input
+                                            type="number"
+                                            placeholder="Age"
+                                            value={newPetData.age}
+                                            onChange={(e) => handleNewPetChange("age", Number(e.target.value))}
+                                        />
+                                        <Input
+                                            type="number"
+                                            placeholder="Weight"
+                                            value={newPetData.weight}
+                                            onChange={(e) => handleNewPetChange("weight", Number(e.target.value))}
+                                        />
+                                        <Select
+                                            placeholder="Gender"
+                                            value={newPetData.gender}
+                                            onChange={(value) => handleNewPetChange("gender", value)}
+                                        >
+                                            <Option value="Male">Male</Option>
+                                            <Option value="Female">Female</Option>
+                                        </Select>
+                                        <Select
+                                            placeholder="Vaccinated"
+                                            value={newPetData.vaccinated}
+                                            onChange={(value) => handleNewPetChange("vaccinated", value)}
+                                        >
+                                            <Option value="yes">Yes</Option>
+                                            <Option value="no">No</Option>
+                                        </Select>
+                                        <div>
+                                            <Text type="secondary">Pet Picture (optional)</Text>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        handleFileUpload(e.target.files[0]);
+                                                    }
+                                                }}
+                                            />
+                                        </div>
 
-
+                                        <Button type="primary" onClick={handleAddNewPet}>Add Pet</Button>
+                                    </Space>
+                                </Card>
+                            )}
                             <div>
                                 <Text strong>Total Cost:</Text>
                                 <Paragraph>{totalCost} THB</Paragraph>
@@ -411,37 +490,14 @@ const BookingForm: React.FC = () => {
                                         borderRadius: "20px",
                                         fontWeight: "bold",
                                     }}
-                                    type="primary" block onClick={handleSubmit}>
+                                    type="primary"
+                                    block
+                                    onClick={handleSubmit}
+                                >
                                     Book Now
                                 </Button>
                             </div>
                         </Space>
-                    </Card>
-                </Col>
-                <Col xs={24} md={8}>
-                    <Card>
-                        <Title level={4} >Booking Summary</Title>
-                        <Paragraph>
-                            <strong>Store:</strong> {stores.find((store) => store.ID === selectedStore)?.name || "N/A"}
-                        </Paragraph>
-                        <Paragraph>
-                            <strong>Service:</strong> {services.find((service) => service.ID === selectedService)?.name_service || "N/A"}
-                        </Paragraph>
-                        <Paragraph>
-                            <strong>Price:</strong> {services.find((service) => service.ID === selectedService)?.price || "N/A"} THB
-                        </Paragraph>
-                        <Paragraph>
-                            <strong>Duration:</strong> {services.find((service) => service.ID === selectedService)?.duration || "N/A"} minutes
-                        </Paragraph>
-                        <Paragraph>
-                            <strong>Category:</strong> {services.find((service) => service.ID === selectedService)?.categorypet?.PtName || "N/A"}
-                        </Paragraph>
-                        <Paragraph>
-                            <strong>Date:</strong> {date || "N/A"}
-                        </Paragraph>
-                        <Paragraph>
-                            <strong>Time:</strong> {time || "N/A"}
-                        </Paragraph>
                     </Card>
                 </Col>
             </Row>

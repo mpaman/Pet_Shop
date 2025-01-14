@@ -31,7 +31,6 @@ const AppStore: React.FC = () => {
         last_name: "",
         ID: 0,
         Profile: "",
-        role: "",
     });
 
     // ดึงข้อมูลผู้ใช้จาก API และเก็บ user_id

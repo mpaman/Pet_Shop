@@ -51,6 +51,7 @@ func SetupDatabase() {
 		&entity.Servicearea{},
 		&entity.Role{},
 		&entity.Pettype{},
+		&entity.BookingPets{},
 	)
 	//role fix ตาม id นี้เลย
 	admin := entity.Role{Rolename: "admin"}
@@ -167,7 +168,6 @@ func SetupDatabase() {
 	db.FirstOrCreate(&bookingStore1, &entity.Bookingstore{BookerUserID: 1, StoreID: store1.ID, ServiceID: service1.ID, Date: bookingStore1.Date})
 
 	pet1 := entity.Pet{
-		BookingID:  bookingStore1.ID,
 		Name:       "มะลิ",
 		Breed:      "เปอร์เซีย",
 		Age:        2,
@@ -178,6 +178,13 @@ func SetupDatabase() {
 		PicturePet: images.EncodeImageToBase64("images/store/pets/pet1.jpg"),
 	}
 	db.FirstOrCreate(&pet1, &entity.Pet{Name: "มะลิ", OwnerID: 1})
+
+	bookingPet1 := entity.BookingPets{
+		BookingID: bookingStore1.ID,
+		PetID:     pet1.ID,
+	}
+
+	db.FirstOrCreate(&bookingPet1, &entity.BookingPets{BookingID: bookingStore1.ID, PetID: pet1.ID})
 
 	// รายชื่อจังหวัดในประเทศไทยทั้งหมด
 	provinces := []string{

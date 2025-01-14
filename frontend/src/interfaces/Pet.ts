@@ -1,7 +1,7 @@
 import { BookingInterface } from "./Bookingstore";
 
 export interface PetInterface {
-    id?: number;             // ID ของสัตว์เลี้ยง (optional เพราะอาจยังไม่ได้สร้างใน backend)
+    ID?: number;             // ID ของสัตว์เลี้ยง (optional เพราะอาจยังไม่ได้สร้างใน backend)
     booking_id?: BookingInterface;     // ID การจองที่เชื่อมกับสัตว์เลี้ยง
 
     name: string;            // ชื่อสัตว์เลี้ยง

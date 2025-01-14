@@ -3,7 +3,7 @@ import { Table, Typography, message, Spin, Button, Tabs, Modal, Input, Row, Col,
 import { ColumnsType } from "antd/es/table";
 import { useParams } from "react-router-dom";
 import { BookingInterface } from "../../../interfaces/Bookingstore";
-import { GetAllBookings, UpdateBookingStatus, GetAllPets } from "../../../services/https";
+import { GetAllBookings, UpdateBookingStatus, GetPetsByBookingID } from "../../../services/https";
 import moment from "moment";
 
 const { Title } = Typography;
@@ -95,27 +95,33 @@ function Booking() {
     const handleCompleteBooking = async (bookingId: number) => {
         await handleUpdateStatus(bookingId, "completed");
     };
-
     const handleShowPetDetails = async (bookingId: number) => {
         try {
-            const petResponse = await GetAllPets();
-            if (Array.isArray(petResponse.data.data)) {
-                const pets = petResponse.data.data.filter((pet: PetDetails) => pet.booking_id === bookingId);
+            const response = await GetPetsByBookingID(bookingId.toString());
+            if (response.status === 200) {
+                const pets = response.pets.map((petDetails: any) => ({
+                    booking_id: petDetails.booking_id,
+                    picture_pet: petDetails.pet.picture_pet,
+                    name: petDetails.pet.name,
+                    breed: petDetails.pet.breed,
+                    age: petDetails.pet.age,
+                    weight: petDetails.pet.weight,
+                    vaccinated: petDetails.pet.vaccinated,
+                    gender: petDetails.pet.gender,
+                }));
 
-                if (pets.length > 0) {
-                    setPetDetails(pets);
-                    setIsModalVisible(true);
-                } else {
-                    message.error("No pets found for this booking.");
-                }
+                setPetDetails(pets);
+                setIsModalVisible(true);
             } else {
-                message.error("Pet details are not in the expected format.");
+                message.error("Failed to load pet details.");
             }
         } catch (error) {
             console.error("Error fetching pet details:", error);
             message.error("Unable to load pet details.");
         }
     };
+
+
 
 
     const handleShowNote = (note: string) => {
@@ -303,6 +309,7 @@ function Booking() {
                     <p>No pet details available.</p>
                 )}
             </Modal>
+
         </div>
     );
 }

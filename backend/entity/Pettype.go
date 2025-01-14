@@ -11,4 +11,3 @@ type Pettype struct {
 
 	Service []Service `json:"service" gorm:"foreignKey:CategoryPetID"`
 }
-

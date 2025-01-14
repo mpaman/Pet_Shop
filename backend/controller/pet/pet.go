@@ -13,7 +13,7 @@ import (
 func GetAllPets(c *gin.Context) {
 	var pets []entity.Pet
 
-	if err := config.DB().Preload("Owner").Preload("Booking").Find(&pets).Error; err != nil {
+	if err := config.DB().Preload("Owner").Find(&pets).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

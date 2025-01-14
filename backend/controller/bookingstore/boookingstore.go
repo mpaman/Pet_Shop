@@ -13,17 +13,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 func GetAllBookingstores(c *gin.Context) {
 	var bookings []entity.Bookingstore
 
-	// Retrieve all bookings from the database
-	if err := config.DB().Preload("BookerUser").Preload("Store").Preload("Service").Find(&bookings).Error; err != nil {
+	if err := config.DB().
+		Preload("BookerUser").
+		Preload("Store").
+		Preload("Service").
+		Preload("Pets").
+		Find(&bookings).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Return the list of bookings
 	c.JSON(http.StatusOK, gin.H{
 		"status":   200,
 		"message":  "Booking list retrieved successfully",
@@ -31,29 +33,29 @@ func GetAllBookingstores(c *gin.Context) {
 	})
 }
 
+
 func GetBookingstoreByStoreID(c *gin.Context) {
-	storeID := c.Param("storeId") // รับ storeId จาก URL
+	storeID := c.Param("storeId") 
 	var bookings []entity.Bookingstore
 
-	// ตรวจสอบว่า storeID เป็นตัวเลขหรือไม่
 	storeIDInt, err := strconv.Atoi(storeID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid store ID"})
 		return
 	}
 
-	// ดึงข้อมูลการจองที่เกี่ยวข้องกับ StoreID
 	if err := config.DB().
-		Preload("BookerUser"). // โหลดข้อมูลผู้จอง
-		Preload("Store").      // โหลดข้อมูลร้านค้า
-		Preload("Service").    // โหลดข้อมูลบริการ
-		Where("store_id = ?", storeIDInt). // กรองด้วย store_id
+		Preload("BookerUser").
+		Preload("Store").
+		Preload("Service").
+		Preload("Pets"). 
+		Where("store_id = ?", storeIDInt).
 		Find(&bookings).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "No bookings found for this store"})
 		return
 	}
 
-	// ส่งข้อมูลกลับ
+	// Return the list of bookings
 	c.JSON(http.StatusOK, gin.H{
 		"status":   200,
 		"message":  "Bookings retrieved successfully",
@@ -61,12 +63,12 @@ func GetBookingstoreByStoreID(c *gin.Context) {
 	})
 }
 
+
 // อัปเดตสถานะการจอง
 func UpdateBookingstore(c *gin.Context) {
 	id := c.Param("id")
 	var booking entity.Bookingstore
 
-	// ตรวจสอบว่ามี Booking ตาม ID หรือไม่
 	if err := config.DB().First(&booking, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
@@ -80,14 +82,12 @@ func UpdateBookingstore(c *gin.Context) {
 		return
 	}
 
-	// Validate status
 	validStatuses := map[string]bool{"pending": true, "confirmed": true, "cancelled": true, "completed": true}
 	if payload.Status != "" && !validStatuses[payload.Status] {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status"})
 		return
 	}
 
-	// อัปเดตสถานะ
 	if payload.Status != "" {
 		booking.Status = payload.Status
 	}
@@ -106,27 +106,32 @@ func UpdateBookingstore(c *gin.Context) {
 	})
 }
 
-
-// DeleteBookingstore deletes a booking by ID
 func DeleteBookingstore(c *gin.Context) {
-	id := c.Param("id")
-	var booking entity.Bookingstore
+	bookingID := c.Param("id")
 
-	// Find the booking by ID
-	if err := config.DB().First(&booking, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
+	// Check if Bookingstore exists
+	var bookingstore entity.Bookingstore
+	if err := config.DB().Where("id = ?", bookingID).First(&bookingstore).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Bookingstore not found"})
 		return
 	}
 
-	// Delete the booking
-	if err := config.DB().Delete(&booking).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// Delete associated BookingPets
+	if err := config.DB().Where("booking_id = ?", bookingID).Delete(&entity.BookingPets{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete associated BookingPets"})
 		return
 	}
 
-	// Return success message
+	// Delete the Bookingstore
+	if err := config.DB().Delete(&bookingstore).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete Bookingstore"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"status":  200,
-		"message": "Booking deleted successfully",
+		"status":      200,
+		"message":     "Bookingstore and associated BookingPets deleted successfully",
+		"booking_id":  bookingID,
 	})
 }
+

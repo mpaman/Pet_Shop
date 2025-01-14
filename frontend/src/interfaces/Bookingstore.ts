@@ -2,7 +2,7 @@ import { PetInterface } from "./Pet";
 
 
 export interface BookingInterface {
-    pets: PetInterface[];       // รองรับเป็นอาร์เรย์ของ PetInterface
+    pets: PetInterface[];       // ข้อมูลสัตว์เลี้ยงที่จอง
     BookerUser: any;            // ข้อมูลผู้จอง
     ID?: number;                // ID ของการจอง (ถ้ามี)
     booker_user_id: number;     // ID ของผู้จอง

@@ -2,39 +2,73 @@ package test
 
 import (
 	"testing"
-	// "time"
+	"time"
 
-	// "github.com/mpaman/petshop/entity"
-	// . "github.com/onsi/gomega"
+	"github.com/asaskevich/govalidator"
+	"github.com/mpaman/petshop/entity"
+	. "github.com/onsi/gomega"
 )
 
-func TestBookingstoreValidation(t *testing.T) {
-	// g := NewGomegaWithT(t)
 
-	// t.Run("count_pet must be at least 1", func(t *testing.T) {
-	// 	booking := entity.Bookingstore{
-	// 		CountPet: 0, // Invalid
-	// 		Date:     time.Now(),
-	// 	}
+func TestBookingstoreBookerUserIDRequired(t *testing.T) {
+	g := NewGomegaWithT(t)
 
-	// 	err := booking.Validate()
-	// 	g.Expect(err).NotTo(BeNil())
-	// 	g.Expect(err.Error()).To(Equal("CountPet must be at least 1"))
-	// })
+	booking := entity.Bookingstore{
+		BookerUserID: 0, // Invalid: 
+		StoreID:      1,
+		ServiceID:    1,
+		BookingTime:  "10:00 AM",
+		Date:         time.Now().AddDate(0, 0, 1),
+		Status:       "confirmed",
+		Notes:        "First-time booking",
+		TotalCost:    500.0,
+		ContactNum:   "0812345678",
+		CountPet:     2,
+	}
 
-	// t.Run("valid bookingstore", func(t *testing.T) {
-	// 	booking := entity.Bookingstore{
-	// 		BookerUserID: 1,
-	// 		StoreID:      1,
-	// 		ServiceID:    1,
-	// 		BookingTime:  "09:00",
-	// 		Date:         time.Now(),
-	// 		Status:       "confirmed",
-	// 		TotalCost:    500,
-	// 		CountPet:     1,
-	// 	}
+	ok, err := govalidator.ValidateStruct(&booking)
+	g.Expect(ok).To(BeFalse())
+	g.Expect(err.Error()).To(ContainSubstring("BookerUserID is required"))
+}
 
-	// 	err := booking.Validate()
-	// 	g.Expect(err).To(BeNil())
-	// })
+func TestBookingstoreDateRequired(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	booking := entity.Bookingstore{
+		BookerUserID: 1,
+		StoreID:      1,
+		ServiceID:    1,
+		BookingTime:  "10:00 AM",
+		Date:         time.Time{}, // Invalid:
+		Status:       "confirmed",
+		Notes:        "First-time booking",
+		TotalCost:    500.0,
+		ContactNum:   "0812345678",
+		CountPet:     2,
+	}
+
+	ok, err := govalidator.ValidateStruct(&booking)
+	g.Expect(ok).To(BeFalse())
+	g.Expect(err.Error()).To(ContainSubstring("Date is required"))
+}
+
+func TestBookingstoreCountPetRequired(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	booking := entity.Bookingstore{
+		BookerUserID: 1,
+		StoreID:      1,
+		ServiceID:    1,
+		BookingTime:  "10:00 AM",
+		Date:         time.Now().AddDate(0, 0, 1),
+		Status:       "confirmed",
+		Notes:        "First-time booking",
+		TotalCost:    500.0,
+		ContactNum:   "0812345678",
+		CountPet:     0, // Invalid:
+	}
+
+	ok, err := govalidator.ValidateStruct(&booking)
+	g.Expect(ok).To(BeFalse())
+	g.Expect(err.Error()).To(ContainSubstring("CountPet is required"))
 }
