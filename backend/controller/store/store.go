@@ -15,6 +15,7 @@ func GetStoreByID(c *gin.Context) {
 	if err := config.DB().
 		Preload("User").
 		Preload("Province").
+		Preload("Services").
 		First(&store, storeID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
 		return
@@ -29,6 +30,7 @@ func GetAllStores(c *gin.Context) {
 	if err := db.
 		Preload("User").
 		Preload("Province").
+		Preload("Services").
 		Find(&stores).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve stores"})
 		return

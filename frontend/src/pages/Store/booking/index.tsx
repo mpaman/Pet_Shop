@@ -3,7 +3,7 @@ import { Table, Typography, message, Spin, Button, Tabs, Modal, Input, Row, Col,
 import { ColumnsType } from "antd/es/table";
 import { useParams } from "react-router-dom";
 import { BookingInterface } from "../../../interfaces/Bookingstore";
-import { GetAllBookings, UpdateBookingStatus, GetAllPets, GetPetsByBookingID } from "../../../services/https";
+import { GetAllBookings, UpdateBookingStatus, GetPetsByBookingID } from "../../../services/https";
 import moment from "moment";
 
 const { Title } = Typography;

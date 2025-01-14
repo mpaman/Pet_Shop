@@ -20,30 +20,18 @@ func CreateBookingPets(c *gin.Context) {
 		return
 	}
 
-	// Check if BookingID exists
 	var booking entity.Bookingstore
 	if err := config.DB().First(&booking, payload.BookingID).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "BookingID not found"})
 		return
 	}
 
-	// Check if PetID exists
 	var pet entity.Pet
 	if err := config.DB().First(&pet, payload.PetID).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "PetID not found"})
 		return
 	}
 
-	// Check for duplicate entry
-	// var existingBookingPets entity.BookingPets
-	// if err := config.DB().
-	// 	Where("booking_id = ? AND pet_id = ?", payload.BookingID, payload.PetID).
-	// 	First(&existingBookingPets).Error; err == nil {
-	// 	c.JSON(http.StatusConflict, gin.H{"error": "This pet is already associated with the booking"})
-	// 	return
-	// }
-
-	// Create the BookingPets record
 	bookingpets := entity.BookingPets{
 		BookingID: payload.BookingID,
 		PetID:     payload.PetID,
@@ -53,7 +41,6 @@ func CreateBookingPets(c *gin.Context) {
 		return
 	}
 
-	// Return success response
 	c.JSON(http.StatusCreated, gin.H{
 		"status":     201,
 		"message":    "BookingPets created successfully",

@@ -179,6 +179,13 @@ func SetupDatabase() {
 	}
 	db.FirstOrCreate(&pet1, &entity.Pet{Name: "มะลิ", OwnerID: 1})
 
+	bookingPet1 := entity.BookingPets{
+		BookingID: bookingStore1.ID,
+		PetID:     pet1.ID,
+	}
+
+	db.FirstOrCreate(&bookingPet1, &entity.BookingPets{BookingID: bookingStore1.ID, PetID: pet1.ID})
+
 	// รายชื่อจังหวัดในประเทศไทยทั้งหมด
 	provinces := []string{
 		"นครราชสีมา", "เชียงใหม่", "กรุงเทพมหานคร", "อุบลราชธานี", "ขอนแก่น", "ชลบุรี", "สุราษฎร์ธานี", "อยุธยา", "ปทุมธานี", "นครปฐม",

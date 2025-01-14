@@ -31,11 +31,14 @@ type Store struct {
 
 // เช็คเพิ่มเติม
 func (s *Store) Validate() error {
+	if s.Latitude < -90 || s.Latitude > 90 {
+		return errors.New("latitude must be between -90 and 90")
+	}
 	if s.Longitude < -180 || s.Longitude > 180 {
-		return errors.New("Longitude must be between -180 and 180")
+		return errors.New("longitude must be between -180 and 180")
 	}
 	if s.Status != "open" && s.Status != "close" && s.Status != "full" {
-		return errors.New("Status must be 'open', 'close', or 'full'")
+		return errors.New("status must be 'open', 'close', or 'full'")
 	}
 	return nil
 }
